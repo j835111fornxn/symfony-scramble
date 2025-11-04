@@ -57,209 +57,216 @@ src/
 
 ### 2.1 遷移方式選擇
 
-**建議採用：雙框架支援策略**
+**採用策略：完全遷移到 Symfony**
+
+**目標**:
+1. 將所有功能從 Laravel 遷移到 Symfony
+2. 保持功能完整性，不減少任何現有特性
+3. 採用 Symfony 編碼標準和最佳實踐
+4. 使用 Symfony 測試慣例和工具
 
 **理由**:
-1. 保留原有 Laravel 支援，避免破壞現有用戶
-2. 逐步添加 Symfony 支援，降低風險
-3. 共享核心類型推斷和 OpenAPI 生成邏輯
-4. 便於維護和測試
+1. 專注於單一框架，降低維護複雜度
+2. 充分利用 Symfony 生態系統和工具
+3. 統一的代碼風格和測試標準
+4. 更清晰的專案定位和目標用戶群
 
-**替代方案**（不建議）:
-- 完全重寫：風險高，工作量大
-- 分叉項目：維護成本高
-- 僅 Symfony：放棄現有用戶群
+**不採用雙框架支援的原因**:
+- 維護成本過高，需要同時支援兩套框架
+- 測試複雜度倍增
+- 代碼庫膨脹，難以保持一致性
 
 ### 2.2 架構設計
+
+**新的 Symfony 專案架構**:
 
 ```
 symfony-scramble/
 ├── src/
-│   ├── Core/                     # 框架無關的核心邏輯 (新)
-│   │   ├── Generator/            # 文件生成核心
-│   │   ├── Analyzer/             # 代碼分析核心
-│   │   ├── TypeInference/        # 類型推斷核心
-│   │   └── OpenApi/              # OpenAPI 對象模型
-│   ├── Laravel/                  # Laravel 適配器 (遷移現有代碼)
-│   │   ├── ScrambleServiceProvider.php
-│   │   ├── LaravelRouteExtractor.php
-│   │   ├── LaravelTypeExtensions/
-│   │   └── Middleware/
-│   ├── Symfony/                  # Symfony 適配器 (新)
-│   │   ├── ScrambleBundle.php
-│   │   ├── SymfonyRouteExtractor.php
-│   │   ├── SymfonyTypeExtensions/
-│   │   ├── EventSubscriber/
-│   │   └── DependencyInjection/
-│   ├── Abstractions/             # 抽象接口層 (新)
-│   │   ├── RouteExtractorInterface.php
-│   │   ├── RequestExtractorInterface.php
-│   │   ├── ResponseExtractorInterface.php
-│   │   └── SecurityExtractorInterface.php
-│   └── (現有其他目錄...)
+│   ├── Bundle/
+│   │   └── ScrambleBundle.php           # Symfony Bundle 主類
+│   ├── DependencyInjection/
+│   │   ├── ScrambleExtension.php        # DI 擴展
+│   │   ├── Configuration.php            # 配置定義
+│   │   └── Compiler/                    # 編譯器通道
+│   ├── Controller/
+│   │   └── DocumentationController.php  # 文件查看控制器
+│   ├── Command/
+│   │   ├── GenerateCommand.php          # 生成文件命令
+│   │   └── ExportCommand.php            # 導出文件命令
+│   ├── Generator/
+│   │   ├── DocumentGenerator.php        # 文件生成器
+│   │   ├── OperationBuilder.php         # 操作建構器
+│   │   └── SchemaBuilder.php            # Schema 建構器
+│   ├── Extractor/
+│   │   ├── RouteExtractor.php           # 路由提取器
+│   │   ├── RequestExtractor.php         # 請求提取器
+│   │   ├── ResponseExtractor.php        # 響應提取器
+│   │   └── SecurityExtractor.php        # 安全提取器
+│   ├── TypeInference/
+│   │   ├── TypeInferenceEngine.php      # 類型推斷引擎
+│   │   ├── TypeAnalyzer.php             # 類型分析器
+│   │   └── Extension/                   # Symfony 特定擴展
+│   │       ├── DoctrineEntityExtension.php
+│   │       ├── SerializerExtension.php
+│   │       ├── ValidatorExtension.php
+│   │       └── FormTypeExtension.php
+│   ├── EventSubscriber/
+│   │   └── SecuritySubscriber.php       # 安全事件訂閱器
+│   ├── Exception/                       # 異常類
+│   ├── Model/                          # 數據模型
+│   │   ├── OpenApi/                    # OpenAPI 模型
+│   │   ├── RouteInfo.php
+│   │   └── ParameterInfo.php
+│   └── Resources/
+│       ├── config/
+│       │   └── services.yaml           # 服務配置
+│       └── views/
+│           └── documentation.html.twig # 文件視圖
 ├── config/
-│   ├── scramble.php              # Laravel 配置
 │   └── packages/
-│       └── scramble.yaml         # Symfony 配置
-└── tests/
-    ├── Core/                     # 核心測試
-    ├── Laravel/                  # Laravel 特定測試
-    └── Symfony/                  # Symfony 特定測試
+│       └── scramble.yaml                # Symfony 配置
+├── tests/
+│   ├── Unit/                           # 單元測試
+│   ├── Integration/                    # 整合測試
+│   ├── Functional/                     # 功能測試
+│   └── Fixtures/                       # 測試 fixtures
+├── phpunit.xml.dist                    # PHPUnit 配置
+├── phpcs.xml.dist                      # PHP_CodeSniffer 配置
+└── .php-cs-fixer.dist.php             # PHP-CS-Fixer 配置
 ```
+
+**遵循 Symfony 最佳實踐**:
+- 使用 Symfony Bundle 結構
+- 依賴注入容器管理所有服務
+- 事件驅動架構
+- Twig 模板引擎
+- Symfony 命令行工具
+- PSR-12 編碼標準
+- PHPUnit + Symfony 測試工具
 
 ---
 
 ## 三、詳細實施計劃
 
-### 階段一：核心抽象層建立 (第 1-2 週)
+### 階段一：專案結構重組和 Bundle 建立 (第 1-2 週)
 
-#### 3.1 創建框架抽象接口
+#### 3.1 創建 Symfony Bundle 基礎結構
 
-**目標**: 定義框架無關的接口，使核心邏輯可在兩個框架間共享
-
-**需要創建的接口**:
-
-1. **RouteExtractorInterface**
-```php
-namespace Dedoc\Scramble\Abstractions;
-
-interface RouteExtractorInterface
-{
-    /**
-     * 提取所有 API 路由
-     * @return RouteInfo[]
-     */
-    public function extractRoutes(array $config): array;
-    
-    /**
-     * 獲取路由的 HTTP 方法
-     */
-    public function getMethods(object $route): array;
-    
-    /**
-     * 獲取路由 URI
-     */
-    public function getUri(object $route): string;
-    
-    /**
-     * 獲取路由處理器信息
-     */
-    public function getHandler(object $route): HandlerInfo;
-}
-```
-
-2. **RequestExtractorInterface**
-```php
-namespace Dedoc\Scramble\Abstractions;
-
-interface RequestExtractorInterface
-{
-    /**
-     * 提取請求參數定義
-     */
-    public function extractParameters(HandlerInfo $handler): ParameterCollection;
-    
-    /**
-     * 提取請求體定義
-     */
-    public function extractRequestBody(HandlerInfo $handler): ?RequestBodySchema;
-}
-```
-
-3. **ResponseExtractorInterface**
-```php
-namespace Dedoc\Scramble\Abstractions;
-
-interface ResponseExtractorInterface
-{
-    /**
-     * 提取響應定義
-     */
-    public function extractResponses(HandlerInfo $handler): ResponseCollection;
-}
-```
-
-4. **SecurityExtractorInterface**
-```php
-namespace Dedoc\Scramble\Abstractions;
-
-interface SecurityExtractorInterface
-{
-    /**
-     * 提取安全需求（認證、授權）
-     */
-    public function extractSecurityRequirements(object $route): array;
-}
-```
-
-#### 3.2 重構核心邏輯為框架無關
-
-**需要重構的類**:
-
-1. **Generator.php** → **Core/Generator/DocumentGenerator.php**
-   - 移除 Laravel Route 直接依賴
-   - 使用 RouteExtractorInterface
-   - 保留 OpenAPI 生成邏輯
-
-2. **OpenApiTraverser.php** → **Core/OpenApi/Traverser.php**
-   - 已基本框架無關，僅需少量調整
-
-3. **Infer/** → **Core/TypeInference/**
-   - 類型推斷系統基本框架無關
-   - 僅框架特定擴展需分離
-
-### 階段二：Laravel 適配器實現 (第 3-4 週)
-
-#### 3.3 將現有 Laravel 代碼遷移到適配器層
+**目標**: 建立符合 Symfony 標準的 Bundle 架構
 
 **主要任務**:
 
-1. **創建 Laravel 路由提取器**
+1. **創建 ScrambleBundle 主類**
 ```php
-namespace Dedoc\Scramble\Laravel;
+namespace Dedoc\Scramble\Bundle;
 
-use Dedoc\Scramble\Abstractions\RouteExtractorInterface;
-use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\Route as RouteFacade;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class LaravelRouteExtractor implements RouteExtractorInterface
+class ScrambleBundle extends Bundle
 {
-    public function extractRoutes(array $config): array
+    public function getPath(): string
     {
-        $routes = RouteFacade::getRoutes();
-        // 使用現有的路由過濾邏輯
-        return $this->filterApiRoutes($routes, $config);
+        return \dirname(__DIR__);
     }
     
-    // 實現其他接口方法...
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+        // 註冊編譯器通道
+    }
 }
 ```
 
-2. **保留 Laravel 特定擴展**
-   - `src/Support/InferExtensions/` → `src/Laravel/TypeExtensions/`
-     - EloquentBuilderExtension
-     - ModelExtension
-     - JsonResourceExtension
-     - RequestExtension
-     - 等等...
+2. **設置 DependencyInjection**
+   - 創建 `ScrambleExtension.php`
+   - 定義 `Configuration.php`
+   - 配置服務自動註冊
 
-3. **保留 Laravel 中介層和服務提供者**
-   - `src/Http/Middleware/` → `src/Laravel/Middleware/`
-   - `ScrambleServiceProvider.php` → `src/Laravel/ScrambleServiceProvider.php`
+3. **設置專案基礎配置**
+   - `composer.json` - 更新依賴為 Symfony
+   - `phpunit.xml.dist` - Symfony 測試配置
+   - `.php-cs-fixer.dist.php` - Symfony 編碼標準
 
-### 階段三：Symfony 適配器實現 (第 5-8 週)
+#### 3.2 移除 Laravel 依賴
 
-#### 3.4 創建 Symfony Bundle
+**目標**: 將所有 Laravel 特定代碼移除
 
-**目標**: 創建符合 Symfony 標準的 Bundle
+**主要任務**:
 
-1. **Bundle 類**
+1. **移除 Laravel 依賴包**
+   - 移除 `illuminate/*` 依賴
+   - 移除 `spatie/laravel-package-tools`
+   - 添加 Symfony 依賴
+
+2. **刪除 Laravel 特定文件**
+   - 刪除 `ScrambleServiceProvider.php`
+   - 刪除 `routes/web.php`
+   - 刪除 `config/scramble.php` (Laravel 配置)
+
+3. **移除 Laravel 中介層和 Facade**
+   - 移除 `src/Http/Middleware/`
+   - 移除所有 Facade 使用
+
+### 階段二：核心功能遷移到 Symfony (第 3-5 週)
+
+#### 3.3 路由提取器重寫
+
+**目標**: 將 Laravel 路由提取改為 Symfony 路由提取
+
+**原 Laravel 實現**:
 ```php
-namespace Dedoc\Scramble\Symfony;
+// 舊代碼 - 依賴 Laravel
+use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Route as RouteFacade;
 
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+$routes = RouteFacade::getRoutes();
+```
 
-class ScrambleBundle extends Bundle
+**新 Symfony 實現**:
+```php
+namespace Dedoc\Scramble\Extractor;
+
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Routing\Route;
+
+class RouteExtractor
+{
+    public function __construct(
+        private RouterInterface $router
+    ) {}
+    
+    public function extractRoutes(array $config): array
+    {
+        $collection = $this->router->getRouteCollection();
+        $routes = [];
+        
+        foreach ($collection as $name => $route) {
+            if ($this->shouldIncludeRoute($route, $config)) {
+                $routes[] = $this->buildRouteInfo($name, $route);
+            }
+        }
+        
+        return $routes;
+    }
+    
+    private function shouldIncludeRoute(Route $route, array $config): bool
+    {
+        // 使用 Symfony 路由匹配邏輯
+        $path = $route->getPath();
+        $apiPath = $config['api_path'] ?? '/api';
+        
+        return str_starts_with($path, $apiPath);
+    }
+}
+```
+
+### 階段三：類型推斷系統適配 (第 6-8 週)
+
+#### 3.4 Symfony 特定類型擴展
+
+**目標**: 將 Laravel 特定的類型推斷改為 Symfony 特定
 {
     public function getPath(): string
     {
@@ -685,112 +692,140 @@ class SymfonyRouteExtractorTest extends WebTestCase
 
 ## 四、技術挑戰與解決方案
 
-### 4.1 路由系統差異
+### 4.1 路由系統遷移
 
-**挑戰**:
-- Laravel: `Illuminate\Routing\Route`，簡單的閉包和控制器方法
-- Symfony: `Symfony\Component\Routing\Route`，更複雜的控制器格式
-
-**解決方案**:
-- 創建統一的 `RouteInfo` 抽象
-- 使用適配器模式處理差異
-- 在路由提取器中規範化控制器格式
-
-### 4.2 依賴注入差異
-
-**挑戰**:
-- Laravel: 服務容器（Service Container）
-- Symfony: 依賴注入容器（DI Container）
+**從 Laravel 遷移挑戰**:
+- Laravel `Illuminate\Routing\Route` → Symfony `Symfony\Component\Routing\Route`
+- 控制器格式不同（`Controller@method` vs `Controller::method`）
+- 路由定義方式不同（檔案 vs 屬性/YAML）
 
 **解決方案**:
-- 核心邏輯不直接使用容器
-- 在適配器層處理依賴解析
-- 使用接口而非具體實現
+- 重寫路由提取邏輯使用 Symfony RouterInterface
+- 支援 PHP 屬性、註解和 YAML 路由定義
+- 標準化控制器處理邏輯
 
-### 4.3 ORM 差異
+### 4.2 依賴注入系統遷移
 
-**挑戰**:
-- Laravel: Eloquent ORM
-- Symfony: Doctrine ORM
-
-**解決方案**:
-- 創建框架特定的模型類型擴展
-- Eloquent → `ModelExtension`
-- Doctrine → `DoctrineEntityExtension`
-- 兩者返回相同的抽象類型表示
-
-### 4.4 請求驗證差異
-
-**挑戰**:
-- Laravel: FormRequest 類，驗證規則數組
-- Symfony: Validator 組件，註解/屬性
+**從 Laravel 遷移挑戰**:
+- Laravel Service Container → Symfony DI Container
+- 服務註冊方式不同
+- 自動裝配（autowiring）行為差異
 
 **解決方案**:
-- Laravel: 從 FormRequest 的 `rules()` 方法提取
-- Symfony: 從實體或 DTO 的 Validator 約束提取
-- 統一轉換為 OpenAPI Schema
+- 使用 Symfony DependencyInjection 組件
+- 在 `services.yaml` 中定義所有服務
+- 啟用 Symfony 自動裝配和自動配置
+- 使用構造函數注入而非 Facade
 
-### 4.5 資源序列化差異
+### 4.3 ORM 系統遷移
 
-**挑戰**:
-- Laravel: JsonResource，`toArray()` 方法
-- Symfony: Serializer 組件，註解配置
-
-**解決方案**:
-- Laravel: 分析 JsonResource 的 `toArray()` 方法
-- Symfony: 解析 Serializer 配置（Groups, MaxDepth 等）
-- 統一轉換為 Schema 對象
-
-### 4.6 中介層/事件監聽器
-
-**挑戰**:
-- Laravel: 中介層（Middleware）
-- Symfony: 事件訂閱器（EventSubscriber）
+**從 Eloquent 到 Doctrine**:
+- Active Record → Data Mapper 模式
+- 屬性自動推斷方式不同
+- 關聯定義語法不同
 
 **解決方案**:
-- Laravel: 保留現有中介層
-- Symfony: 創建事件訂閱器
-- 兩者實現相同的安全控制邏輯
+- 創建 `DoctrineEntityExtension` 類型擴展
+- 從 Doctrine Metadata 提取屬性類型
+- 支援 Doctrine 關聯（OneToMany, ManyToMany 等）
+- 處理 Doctrine 代理類
+
+### 4.4 請求驗證遷移
+
+**從 Laravel Validation 到 Symfony Validator**:
+- FormRequest 規則數組 → Constraint 屬性/註解
+- 驗證錯誤格式不同
+
+**解決方案**:
+- 創建 `ValidatorExtension` 從屬性提取約束
+- 支援常用約束：NotBlank, Length, Email, Choice 等
+- 轉換約束為 OpenAPI 驗證規則
+- 處理驗證組（validation groups）
+
+### 4.5 資源序列化遷移
+
+**從 JsonResource 到 Serializer**:
+- JsonResource `toArray()` → Serializer Groups/Context
+- 手動序列化 → 自動序列化
+
+**解決方案**:
+- 創建 `SerializerExtension` 處理序列化
+- 支援 Serializer Groups
+- 支援 MaxDepth 和 Circular Reference 處理
+- 使用 Normalizer 接口分析輸出格式
+
+### 4.6 安全和認證遷移
+
+**從 Laravel Auth 到 Symfony Security**:
+- Laravel Gates/Policies → Symfony Voters
+- Middleware → Event Subscribers
+
+**解決方案**:
+- 使用 Symfony Security Bundle
+- 創建 EventSubscriber 控制文件訪問
+- 支援多種認證方式（JWT, Session, API Key）
+
+### 4.7 測試框架遷移
+
+**從 Laravel 測試到 Symfony 測試**:
+- Laravel TestCase → Symfony WebTestCase/KernelTestCase
+- 測試資料庫設置不同
+- Fixtures 處理不同
+
+**解決方案**:
+- 使用 `WebTestCase` 進行功能測試
+- 使用 `KernelTestCase` 進行單元測試
+- 使用 Doctrine Fixtures Bundle 管理測試數據
+- 遵循 Symfony 測試最佳實踐
 
 ---
 
-## 五、組件對應關係
+## 五、Laravel 到 Symfony 組件遷移對照表
 
-### 5.1 核心組件映射
+### 5.1 核心組件遷移
 
-| Laravel 組件 | Symfony 對應組件 | 抽象接口 |
-|-------------|-----------------|---------|
-| `Illuminate\Routing\Route` | `Symfony\Component\Routing\Route` | `RouteExtractorInterface` |
-| `Illuminate\Http\Request` | `Symfony\Component\HttpFoundation\Request` | `RequestExtractorInterface` |
-| `Illuminate\Http\Response` | `Symfony\Component\HttpFoundation\Response` | `ResponseExtractorInterface` |
-| `Illuminate\Database\Eloquent\Model` | `Doctrine\ORM\Entity` | `ModelTypeExtension` |
-| `Illuminate\Http\Resources\Json\JsonResource` | `Symfony\Component\Serializer\Normalizer` | `SerializerTypeExtension` |
-| `Illuminate\Validation\Validator` | `Symfony\Component\Validator\Validator` | `ValidatorExtension` |
-| Laravel Service Provider | Symfony Bundle | - |
-| Laravel Middleware | Symfony EventSubscriber | - |
+| 功能 | Laravel 原組件 | Symfony 新組件 | 備註 |
+|-----|---------------|---------------|------|
+| 路由 | `Illuminate\Routing\Route` | `Symfony\Component\Routing\Route` | 改用 RouterInterface |
+| HTTP 請求 | `Illuminate\Http\Request` | `Symfony\Component\HttpFoundation\Request` | PSR-7 兼容 |
+| HTTP 響應 | `Illuminate\Http\Response` | `Symfony\Component\HttpFoundation\Response` | PSR-7 兼容 |
+| ORM | `Illuminate\Database\Eloquent\Model` | `Doctrine\ORM\Entity` | Data Mapper 模式 |
+| 序列化 | `Illuminate\Http\Resources\Json\JsonResource` | `Symfony\Component\Serializer\Normalizer` | 基於註解/屬性 |
+| 驗證 | `Illuminate\Validation\Validator` | `Symfony\Component\Validator\Validator` | 基於 Constraint |
+| 服務註冊 | Service Provider | Bundle + DI Extension | 標準 Symfony 方式 |
+| 中介層 | Middleware | EventSubscriber | 事件驅動 |
+| 配置 | PHP 數組 | YAML/PHP | Symfony Config Component |
+| 視圖 | Blade | Twig | Symfony 標準模板引擎 |
 
-### 5.2 例外處理映射
+### 5.2 異常處理遷移
 
-| Laravel 異常 | Symfony 異常 | OpenAPI 響應 |
-|-------------|-------------|------------|
-| `ValidationException` | `Symfony\Component\Validator\Exception\ValidationFailedException` | 422 Unprocessable Entity |
-| `AuthenticationException` | `Symfony\Component\Security\Core\Exception\AuthenticationException` | 401 Unauthorized |
-| `AuthorizationException` | `Symfony\Component\Security\Core\Exception\AccessDeniedException` | 403 Forbidden |
-| `ModelNotFoundException` | `Doctrine\ORM\EntityNotFoundException` | 404 Not Found |
-| `HttpException` | `Symfony\Component\HttpKernel\Exception\HttpException` | 對應狀態碼 |
+| 功能 | Laravel 異常 | Symfony 異常 | HTTP 狀態碼 |
+|-----|-------------|-------------|-----------|
+| 驗證失敗 | `ValidationException` | `ValidationFailedException` | 422 |
+| 認證失敗 | `AuthenticationException` | `AuthenticationException` | 401 |
+| 授權失敗 | `AuthorizationException` | `AccessDeniedException` | 403 |
+| 找不到資源 | `ModelNotFoundException` | `EntityNotFoundException` | 404 |
+| HTTP 錯誤 | `HttpException` | `HttpException` | 自定義 |
+| 方法不允許 | `MethodNotAllowedHttpException` | `MethodNotAllowedHttpException` | 405 |
+
+### 5.3 類型推斷擴展遷移
+
+| 功能 | Laravel 擴展 | Symfony 擴展 | 說明 |
+|-----|------------|-------------|------|
+| 模型類型 | `ModelExtension` | `DoctrineEntityExtension` | Entity metadata |
+| 請求類型 | `RequestExtension` | `SymfonyRequestExtension` | Request 對象屬性 |
+| 響應資源 | `JsonResourceExtension` | `SerializerExtension` | Serializer groups |
+| 驗證規則 | `ValidationRulesExtension` | `ValidatorExtension` | Validator constraints |
+| 集合類型 | `EloquentBuilderExtension` | `DoctrineCollectionExtension` | Query builder |
+| 分頁 | `PaginatorExtension` | `PaginatorExtension` | Pagerfanta 支援 |
 
 ---
 
-## 六、配置和使用差異
+## 六、Symfony 專案配置和使用
 
 ### 6.1 安裝
 
-**Laravel**:
-```bash
-composer require dedoc/scramble
-```
-
-**Symfony**:
+**Symfony 專案安裝**:
 ```bash
 composer require dedoc/scramble
 # 啟用 Bundle（Symfony Flex 自動處理）
@@ -839,77 +874,82 @@ scramble_docs_ui:
 
 ## 七、實施時程
 
-### 時程總覽（12 週）
+### 時程總覽（10 週）
 
 | 階段 | 週次 | 主要任務 | 交付物 |
 |-----|-----|---------|-------|
-| 階段一 | 1-2 | 核心抽象層建立 | 抽象接口、核心類重構 |
-| 階段二 | 3-4 | Laravel 適配器 | Laravel 代碼遷移、向後兼容 |
-| 階段三 | 5-8 | Symfony 適配器 | Symfony Bundle、類型擴展 |
-| 階段四 | 9 | 屬性和註解 | Symfony 屬性、文件增強 |
-| 階段五 | 10-12 | 測試和文件 | 完整測試套件、用戶文件 |
+| 階段一 | 1-2 | 專案重組和 Bundle 建立 | Symfony Bundle、移除 Laravel 依賴 |
+| 階段二 | 3-5 | 核心功能遷移 | 路由、請求、響應提取器 |
+| 階段三 | 6-8 | 類型推斷和擴展 | Doctrine、Serializer、Validator 擴展 |
+| 階段四 | 9 | 測試遷移 | Symfony 測試套件、PHPUnit 配置 |
+| 階段五 | 10 | 文件和發布 | 文件、範例、CI/CD |
 
 ### 詳細時程
 
-**第 1 週**: 設計和實現抽象接口
-- 設計 RouteExtractorInterface 等接口
-- 創建 HandlerInfo、RouteInfo 等統一數據結構
-- 建立 Core 命名空間結構
+**第 1 週**: 專案結構重組
+- 創建 Symfony Bundle 結構
+- 更新 `composer.json`，移除 Laravel 依賴，添加 Symfony 依賴
+- 建立 DependencyInjection 配置
+- 創建基礎 `services.yaml`
+- 設置 PHPUnit 和編碼標準配置
 
-**第 2 週**: 重構核心邏輯
-- 重構 Generator.php 移除 Laravel 直接依賴
-- 重構 OpenApiTraverser.php
-- 將 Infer 系統移至 Core
+**第 2 週**: 移除 Laravel 組件
+- 刪除 `ScrambleServiceProvider.php`
+- 刪除 Laravel 路由文件
+- 刪除 Laravel 中介層
+- 移除所有 `Illuminate\*` 使用
+- 移除 Facade 使用
 
-**第 3 週**: Laravel 適配器 - 路由和請求
-- 實現 LaravelRouteExtractor
-- 實現 LaravelRequestExtractor
-- 遷移路由相關代碼
+**第 3 週**: Symfony 路由和請求處理
+- 實現 `RouteExtractor` 使用 Symfony Router
+- 實現 `RequestExtractor` 分析 Symfony Request
+- 實現 `ResponseExtractor` 分析 Symfony Response
+- 創建 `DocumentationController`
+- 配置路由（屬性/YAML）
 
-**第 4 週**: Laravel 適配器 - 類型和驗證
-- 遷移 InferExtensions 到 Laravel/TypeExtensions
-- 遷移 TypeToSchemaExtensions
-- 確保向後兼容
+**第 4 週**: OpenAPI 生成器適配
+- 重寫 `Generator` 類移除 Laravel 依賴
+- 適配 `OperationBuilder` 使用 Symfony 組件
+- 適配 `SchemaBuilder`
+- 更新 OpenAPI 遍歷器
 
-**第 5 週**: Symfony Bundle 基礎
-- 創建 ScrambleBundle
-- 實現 DependencyInjection
-- 創建服務配置
+**第 5 週**: 核心類型推斷系統
+- 保留並優化類型推斷引擎
+- 移除 Laravel 特定類型推斷
+- 創建基礎 Symfony 類型推斷
+- 更新 PHPDoc 解析器
 
-**第 6 週**: Symfony 路由提取
-- 實現 SymfonyRouteExtractor
-- 實現 SymfonyRequestExtractor
-- 實現 SymfonyResponseExtractor
+**第 6 週**: Doctrine Entity 支援
+- 實現 `DoctrineEntityExtension`
+- 從 Doctrine Metadata 提取屬性類型
+- 支援 Entity 關聯
+- 處理 Proxy 類
 
-**第 7 週**: Symfony 類型擴展（1）
-- DoctrineEntityExtension
-- SymfonyRequestExtension
-- ValidatorExtension
+**第 7 週**: Serializer 和 Validator 支援
+- 實現 `SerializerExtension`
+- 支援 Serializer Groups 和 Context
+- 實現 `ValidatorExtension`
+- 從 Constraint 提取驗證規則
 
-**第 8 週**: Symfony 類型擴展（2）
-- SerializerExtension
-- 異常處理擴展
-- 控制器實現
+**第 8 週**: 異常處理和安全
+- 實現 Symfony 異常轉換
+- 創建 `SecuritySubscriber`
+- 支援 Symfony Security 組件
+- 實現訪問控制
 
-**第 9 週**: 屬性和增強
-- Symfony 屬性定義
-- 註解支援
-- 文件增強功能
+**第 9 週**: 測試套件遷移
+- 重寫測試使用 `WebTestCase` 和 `KernelTestCase`
+- 創建測試 Fixtures
+- 配置測試資料庫
+- 達到 80% 測試覆蓋率
+- 所有測試通過
 
-**第 10 週**: 核心和 Laravel 測試
-- 核心邏輯測試
-- Laravel 適配器測試
-- 向後兼容性測試
-
-**第 11 週**: Symfony 測試
-- Symfony 適配器測試
-- Doctrine 整合測試
-- 端到端測試
-
-**第 12 週**: 文件和發布準備
-- 用戶文件撰寫
-- 範例應用
-- 發布準備
+**第 10 週**: 文件、CI/CD 和發布
+- 更新 README.md
+- 撰寫 Symfony 安裝和配置文件
+- 創建範例應用
+- 配置 GitHub Actions CI/CD
+- 準備發布到 Packagist
 
 ---
 
@@ -919,19 +959,21 @@ scramble_docs_ui:
 
 | 風險 | 可能性 | 影響 | 應對措施 |
 |-----|-------|-----|---------|
-| 核心重構破壞 Laravel 功能 | 中 | 高 | 完整的回歸測試、逐步重構 |
-| Symfony 類型推斷複雜度高 | 高 | 中 | 先實現基礎功能、逐步增強 |
-| Doctrine 元數據提取困難 | 中 | 中 | 參考成功案例、社群諮詢 |
-| 效能問題 | 低 | 中 | 效能測試、快取優化 |
+| Symfony 路由提取複雜度 | 中 | 高 | 參考 Symfony Bundle 最佳實踐、逐步實現 |
+| Doctrine Metadata 提取困難 | 中 | 中 | 研究 Doctrine ORM 內部機制、參考類似專案 |
+| 類型推斷準確度下降 | 中 | 高 | 完整測試覆蓋、增量開發和驗證 |
+| 效能問題 | 低 | 中 | Profiling、快取策略、延遲加載 |
+| Serializer Groups 處理 | 中 | 中 | 深入研究 Serializer 組件、創建示例 |
 
 ### 8.2 專案風險
 
 | 風險 | 可能性 | 影響 | 應對措施 |
 |-----|-------|-----|---------|
-| 時程延誤 | 中 | 中 | 階段性交付、優先級排序 |
-| 資源不足 | 低 | 高 | 提前規劃、社群貢獻 |
-| 需求變更 | 中 | 中 | 敏捷開發、定期審查 |
-| 測試覆蓋不足 | 中 | 高 | TDD、持續整合 |
+| 時程延誤 | 中 | 中 | 階段性交付、MVP 優先、靈活調整 |
+| 功能遺漏 | 中 | 高 | 詳細功能清單、逐項對照檢查 |
+| 測試覆蓋不足 | 中 | 高 | TDD 開發方式、CI/CD 自動化 |
+| 文件不完整 | 低 | 中 | 邊開發邊文件、最後統一審查 |
+| 社群接受度 | 中 | 低 | 提供範例、詳細文件、積極回應反饋 |
 
 ---
 
@@ -939,27 +981,36 @@ scramble_docs_ui:
 
 ### 9.1 功能標準
 
-- ✅ Symfony 應用可以安裝和配置 Scramble
-- ✅ 自動發現和文件化 Symfony API 路由
-- ✅ 支援 Doctrine 實體類型推斷
-- ✅ 支援 Symfony Validator 驗證規則提取
-- ✅ 支援 Symfony Serializer 序列化配置
-- ✅ 生成正確的 OpenAPI 3.1.0 文件
-- ✅ UI 正確顯示 Symfony API 文件
-- ✅ 向後兼容 Laravel 使用者
+- ✅ Symfony 應用可以通過 Composer 安裝 Scramble Bundle
+- ✅ 自動發現和文件化所有 Symfony API 路由（屬性、註解、YAML）
+- ✅ 完整支援 Doctrine Entity 類型推斷和關聯
+- ✅ 完整支援 Symfony Validator 約束提取
+- ✅ 完整支援 Symfony Serializer Groups 和配置
+- ✅ 生成符合 OpenAPI 3.1.0 規範的文件
+- ✅ UI 正確顯示文件（Twig 模板）
+- ✅ 支援 Symfony 命令行工具導出文件
+- ✅ 完全移除 Laravel 依賴，無遺留代碼
+- ✅ 所有原有功能在 Symfony 中完整實現
 
 ### 9.2 品質標準
 
 - ✅ 測試覆蓋率 > 80%
-- ✅ 所有核心功能有單元測試
-- ✅ 每個適配器有整合測試
-- ✅ 通過 PHPStan level 5 分析
-- ✅ 符合 PSR-12 編碼標準
+- ✅ 所有核心功能有單元測試（PHPUnit）
+- ✅ 功能測試使用 Symfony WebTestCase
+- ✅ 通過 PHPStan level 6 分析
+- ✅ 符合 Symfony 編碼標準（PSR-12 + Symfony CS Fixer）
+- ✅ 無 Symfony 棄用警告
+- ✅ 所有測試在 CI/CD 中自動運行
 
 ### 9.3 文件標準
 
 - ✅ 完整的 Symfony 安裝指南
-- ✅ Symfony 配置選項文件
+- ✅ 詳細的配置選項說明
+- ✅ API 使用範例和最佳實踐
+- ✅ Symfony 屬性使用指南
+- ✅ 故障排除文件
+- ✅ Contributing 指南
+- ✅ Changelog 記錄所有變更
 - ✅ Symfony 使用範例
 - ✅ 從 Laravel 遷移指南
 - ✅ API 參考文件
@@ -968,35 +1019,44 @@ scramble_docs_ui:
 
 ## 十、未來擴展
 
-### 10.1 短期（6 個月內）
+### 10.1 短期（3-6 個月內）
 
-- 支援更多 Symfony 特性（Security voters、FOSRestBundle 等）
-- 效能優化和快取機制
-- 更豐富的 Doctrine 支援（關聯、繼承等）
+- 支援更多 Symfony Bundles（FOSRestBundle、API Platform 等）
+- 效能優化和智能快取機制
+- 增強 Doctrine 支援（繼承、Embedded 等進階特性）
 - API 版本控制支援
+- 支援 Symfony UX 和 Live Components
 
-### 10.2 長期（1 年內）
+### 10.2 長期（6-12 個月內）
 
-- 其他 PHP 框架支援（Slim、Lumen 等）
-- GraphQL 支援
-- 自動生成測試案例
-- API 監控和分析
+- GraphQL API 文件生成支援
+- 自動生成 API 測試案例
+- API 使用統計和監控
+- 多語言文件生成
+- CLI 工具增強
 
 ---
 
 ## 十一、結論
 
-本計劃提供了將 Laravel Scramble 適配到 Symfony 框架的完整路徑。通過：
+本計劃提供了將 Laravel Scramble 完全遷移到 Symfony 框架的清晰路徑。通過：
 
-1. **抽象層設計**: 將框架特定邏輯與核心邏輯分離
-2. **適配器模式**: 為每個框架提供專門的適配器
-3. **雙框架支援**: 保持 Laravel 支援同時添加 Symfony 支援
-4. **階段性實施**: 降低風險，便於測試和驗證
+1. **完全遷移策略**: 徹底從 Laravel 遷移到 Symfony，專注單一框架
+2. **保持功能完整**: 確保所有原有功能在 Symfony 中完整實現
+3. **Symfony 最佳實踐**: 採用 Symfony 標準的代碼風格和架構模式
+4. **階段性實施**: 10 週分階段完成，降低風險
+5. **測試驅動**: 完整的測試覆蓋確保品質
 
-這個策略確保了：
-- 現有 Laravel 用戶不受影響
-- Symfony 用戶獲得完整功能
-- 代碼維護性和可擴展性
-- 未來支援更多框架的可能性
+這個策略的優勢：
+- ✅ 專注於 Symfony 生態系統，充分利用其優勢
+- ✅ 降低維護成本，無需同時支援兩個框架
+- ✅ 統一的代碼風格和測試標準
+- ✅ 更清晰的專案定位和目標用戶群
+- ✅ 更容易獲得 Symfony 社群支持
 
-預計 12 週完成基礎實施，之後持續優化和擴展功能。
+**重要注意事項**：
+- 此為完全遷移，不保留 Laravel 支援
+- 需要完整測試確保功能對等
+- 建議為 Laravel 用戶提供遷移指南
+
+預計 10 週完成遷移，之後持續優化和增強 Symfony 特定功能。
