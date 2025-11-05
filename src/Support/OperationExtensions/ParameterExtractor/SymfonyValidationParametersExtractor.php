@@ -77,7 +77,9 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
 
     private function extractValidationParameters(string $requestClassName, RouteInfo $routeInfo): ParametersExtractionResult
     {
-        $constraints = $this->constraintExtractor->extractFromClass($requestClassName);
+        // TODO: Extract validation groups from route context/attributes if needed
+        // For now, extract all constraints (no group filtering)
+        $constraints = $this->constraintExtractor->extractFromClass($requestClassName, groups: null);
 
         $properties = [];
         $required = [];

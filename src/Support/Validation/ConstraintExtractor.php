@@ -22,9 +22,10 @@ class ConstraintExtractor
      * Extract all constraints for a class.
      *
      * @param class-string $className
+     * @param string[]|null $groups Validation groups to filter by (null means all groups)
      * @return array<string, Constraint[]> Property name => constraints
      */
-    public function extractFromClass(string $className): array
+    public function extractFromClass(string $className, ?array $groups = null): array
     {
         if (!class_exists($className)) {
             return [];
@@ -49,6 +50,11 @@ class ConstraintExtractor
             foreach ($propertyMetadata as $metadata) {
                 $propertyConstraints = $metadata->getConstraints();
 
+                // Filter constraints by validation groups if specified
+                if ($groups !== null) {
+                    $propertyConstraints = $this->filterConstraintsByGroups($propertyConstraints, $groups);
+                }
+
                 if (!empty($propertyConstraints)) {
                     $constraints[$propertyName] = array_merge(
                         $constraints[$propertyName] ?? [],
@@ -65,9 +71,10 @@ class ConstraintExtractor
      * Extract constraints for a specific property.
      *
      * @param class-string $className
+     * @param string[]|null $groups Validation groups to filter by (null means all groups)
      * @return Constraint[]
      */
-    public function extractFromProperty(string $className, string $propertyName): array
+    public function extractFromProperty(string $className, string $propertyName, ?array $groups = null): array
     {
         if (!class_exists($className)) {
             return [];
@@ -87,7 +94,14 @@ class ConstraintExtractor
         $constraints = [];
 
         foreach ($propertyMetadata as $metadata) {
-            $constraints = array_merge($constraints, $metadata->getConstraints());
+            $propertyConstraints = $metadata->getConstraints();
+
+            // Filter constraints by validation groups if specified
+            if ($groups !== null) {
+                $propertyConstraints = $this->filterConstraintsByGroups($propertyConstraints, $groups);
+            }
+
+            $constraints = array_merge($constraints, $propertyConstraints);
         }
 
         return $constraints;
@@ -97,8 +111,9 @@ class ConstraintExtractor
      * Check if a class has validation constraints.
      *
      * @param class-string $className
+     * @param string[]|null $groups Validation groups to check (null means any group)
      */
-    public function hasConstraints(string $className): bool
+    public function hasConstraints(string $className, ?array $groups = null): bool
     {
         if (!class_exists($className)) {
             return false;
@@ -114,6 +129,44 @@ class ConstraintExtractor
             return false;
         }
 
-        return !empty($metadata->getConstrainedProperties());
+        if (empty($metadata->getConstrainedProperties())) {
+            return false;
+        }
+
+        // If no groups specified, any constraint is valid
+        if ($groups === null) {
+            return true;
+        }
+
+        // Check if any property has constraints for the specified groups
+        foreach ($metadata->getConstrainedProperties() as $propertyName) {
+            $propertyMetadata = $metadata->getPropertyMetadata($propertyName);
+            foreach ($propertyMetadata as $propMeta) {
+                $constraints = $propMeta->getConstraints();
+                if (!empty($this->filterConstraintsByGroups($constraints, $groups))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Filter constraints by validation groups.
+     *
+     * @param Constraint[] $constraints
+     * @param string[] $groups
+     * @return Constraint[]
+     */
+    private function filterConstraintsByGroups(array $constraints, array $groups): array
+    {
+        return array_filter($constraints, function (Constraint $constraint) use ($groups) {
+            // If constraint has no groups specified, it belongs to 'Default' group
+            $constraintGroups = $constraint->groups ?? ['Default'];
+
+            // Check if any of the requested groups match the constraint's groups
+            return !empty(array_intersect($groups, $constraintGroups));
+        });
     }
 }

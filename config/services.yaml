@@ -112,6 +112,18 @@ services:
             $entityManager: '@doctrine.orm.entity_manager'
         public: false
 
+    # Form Services (optional - only registered if symfony/form is available)
+    Dedoc\Scramble\Support\Forms\FormTypeExtractor:
+        arguments:
+            $formFactory: '@?form.factory'
+        public: false
+
+    Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\FormTypeParametersExtractor:
+        arguments:
+            $formExtractor: '@Dedoc\Scramble\Support\Forms\FormTypeExtractor'
+            $openApiTransformer: '@Dedoc\Scramble\Support\Generator\TypeTransformer'
+        public: false
+
     # Built-in Infer Extensions
     Dedoc\Scramble\Support\InferExtensions\ResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']

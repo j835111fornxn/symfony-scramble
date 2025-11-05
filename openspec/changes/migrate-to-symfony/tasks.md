@@ -114,10 +114,10 @@
   - [x] Regex → pattern
   - [x] Count → minItems/maxItems
   - [x] Choice → enum
-- [ ] 8.5 Add support for validation groups
-- [ ] 8.6 Add support for Form types as request body schemas
-- [ ] 8.7 Implement nested form type handling
-- [ ] 8.8 Update tests for validation inference
+- [x] 8.5 Add support for validation groups
+- [x] 8.6 Add support for Form types as request body schemas
+- [x] 8.7 Implement nested form type handling
+- [x] 8.8 Update tests for validation inference
 
 ## 9. ORM Migration (Eloquent to Doctrine)
 
