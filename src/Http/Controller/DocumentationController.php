@@ -3,7 +3,6 @@
 namespace Dedoc\Scramble\Http\Controller;
 
 use Dedoc\Scramble\Generator;
-use Dedoc\Scramble\GeneratorConfig;
 use Dedoc\Scramble\Scramble;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

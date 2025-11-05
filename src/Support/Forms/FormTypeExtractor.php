@@ -21,12 +21,12 @@ class FormTypeExtractor
     /**
      * Extract schema information from a Form type class.
      *
-     * @param class-string $formTypeClass
+     * @param  class-string  $formTypeClass
      * @return array{properties: array, required: array<string>, nested: array}
      */
     public function extractFromFormType(string $formTypeClass): array
     {
-        if (!class_exists($formTypeClass)) {
+        if (! class_exists($formTypeClass)) {
             return ['properties' => [], 'required' => [], 'nested' => []];
         }
 
@@ -101,7 +101,7 @@ class FormTypeExtractor
                 'type' => 'object',
                 'properties' => $nestedData['properties'],
             ];
-            if (!empty($nestedData['required'])) {
+            if (! empty($nestedData['required'])) {
                 $schema['required'] = $nestedData['required'];
             }
         }
@@ -125,7 +125,7 @@ class FormTypeExtractor
                     ],
                 ];
 
-                if (!empty($entryData['required'])) {
+                if (! empty($entryData['required'])) {
                     $schema['items']['required'] = $entryData['required'];
                 }
 
@@ -150,7 +150,7 @@ class FormTypeExtractor
     /**
      * Map Symfony form field types to OpenAPI schema types.
      *
-     * @param class-string $formTypeClass
+     * @param  class-string  $formTypeClass
      */
     private function mapFormTypeToSchema(string $formTypeClass, $config): array
     {
@@ -218,7 +218,7 @@ class FormTypeExtractor
 
         try {
             $choices = $config->getOption('choices');
-            if (!empty($choices)) {
+            if (! empty($choices)) {
                 // Extract the actual choice values
                 $schema['enum'] = array_values($choices);
             }
@@ -240,16 +240,17 @@ class FormTypeExtractor
     /**
      * Check if a class is a Form type.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      */
     public function isFormType(string $className): bool
     {
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return false;
         }
 
         try {
             $reflection = new \ReflectionClass($className);
+
             return $reflection->implementsInterface(FormTypeInterface::class) ||
                 $reflection->isSubclassOf(\Symfony\Component\Form\AbstractType::class);
         } catch (\Exception $e) {

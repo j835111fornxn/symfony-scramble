@@ -2,10 +2,10 @@
 
 namespace Dedoc\Scramble\Support\Type;
 
+use Dedoc\Scramble\Support\Arr;
 use Dedoc\Scramble\Support\Type\Contracts\LateResolvingType;
 use Dedoc\Scramble\Support\Type\Contracts\LiteralString;
 use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
-use Dedoc\Scramble\Support\Arr;
 
 class OffsetUnsetType extends AbstractType implements LateResolvingType
 {
@@ -48,6 +48,7 @@ class OffsetUnsetType extends AbstractType implements LateResolvingType
 
         /** @var KeyedArrayType $clonedType */
         $clonedType = $this->type->clone();
+
         return $this->unsetPath($clonedType, $path);
     }
 
@@ -64,7 +65,7 @@ class OffsetUnsetType extends AbstractType implements LateResolvingType
 
     public function toString(): string
     {
-        return 'OffsetUnset<' . $this->type->toString() . ', ' . $this->offset->toString() . '>';
+        return 'OffsetUnset<'.$this->type->toString().', '.$this->offset->toString().'>';
     }
 
     /**
@@ -95,7 +96,7 @@ class OffsetUnsetType extends AbstractType implements LateResolvingType
 
         $targetItem = Arr::first(
             $targetItems,
-            fn(ArrayItemType_ $t) => $t->key === $pathItem,
+            fn (ArrayItemType_ $t) => $t->key === $pathItem,
         );
 
         if ($targetItem) {
@@ -121,7 +122,7 @@ class OffsetUnsetType extends AbstractType implements LateResolvingType
     {
         $targetItems = array_values(array_filter(
             $modifyingType->items,
-            fn(ArrayItemType_ $t) => $t->key !== $pathItem
+            fn (ArrayItemType_ $t) => $t->key !== $pathItem
         ));
 
         $modifyingType->items = $targetItems;
@@ -135,7 +136,7 @@ class OffsetUnsetType extends AbstractType implements LateResolvingType
      */
     private function normalizePath(KeyedArrayType $path): ?array
     {
-        $pathItems = array_map(fn(ArrayItemType_ $t) => $t->value, $path->items);
+        $pathItems = array_map(fn (ArrayItemType_ $t) => $t->value, $path->items);
 
         $normalizedPath = [];
         foreach ($pathItems as $pathItemType) {

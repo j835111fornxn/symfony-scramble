@@ -3,11 +3,10 @@
 namespace Dedoc\Scramble;
 
 use Closure;
-use Dedoc\Scramble\Attributes\ExcludeAllRoutesFromDocs;
-use Dedoc\Scramble\Attributes\ExcludeRouteFromDocs;
 use Dedoc\Scramble\Contracts\DocumentTransformer;
 use Dedoc\Scramble\Exceptions\RouteAware;
 use Dedoc\Scramble\OpenApiVisitor\SchemaEnforceVisitor;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\ContainerUtils;
 use Dedoc\Scramble\Support\Generator\Components;
 use Dedoc\Scramble\Support\Generator\InfoObject;
@@ -20,15 +19,11 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Generator\UniqueNameOptions;
 use Dedoc\Scramble\Support\Generator\UniqueNamesOptionsCollection;
 use Dedoc\Scramble\Support\OperationBuilder;
-use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\RouteAdapter;
 use Dedoc\Scramble\Support\RouteInfo;
 use Dedoc\Scramble\Support\ServerFactory;
 use Dedoc\Scramble\Support\SymfonyRouteManager;
 use InvalidArgumentException;
-use Symfony\Component\String\Slugger\AsciiSlugger;
-use ReflectionException;
-use ReflectionMethod;
 use Throwable;
 
 class Generator
@@ -82,8 +77,8 @@ class Generator
                             $action = '{closure}';
                         }
 
-                        dump("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – " . ($e->getFile() . ' on line ' . $e->getLine()));
-                        logger()->error("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – " . ($e->getFile() . ' on line ' . $e->getLine()));
+                        dump("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – ".($e->getFile().' on line '.$e->getLine()));
+                        logger()->error("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – ".($e->getFile().' on line '.$e->getLine()));
                     }
 
                     throw $e;
@@ -91,10 +86,10 @@ class Generator
             })
             ->filter()
             ->sortBy($this->createOperationsSorter())
-            ->each(fn(Operation $operation) => $openApi->addPath(
+            ->each(fn (Operation $operation) => $openApi->addPath(
                 Path::make(
-                    '/' . ltrim(
-                        preg_replace('/^' . preg_quote($config->get('api_path', 'api'), '/') . '/', '', $operation->path),
+                    '/'.ltrim(
+                        preg_replace('/^'.preg_quote($config->get('api_path', 'api'), '/').'/', '', $operation->path),
                         '/'
                     )
                 )->addOperation($operation)
@@ -124,7 +119,7 @@ class Generator
             }
 
             // @phpstan-ignore deadCode.unreachable
-            throw new InvalidArgumentException('(callable(OpenApi, OpenApiContext): void)|DocumentTransformer type for document transformer expected, received ' . $openApiTransformer::class);
+            throw new InvalidArgumentException('(callable(OpenApi, OpenApiContext): void)|DocumentTransformer type for document transformer expected, received '.$openApiTransformer::class);
         }
 
         return $openApi->toArray();
@@ -132,13 +127,13 @@ class Generator
 
     private function createOperationsSorter(): array
     {
-        $defaultSortValue = fn(Operation $o) => $o->tags[0] ?? null;
+        $defaultSortValue = fn (Operation $o) => $o->tags[0] ?? null;
 
         return [
-            fn(Operation $a, Operation $b) => $a->getAttribute('groupWeight', INF) <=> $b->getAttribute('groupWeight', INF),
-            fn(Operation $a, Operation $b) => $a->getAttribute('weight', INF) <=> $b->getAttribute('weight', INF), // @todo manual endpoint sorting
-            fn(Operation $a, Operation $b) => $defaultSortValue($a) <=> $defaultSortValue($b),
-            fn(Operation $a, Operation $b) => $a->getAttribute('index', INF) <=> $b->getAttribute('index', INF),
+            fn (Operation $a, Operation $b) => $a->getAttribute('groupWeight', INF) <=> $b->getAttribute('groupWeight', INF),
+            fn (Operation $a, Operation $b) => $a->getAttribute('weight', INF) <=> $b->getAttribute('weight', INF), // @todo manual endpoint sorting
+            fn (Operation $a, Operation $b) => $defaultSortValue($a) <=> $defaultSortValue($b),
+            fn (Operation $a, Operation $b) => $a->getAttribute('index', INF) <=> $b->getAttribute('index', INF),
         ];
     }
 
@@ -155,7 +150,7 @@ class Generator
         [$defaultProtocol] = explode('://', url('/'));
         $servers = $config->get('servers') ?: [
             '' => ($domain = $config->get('api_domain'))
-                ? $defaultProtocol . '://' . $domain . '/' . $config->get('api_path', 'api')
+                ? $defaultProtocol.'://'.$domain.'/'.$config->get('api_path', 'api')
                 : $config->get('api_path', 'api'),
         ];
         foreach ($servers as $description => $url) {
@@ -176,7 +171,8 @@ class Generator
         // Filter routes named 'scramble.*' (internal documentation routes)
         $routes = $routes->filter(function ($route) {
             $name = $route->getName();
-            return !$name || !str_starts_with($name, 'scramble.');
+
+            return ! $name || ! str_starts_with($name, 'scramble.');
         });
 
         // Apply custom route filters from config
@@ -270,9 +266,9 @@ class Generator
             $operations = collect($pathsGroup->pluck('operations')->flatten());
 
             $operationsHaveSameAlternativeServers = $operations->count()
-                && $operations->every(fn(Operation $o) => count($o->servers))
+                && $operations->every(fn (Operation $o) => count($o->servers))
                 && $operations->unique(function (Operation $o) {
-                    return collect($o->servers)->map(fn(Server $s) => $s->url)->join('.');
+                    return collect($o->servers)->map(fn (Server $s) => $s->url)->join('.');
                 })->count() === 1;
 
             if (! $operationsHaveSameAlternativeServers) {

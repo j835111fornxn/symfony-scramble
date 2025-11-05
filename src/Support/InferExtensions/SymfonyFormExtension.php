@@ -3,20 +3,16 @@
 namespace Dedoc\Scramble\Support\InferExtensions;
 
 use Dedoc\Scramble\Infer\Context;
-use Dedoc\Scramble\Infer\Services\ReferenceTypeResolver;
 use Dedoc\Scramble\Support\Type\ArrayType;
 use Dedoc\Scramble\Support\Type\BooleanType;
 use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\IntegerType;
-use Dedoc\Scramble\Support\Type\KeyedArrayType;
 use Dedoc\Scramble\Support\Type\NullType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\StringType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\Union;
 use PhpParser\Node;
-use Symfony\Component\Form\Extension\Core\Type as FormType;
-use Symfony\Component\Form\FormInterface;
 
 /**
  * Infers types from Symfony Form classes.
@@ -70,7 +66,7 @@ class SymfonyFormExtension
 
     public function shouldHandle(Node\Expr $node): bool
     {
-        if (!$node instanceof Node\Expr\MethodCall) {
+        if (! $node instanceof Node\Expr\MethodCall) {
             return false;
         }
 
@@ -88,7 +84,7 @@ class SymfonyFormExtension
 
     public function infer(Node\Expr $node, Context $context): ?Type
     {
-        if (!$node instanceof Node\Expr\MethodCall) {
+        if (! $node instanceof Node\Expr\MethodCall) {
             return null;
         }
 
@@ -123,12 +119,12 @@ class SymfonyFormExtension
         // Map Symfony form type to Scramble type
         $scrambleTypeClass = self::TYPE_MAP[$formTypeClass] ?? null;
 
-        if (!$scrambleTypeClass) {
+        if (! $scrambleTypeClass) {
             // For custom form types, try to infer from the class itself
             return $this->inferFromCustomFormType($formTypeClass, $optionsArg, $context);
         }
 
-        $type = new $scrambleTypeClass();
+        $type = new $scrambleTypeClass;
 
         // Handle options that affect the type
         if ($optionsArg) {
@@ -145,7 +141,7 @@ class SymfonyFormExtension
     {
         $optionsValue = $optionsArg->value;
 
-        if (!$optionsValue instanceof Node\Expr\Array_) {
+        if (! $optionsValue instanceof Node\Expr\Array_) {
             return $type;
         }
 
@@ -154,7 +150,7 @@ class SymfonyFormExtension
         // Handle 'required' option
         if (isset($options['required']) && $options['required'] === false) {
             // Type can be null
-            $type = Union::wrap($type, new NullType());
+            $type = Union::wrap($type, new NullType);
         }
 
         // Handle 'multiple' option for ChoiceType
@@ -179,7 +175,7 @@ class SymfonyFormExtension
         $options = [];
 
         foreach ($arrayNode->items as $item) {
-            if (!$item) {
+            if (! $item) {
                 continue;
             }
 
@@ -190,7 +186,7 @@ class SymfonyFormExtension
                 $key = $keyNode->value;
             }
 
-            if (!$key) {
+            if (! $key) {
                 continue;
             }
 

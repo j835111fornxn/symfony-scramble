@@ -9,7 +9,6 @@ use Dedoc\Scramble\DocumentTransformers\CleanupUnusedResponseReferencesTransform
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\Routing\Route;
-use Symfony\Component\Routing\RouteCollection;
 
 class ScrambleBundle extends Bundle
 {

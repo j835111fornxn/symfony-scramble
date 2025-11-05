@@ -2,8 +2,8 @@
 
 namespace Dedoc\Scramble\Console\Commands\Components;
 
-use Symfony\Component\Console\Style\SymfonyStyle;
 use NunoMaduro\Collision\Highlighter;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class Code implements Component
 {

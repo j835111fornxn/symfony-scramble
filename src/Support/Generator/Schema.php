@@ -2,10 +2,10 @@
 
 namespace Dedoc\Scramble\Support\Generator;
 
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Generator\Types\ObjectType;
 use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Dedoc\Scramble\Support\Generator\Types\Type;
-use Dedoc\Scramble\Support\Collection;
 
 class Schema
 {
@@ -61,7 +61,7 @@ class Schema
 
                 $type->addProperty($parameter->name, $paramType);
             })
-            ->tap(fn(Collection $params) => $type->setRequired(
+            ->tap(fn (Collection $params) => $type->setRequired(
                 $params->where('required', true)->map->name->values()->all()
             ));
 

@@ -72,7 +72,7 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AccessDeniedHttpException::class))) {
+        if (collect($methodType->exceptions)->contains(fn (Type $e) => $e->isInstanceOf(AccessDeniedHttpException::class))) {
             return;
         }
 
@@ -101,7 +101,7 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(UnauthorizedHttpException::class))) {
+        if (collect($methodType->exceptions)->contains(fn (Type $e) => $e->isInstanceOf(UnauthorizedHttpException::class))) {
             return;
         }
 
@@ -117,7 +117,7 @@ class ErrorResponsesExtension extends OperationExtension
     private function hasSecurityAttribute(RouteInfo $routeInfo): bool
     {
         $method = $routeInfo->reflectionMethod();
-        if (!$method) {
+        if (! $method) {
             return false;
         }
 
@@ -137,13 +137,13 @@ class ErrorResponsesExtension extends OperationExtension
     {
         // Check if any parameter has validation constraints
         foreach ($methodType->arguments as $arg) {
-            if (!$arg instanceof ObjectType) {
+            if (! $arg instanceof ObjectType) {
                 continue;
             }
 
             if ($this->constraintExtractor->hasConstraints($arg->name)) {
                 // Add validation exception if parameter has constraints
-                if (!$this->hasException($methodType, ValidationFailedException::class)) {
+                if (! $this->hasException($methodType, ValidationFailedException::class)) {
                     $methodType->exceptions = [
                         ...$methodType->exceptions,
                         new ObjectType(ValidationFailedException::class),

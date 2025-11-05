@@ -4,9 +4,9 @@ namespace Dedoc\Scramble\Support\InferExtensions;
 
 use Dedoc\Scramble\Infer\Extensions\Event\FunctionCallEvent;
 use Dedoc\Scramble\Infer\Extensions\FunctionReturnTypeExtension;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Type\KeyedArrayType;
 use Dedoc\Scramble\Support\Type\Type;
-use Dedoc\Scramble\Support\Collection;
 
 class ArrayMergeReturnTypeExtension implements FunctionReturnTypeExtension
 {
@@ -19,7 +19,7 @@ class ArrayMergeReturnTypeExtension implements FunctionReturnTypeExtension
     {
         $arguments = collect($event->arguments->all());
 
-        if (! $arguments->every(fn($arg) => $arg instanceof KeyedArrayType)) {
+        if (! $arguments->every(fn ($arg) => $arg instanceof KeyedArrayType)) {
             return null;
         }
         /** @var Collection<array-key, KeyedArrayType> $arguments */

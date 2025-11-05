@@ -66,6 +66,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
                 $result[$mapKey] = $mapValue;
             }
         }
+
         return new static($result);
     }
 
@@ -83,7 +84,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     public function every(callable $callback): bool
     {
         foreach ($this->items as $key => $item) {
-            if (!$callback($item, $key)) {
+            if (! $callback($item, $key)) {
                 return false;
             }
         }
@@ -108,6 +109,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
             if (empty($this->items)) {
                 return $default;
             }
+
             return reset($this->items);
         }
 
@@ -151,6 +153,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
                 return $default;
             }
             $items = $this->items;
+
             return end($items);
         }
 
@@ -268,8 +271,8 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
                 ? $groupBy($value, $key)
                 : (is_array($value) ? ($value[$groupBy] ?? null) : ($value->$groupBy ?? null));
 
-            if (!isset($results[$groupKey])) {
-                $results[$groupKey] = new static();
+            if (! isset($results[$groupKey])) {
+                $results[$groupKey] = new static;
             }
 
             if ($preserveKeys) {
@@ -288,7 +291,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
 
         $callback = is_callable($callback)
             ? $callback
-            : fn($item) => is_array($item) ? ($item[$callback] ?? null) : ($item->$callback ?? null);
+            : fn ($item) => is_array($item) ? ($item[$callback] ?? null) : ($item->$callback ?? null);
 
         uasort($results, function ($a, $b) use ($callback, $descending) {
             $aValue = $callback($a);
@@ -316,7 +319,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
                 ? $key($item)
                 : (is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null));
 
-            if (!in_array($id, $exists, $strict)) {
+            if (! in_array($id, $exists, $strict)) {
                 $exists[] = $id;
                 $results[] = $item;
             }
@@ -330,7 +333,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         $result = [];
 
         foreach ($this->items as $item) {
-            if (!is_array($item) && !($item instanceof self)) {
+            if (! is_array($item) && ! ($item instanceof self)) {
                 $result[] = $item;
             } elseif ($depth === 1) {
                 $result = array_merge($result, is_array($item) ? $item : $item->all());
@@ -403,6 +406,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     {
         $items = $this->items;
         $descending ? krsort($items) : ksort($items);
+
         return new static($items);
     }
 
@@ -466,7 +470,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return $this->contains(function ($item) use ($key, $operator, $value) {
             $retrieved = is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null);
 
-            $strings = array_filter([$retrieved, $value], fn($val) => is_string($val) || (is_object($val) && method_exists($val, '__toString')));
+            $strings = array_filter([$retrieved, $value], fn ($val) => is_string($val) || (is_object($val) && method_exists($val, '__toString')));
 
             if (count($strings) < 2 && count(array_filter([$retrieved, $value], 'is_object')) === 1) {
                 return in_array($operator, ['!=', '<>', '!=='], true);
@@ -506,14 +510,14 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
 
         return $this->filter(function ($value, $key) use ($callback, $useAsCallable) {
             return $useAsCallable
-                ? !$callback($value, $key)
+                ? ! $callback($value, $key)
                 : $value != $callback;
         });
     }
 
     protected function useAsCallable($value): bool
     {
-        return !is_string($value) && is_callable($value);
+        return ! is_string($value) && is_callable($value);
     }
 
     public function count(): int
@@ -528,7 +532,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
 
     public function isNotEmpty(): bool
     {
-        return !$this->isEmpty();
+        return ! $this->isEmpty();
     }
 
     public function pipe(callable $callback)
@@ -553,7 +557,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         $items = $this->all();
         $final = array_pop($items);
 
-        return implode($glue, $items) . $finalGlue . $final;
+        return implode($glue, $items).$finalGlue.$final;
     }
 
     // ArrayAccess implementation
@@ -589,7 +593,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
 
     public function toArray(): array
     {
-        return $this->map(fn($value) => $value instanceof self ? $value->toArray() : $value)->all();
+        return $this->map(fn ($value) => $value instanceof self ? $value->toArray() : $value)->all();
     }
 
     public function __toString(): string
@@ -600,12 +604,12 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     /**
      * Dynamically access collection proxies (higher order messages).
      *
-     * @param string $key
+     * @param  string  $key
      * @return HigherOrderCollectionProxy
      */
     public function __get($key)
     {
-        if (!in_array($key, ['filter', 'map', 'pluck', 'reject', 'sortBy', 'sortByDesc', 'unique'], true)) {
+        if (! in_array($key, ['filter', 'map', 'pluck', 'reject', 'sortBy', 'sortByDesc', 'unique'], true)) {
             throw new \Exception("Property [{$key}] does not exist on this collection instance.");
         }
 

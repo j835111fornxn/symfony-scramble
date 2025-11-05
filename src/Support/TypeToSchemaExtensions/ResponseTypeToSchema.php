@@ -6,6 +6,7 @@ use Dedoc\Scramble\Extensions\TypeToSchemaExtension;
 use Dedoc\Scramble\Support\Generator\Header;
 use Dedoc\Scramble\Support\Generator\Response;
 use Dedoc\Scramble\Support\Generator\Schema;
+use Dedoc\Scramble\Support\Str;
 use Dedoc\Scramble\Support\Type\ArrayItemType_;
 use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\KeyedArrayType;
@@ -14,9 +15,7 @@ use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\NullType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
-use Dedoc\Scramble\Support\Type\Union;
 use Dedoc\Scramble\Support\Type\UnknownType;
-use Dedoc\Scramble\Support\Str;
 use LogicException;
 use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -24,13 +23,16 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 class ResponseTypeToSchema extends TypeToSchemaExtension
 {
     private const LARAVEL_RESPONSE_CLASS = 'Illuminate\\Http\\Response';
+
     private const LARAVEL_JSON_RESPONSE_CLASS = 'Illuminate\\Http\\JsonResponse';
+
     private const LARAVEL_RESPONSABLE_CLASS = 'Illuminate\\Contracts\\Support\\Responsable';
+
     private const LARAVEL_RESOURCE_RESPONSE_CLASS = 'Illuminate\\Http\\Resources\\Json\\ResourceResponse';
 
     public function shouldHandle(Type $type)
     {
-        if (!$type instanceof Generic || count($type->templateTypes) < 2) {
+        if (! $type instanceof Generic || count($type->templateTypes) < 2) {
             return false;
         }
 
@@ -84,7 +86,7 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
         $data = $type->templateTypes[0];
 
         // Check if Laravel Responsable interface exists
-        if (!interface_exists(self::LARAVEL_RESPONSABLE_CLASS)) {
+        if (! interface_exists(self::LARAVEL_RESPONSABLE_CLASS)) {
             return false;
         }
 

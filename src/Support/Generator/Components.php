@@ -55,7 +55,7 @@ class Components
 
         if (count($this->securitySchemes)) {
             $result['securitySchemes'] = collect($this->securitySchemes)
-                ->map(fn(SecurityScheme $s) => $s->toArray())
+                ->map(fn (SecurityScheme $s) => $s->toArray())
                 ->toArray();
         }
 

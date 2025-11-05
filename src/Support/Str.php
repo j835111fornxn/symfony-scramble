@@ -17,7 +17,7 @@ class Str
     public static function snake(string $value, string $delimiter = '_'): string
     {
         $value = preg_replace('/\s+/u', '', ucwords($value));
-        $value = preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value);
+        $value = preg_replace('/(.)(?=[A-Z])/u', '$1'.$delimiter, $value);
 
         return mb_strtolower($value, 'UTF-8');
     }
@@ -69,7 +69,7 @@ class Str
      */
     public static function ucfirst(string $string): string
     {
-        return static::upper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+        return static::upper(mb_substr($string, 0, 1)).mb_substr($string, 1);
     }
 
     /**
@@ -77,7 +77,7 @@ class Str
      */
     public static function lcfirst(string $string): string
     {
-        return static::lower(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+        return static::lower(mb_substr($string, 0, 1)).mb_substr($string, 1);
     }
 
     /**
@@ -121,7 +121,7 @@ class Str
      */
     public static function startsWith(string $haystack, string|array $needles): bool
     {
-        if (!is_array($needles)) {
+        if (! is_array($needles)) {
             $needles = [$needles];
         }
 
@@ -139,7 +139,7 @@ class Str
      */
     public static function endsWith(string $haystack, string|array $needles): bool
     {
-        if (!is_array($needles)) {
+        if (! is_array($needles)) {
             $needles = [$needles];
         }
 
@@ -161,7 +161,7 @@ class Str
             $haystack = mb_strtolower($haystack);
         }
 
-        if (!is_array($needles)) {
+        if (! is_array($needles)) {
             $needles = [$needles];
         }
 
@@ -277,7 +277,7 @@ class Str
             return $value;
         }
 
-        return rtrim(mb_strimwidth($value, 0, $limit, '', 'UTF-8')) . $end;
+        return rtrim(mb_strimwidth($value, 0, $limit, '', 'UTF-8')).$end;
     }
 
     /**
@@ -290,10 +290,6 @@ class Str
 
     /**
      * Determine if a given string matches a given pattern.
-     *
-     * @param string|array $pattern
-     * @param string $value
-     * @return bool
      */
     public static function is(string|array $pattern, string $value): bool
     {
@@ -311,7 +307,7 @@ class Str
             $pattern = preg_quote($pattern, '#');
             $pattern = str_replace('\\*', '.*', $pattern);
 
-            if (preg_match('#^' . $pattern . '\\z#u', $value) === 1) {
+            if (preg_match('#^'.$pattern.'\\z#u', $value) === 1) {
                 return true;
             }
         }
@@ -338,6 +334,6 @@ class Str
     {
         $quoted = preg_quote($prefix, '/');
 
-        return $prefix . preg_replace('/^(?:' . $quoted . ')+/u', '', $value);
+        return $prefix.preg_replace('/^(?:'.$quoted.')+/u', '', $value);
     }
 }

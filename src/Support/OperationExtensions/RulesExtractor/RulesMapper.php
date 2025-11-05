@@ -11,11 +11,11 @@ use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Dedoc\Scramble\Support\Generator\Types\Type;
 use Dedoc\Scramble\Support\Generator\Types\UnknownType;
 use Dedoc\Scramble\Support\Generator\TypeTransformer;
+use Dedoc\Scramble\Support\Str;
+use Dedoc\Scramble\Support\Stringable;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\TypeHelper;
 use Dedoc\Scramble\Support\Type\Union;
-use Dedoc\Scramble\Support\Str;
-use Dedoc\Scramble\Support\Stringable;
 use Illuminate\Validation\ConditionalRules;
 use Illuminate\Validation\Rules\Enum;
 
@@ -179,7 +179,7 @@ class RulesMapper
         return $type->enum(
             collect($params)
                 ->mapInto(Stringable::class)
-                ->map(fn(Stringable $v) => (string) $v->trim('"')->replace('""', '"'))
+                ->map(fn (Stringable $v) => (string) $v->trim('"')->replace('""', '"'))
                 ->values()
                 ->all()
         );
@@ -189,9 +189,9 @@ class RulesMapper
     {
         $getProtectedValue = function ($obj, $name) {
             $array = (array) $obj;
-            $prefix = chr(0) . '*' . chr(0);
+            $prefix = chr(0).'*'.chr(0);
 
-            return $array[$prefix . $name];
+            return $array[$prefix.$name];
         };
 
         $enumName = $getProtectedValue($rule, 'type');
@@ -203,15 +203,15 @@ class RulesMapper
 
         if ($except || $only) {
             $cases = collect($enumName::cases())
-                ->reject(fn($case) => in_array($case, $except))
-                ->filter(fn($case) => ! $only || in_array($case, $only));
+                ->reject(fn ($case) => in_array($case, $except))
+                ->filter(fn ($case) => ! $only || in_array($case, $only));
 
             if (! isset($cases->first()?->value)) {
                 return new UnknownType("$enumName enum doesnt have values (only/except context)");
             }
 
             return $this->openApiTransformer->transform(Union::wrap(
-                $cases->map(fn($c) => TypeHelper::createTypeFromValue($c->value))->all()
+                $cases->map(fn ($c) => TypeHelper::createTypeFromValue($c->value))->all()
             ));
         }
 
@@ -267,7 +267,7 @@ class RulesMapper
         $rules = [$ifRules, $elseRules];
 
         $types = $type instanceof AnyOf
-            ? array_map(fn(Type $t) => (clone $t)->addProperties($type), $type->items)
+            ? array_map(fn (Type $t) => (clone $t)->addProperties($type), $type->items)
             : [$type];
 
         $newTypes = [];
@@ -280,9 +280,9 @@ class RulesMapper
             }
         }
 
-        $isRequired = collect($newTypes)->every(fn(Type $t) => (bool) $t->getAttribute('required', false));
+        $isRequired = collect($newTypes)->every(fn (Type $t) => (bool) $t->getAttribute('required', false));
 
-        $newTypes = array_values(array_filter($newTypes, fn(Type $t) => ! $t->getAttribute('isEmptyRules')));
+        $newTypes = array_values(array_filter($newTypes, fn (Type $t) => ! $t->getAttribute('isEmptyRules')));
 
         if (count($newTypes) === 1) {
             if ($isRequired !== $newTypes[0]->getAttribute('required')) {

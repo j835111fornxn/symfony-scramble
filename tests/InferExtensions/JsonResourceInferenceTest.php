@@ -5,10 +5,10 @@ namespace Dedoc\Scramble\Tests\InferExtensions;
 use Dedoc\Scramble\Infer\Analyzer\ClassAnalyzer;
 use Dedoc\Scramble\Infer\Scope\Index;
 use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Dedoc\Scramble\Support\Collection;
 
 beforeEach(function () {
     Scramble::infer()

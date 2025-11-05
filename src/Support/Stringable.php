@@ -127,7 +127,7 @@ class Stringable
     public function replaceStart(string $search, string $replace): static
     {
         if (str_starts_with($this->value, $search)) {
-            $this->value = $replace . substr($this->value, strlen($search));
+            $this->value = $replace.substr($this->value, strlen($search));
         }
 
         return $this;
@@ -139,7 +139,7 @@ class Stringable
     public function replaceEnd(string $search, string $replace): static
     {
         if (str_ends_with($this->value, $search)) {
-            $this->value = substr($this->value, 0, -strlen($search)) . $replace;
+            $this->value = substr($this->value, 0, -strlen($search)).$replace;
         }
 
         return $this;
@@ -152,7 +152,7 @@ class Stringable
     {
         $quoted = preg_quote($cap, '/');
 
-        $this->value = $cap . preg_replace('/^(?:' . $quoted . ')+/u', '', $this->value);
+        $this->value = $cap.preg_replace('/^(?:'.$quoted.')+/u', '', $this->value);
 
         return $this;
     }
@@ -164,7 +164,7 @@ class Stringable
     {
         $quoted = preg_quote($cap, '/');
 
-        $this->value = preg_replace('/(?:' . $quoted . ')+$/u', '', $this->value) . $cap;
+        $this->value = preg_replace('/(?:'.$quoted.')+$/u', '', $this->value).$cap;
 
         return $this;
     }
@@ -302,7 +302,7 @@ class Stringable
      */
     public function prepend(string ...$values): static
     {
-        $this->value = implode('', $values) . $this->value;
+        $this->value = implode('', $values).$this->value;
 
         return $this;
     }

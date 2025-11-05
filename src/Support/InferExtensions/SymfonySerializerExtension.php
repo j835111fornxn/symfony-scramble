@@ -3,11 +3,9 @@
 namespace Dedoc\Scramble\Support\InferExtensions;
 
 use Dedoc\Scramble\Infer;
-use Dedoc\Scramble\Infer\Scope\Scope;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\Union;
-use PhpParser\Node;
 use ReflectionClass;
 use ReflectionProperty;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -26,14 +24,12 @@ class SymfonySerializerExtension
 
     /**
      * Get type for a class considering serialization groups.
-     * 
-     * @param string $className
-     * @param array<string> $groups
-     * @return Type|null
+     *
+     * @param  array<string>  $groups
      */
     public function getSerializedType(string $className, array $groups = []): ?Type
     {
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return null;
         }
 
@@ -52,7 +48,7 @@ class SymfonySerializerExtension
             }
 
             // Check if property is in the requested groups
-            if (!empty($groups) && !$this->isInGroups($property, $groups)) {
+            if (! empty($groups) && ! $this->isInGroups($property, $groups)) {
                 continue;
             }
 
@@ -80,7 +76,7 @@ class SymfonySerializerExtension
         // Check for Symfony Serializer Ignore attribute
         $attributes = $property->getAttributes(Ignore::class);
 
-        return !empty($attributes);
+        return ! empty($attributes);
     }
 
     /**
@@ -118,9 +114,10 @@ class SymfonySerializerExtension
     {
         $attributes = $property->getAttributes(SerializedName::class);
 
-        if (!empty($attributes)) {
+        if (! empty($attributes)) {
             /** @var SerializedName $serializedNameAttr */
             $serializedNameAttr = $attributes[0]->newInstance();
+
             return $serializedNameAttr->getSerializedName();
         }
 
@@ -134,7 +131,7 @@ class SymfonySerializerExtension
     {
         $type = $property->getType();
 
-        if (!$type) {
+        if (! $type) {
             return null;
         }
 
@@ -151,19 +148,19 @@ class SymfonySerializerExtension
             $typeName = $type->getName();
 
             $scrambleType = match ($typeName) {
-                'string' => new \Dedoc\Scramble\Support\Type\StringType(),
-                'int' => new \Dedoc\Scramble\Support\Type\IntegerType(),
-                'float' => new \Dedoc\Scramble\Support\Type\FloatType(),
-                'bool' => new \Dedoc\Scramble\Support\Type\BooleanType(),
-                'array' => new \Dedoc\Scramble\Support\Type\ArrayType(),
-                'mixed' => new \Dedoc\Scramble\Support\Type\MixedType(),
+                'string' => new \Dedoc\Scramble\Support\Type\StringType,
+                'int' => new \Dedoc\Scramble\Support\Type\IntegerType,
+                'float' => new \Dedoc\Scramble\Support\Type\FloatType,
+                'bool' => new \Dedoc\Scramble\Support\Type\BooleanType,
+                'array' => new \Dedoc\Scramble\Support\Type\ArrayType,
+                'mixed' => new \Dedoc\Scramble\Support\Type\MixedType,
                 default => class_exists($typeName) || interface_exists($typeName)
                     ? new ObjectType($typeName)
                     : null,
             };
 
             if ($scrambleType && $type->allowsNull()) {
-                return Union::wrap($scrambleType, new \Dedoc\Scramble\Support\Type\NullType());
+                return Union::wrap($scrambleType, new \Dedoc\Scramble\Support\Type\NullType);
             }
 
             return $scrambleType;

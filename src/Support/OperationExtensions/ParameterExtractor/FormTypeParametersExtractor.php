@@ -2,11 +2,11 @@
 
 namespace Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor;
 
+use Dedoc\Scramble\Support\Forms\FormTypeExtractor;
 use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\OperationExtensions\RequestBodyExtension;
 use Dedoc\Scramble\Support\OperationExtensions\RulesExtractor\ParametersExtractionResult;
 use Dedoc\Scramble\Support\RouteInfo;
-use Dedoc\Scramble\Support\Forms\FormTypeExtractor;
 use ReflectionNamedType;
 use ReflectionParameter;
 
@@ -27,7 +27,7 @@ class FormTypeParametersExtractor implements ParameterExtractor
     {
         $formTypeClassName = $this->getFormTypeClassName($routeInfo);
 
-        if (!$formTypeClassName || !$this->formExtractor->isFormType($formTypeClassName)) {
+        if (! $formTypeClassName || ! $this->formExtractor->isFormType($formTypeClassName)) {
             return $parameterExtractionResults;
         }
 
@@ -38,7 +38,7 @@ class FormTypeParametersExtractor implements ParameterExtractor
 
     private function getFormTypeClassName(RouteInfo $routeInfo): ?string
     {
-        if (!$reflectionAction = $routeInfo->reflectionAction()) {
+        if (! $reflectionAction = $routeInfo->reflectionAction()) {
             return null;
         }
 
@@ -57,13 +57,13 @@ class FormTypeParametersExtractor implements ParameterExtractor
 
     private function isFormTypeParam(ReflectionParameter $parameter): bool
     {
-        if (!$parameter->getType() instanceof ReflectionNamedType) {
+        if (! $parameter->getType() instanceof ReflectionNamedType) {
             return false;
         }
 
         $className = $parameter->getType()->getName();
 
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return false;
         }
 
@@ -146,6 +146,7 @@ class FormTypeParametersExtractor implements ParameterExtractor
     private function getSchemaName(string $className): ?string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -158,6 +159,7 @@ class FormTypeParametersExtractor implements ParameterExtractor
             if ($docComment) {
                 // Extract first line of doc comment as description
                 preg_match('/\/\*\*\s*\n\s*\*\s*(.+?)\n/', $docComment, $matches);
+
                 return $matches[1] ?? '';
             }
         } catch (\Exception $e) {

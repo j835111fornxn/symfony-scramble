@@ -82,6 +82,7 @@ class GeneratorConfig
         $isBaseMatching = ! ($prefix = $this->get('api_path', 'api')) || Str::startsWith($symfonyRoute->getPath(), $prefix);
 
         $routeHost = $symfonyRoute->getHost();
+
         return $isBaseMatching
             && (! $expectedDomain || $routeHost === $expectedDomain);
     }

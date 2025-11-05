@@ -2,6 +2,7 @@
 
 use Dedoc\Scramble\Infer;
 use Dedoc\Scramble\Infer\Services\ReferenceTypeResolver;
+use Dedoc\Scramble\Support\Str;
 use Dedoc\Scramble\Support\Type\ArrayItemType_;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\ObjectType;
@@ -11,7 +12,6 @@ use Dedoc\Scramble\Tests\Files\SamplePostModel;
 use Dedoc\Scramble\Tests\Files\SampleUserModel;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Dedoc\Scramble\Support\Str;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);

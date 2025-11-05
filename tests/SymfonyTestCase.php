@@ -32,7 +32,7 @@ class SymfonyTestCase extends KernelTestCase
         // parent::setUp();
 
         // Only boot kernel once for all tests to improve performance
-        if (!self::$kernelBooted) {
+        if (! self::$kernelBooted) {
             self::bootKernel();
             self::$kernelBooted = true;
         }
@@ -57,7 +57,7 @@ class SymfonyTestCase extends KernelTestCase
 
         return array_values(array_filter(
             $routes,
-            fn($r) => !str_starts_with($r->getName() ?? '', '_'),
+            fn ($r) => ! str_starts_with($r->getName() ?? '', '_'),
         ));
     }
 
@@ -94,12 +94,13 @@ class SymfonyTestCase extends KernelTestCase
      */
     protected static function createKernel(array $options = []): Kernel
     {
-        return new class($options['environment'] ?? 'test', $options['debug'] ?? false) extends Kernel {
+        return new class($options['environment'] ?? 'test', $options['debug'] ?? false) extends Kernel
+        {
             public function registerBundles(): iterable
             {
                 return [
-                    new \Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
-                    new ScrambleBundle(),
+                    new \Symfony\Bundle\FrameworkBundle\FrameworkBundle,
+                    new ScrambleBundle,
                 ];
             }
 
@@ -128,12 +129,12 @@ class SymfonyTestCase extends KernelTestCase
             {
                 // Use in-memory filesystem for cache to avoid disk I/O
                 // Each test class gets its own cache namespace
-                return sys_get_temp_dir() . '/scramble_test_cache/' . substr(md5(static::class), 0, 8);
+                return sys_get_temp_dir().'/scramble_test_cache/'.substr(md5(self::class), 0, 8);
             }
 
             public function getLogDir(): string
             {
-                return sys_get_temp_dir() . '/scramble_test_logs';
+                return sys_get_temp_dir().'/scramble_test_logs';
             }
         };
     }

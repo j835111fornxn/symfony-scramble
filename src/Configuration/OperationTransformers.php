@@ -3,13 +3,13 @@
 namespace Dedoc\Scramble\Configuration;
 
 use Dedoc\Scramble\Contracts\OperationTransformer;
+use Dedoc\Scramble\Support\Arr;
 use Dedoc\Scramble\Support\OperationExtensions\DeprecationExtension;
 use Dedoc\Scramble\Support\OperationExtensions\ErrorResponsesExtension;
 use Dedoc\Scramble\Support\OperationExtensions\RequestBodyExtension;
 use Dedoc\Scramble\Support\OperationExtensions\RequestEssentialsExtension;
 use Dedoc\Scramble\Support\OperationExtensions\ResponseExtension;
 use Dedoc\Scramble\Support\OperationExtensions\ResponseHeadersExtension;
-use Dedoc\Scramble\Support\Arr;
 
 class OperationTransformers
 {

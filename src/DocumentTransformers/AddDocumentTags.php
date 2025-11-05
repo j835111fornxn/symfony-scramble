@@ -5,9 +5,9 @@ namespace Dedoc\Scramble\DocumentTransformers;
 use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Contracts\DocumentTransformer;
 use Dedoc\Scramble\OpenApiContext;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Tag;
-use Dedoc\Scramble\Support\Collection;
 use ReflectionAttribute;
 
 class AddDocumentTags implements DocumentTransformer
@@ -52,6 +52,6 @@ class AddDocumentTags implements DocumentTransformer
             return $acc;
         }, collect());
 
-        return $tags->sortBy(fn(Tag $t) => $t->getAttribute('weight', INF))->values()->all();
+        return $tags->sortBy(fn (Tag $t) => $t->getAttribute('weight', INF))->values()->all();
     }
 }

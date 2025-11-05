@@ -7,12 +7,11 @@ use Dedoc\Scramble\Extensions\ExceptionToResponseExtension;
 use Dedoc\Scramble\Extensions\OperationExtension;
 use Dedoc\Scramble\Extensions\TypeToSchemaExtension;
 use Dedoc\Scramble\Infer\Extensions\InferExtension;
+use Dedoc\Scramble\Support\Arr;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\ServerVariable;
 use Dedoc\Scramble\Support\Generator\Types\Type as OpenApiType;
-use Dedoc\Scramble\Support\Arr;
 use Dedoc\Scramble\Support\RouteInfo;
-use Symfony\Component\Routing\Route;
 
 class Scramble
 {
@@ -123,8 +122,8 @@ class Scramble
         $forbiddenSchemas = Arr::wrap($schemaTypes);
 
         static::enforceSchema(
-            fn($schema, $path) => ! in_array($schema::class, $forbiddenSchemas),
-            fn($schema) => 'Schema [' . $schema::class . '] is not allowed.',
+            fn ($schema, $path) => ! in_array($schema::class, $forbiddenSchemas),
+            fn ($schema) => 'Schema ['.$schema::class.'] is not allowed.',
             $ignorePaths,
             $throw,
         );

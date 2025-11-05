@@ -2,8 +2,6 @@
 
 namespace Dedoc\Scramble\Support\Type;
 
-use Dedoc\Scramble\Support\Arr;
-
 class Union extends AbstractType
 {
     /**
@@ -18,7 +16,7 @@ class Union extends AbstractType
 
     public function isSame(Type $type)
     {
-        if (!$type instanceof Union) {
+        if (! $type instanceof Union) {
             return false;
         }
 
@@ -26,7 +24,7 @@ class Union extends AbstractType
             return false;
         }
 
-        return collect($this->types)->every(fn(Type $t, $i) => $t->isSame($type->types[$i]));
+        return collect($this->types)->every(fn (Type $t, $i) => $t->isSame($type->types[$i]));
     }
 
     public function widen(): Type
@@ -61,16 +59,14 @@ class Union extends AbstractType
 
     /**
      * Create a Union type from the given types.
-     * 
+     *
      * Flexible wrapper that accepts:
      * - Multiple Type arguments: wrap($type1, $type2)
      * - Single array of Types: wrap([$type1, $type2])
      * - Array unpacking: wrap(...$arrayOfTypes)
      * - array_map result: wrap(array_map(...))
-     * 
-     * @param Type|array<Type> $types
-     * @param Type ...$moreTypes
-     * @return Type
+     *
+     * @param  Type|array<Type>  $types
      */
     public static function wrap(Type|array $types, Type ...$moreTypes): Type
     {
@@ -82,7 +78,7 @@ class Union extends AbstractType
         // $types is already an array of Type objects
 
         $types = collect(array_values($types))
-            ->unique(fn(Type $t) => $t->toString())
+            ->unique(fn (Type $t) => $t->toString())
             ->values()
             ->all();
 
@@ -99,6 +95,6 @@ class Union extends AbstractType
 
     public function toString(): string
     {
-        return implode('|', array_map(fn($t) => $t->toString(), $this->types));
+        return implode('|', array_map(fn ($t) => $t->toString(), $this->types));
     }
 }

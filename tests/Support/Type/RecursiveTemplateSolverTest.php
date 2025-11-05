@@ -2,6 +2,7 @@
 
 namespace Dedoc\Scramble\Tests\Support\Type;
 
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Type\ArrayType;
 use Dedoc\Scramble\Support\Type\FunctionType;
 use Dedoc\Scramble\Support\Type\Generic;
@@ -11,7 +12,6 @@ use Dedoc\Scramble\Support\Type\RecursiveTemplateSolver;
 use Dedoc\Scramble\Support\Type\StringType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Union;
-use Dedoc\Scramble\Support\Collection;
 
 beforeEach(function () {
     $this->solver = new RecursiveTemplateSolver;

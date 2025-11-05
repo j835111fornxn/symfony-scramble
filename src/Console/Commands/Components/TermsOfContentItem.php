@@ -2,8 +2,8 @@
 
 namespace Dedoc\Scramble\Console\Commands\Components;
 
-use Illuminate\Console\OutputStyle;
 use Dedoc\Scramble\Support\Str;
+use Illuminate\Console\OutputStyle;
 use Symfony\Component\Console\Terminal;
 
 class TermsOfContentItem implements Component

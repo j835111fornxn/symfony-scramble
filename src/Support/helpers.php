@@ -8,12 +8,10 @@
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface as SymfonyContainerInterface;
 
-if (!function_exists('app')) {
+if (! function_exists('app')) {
     /**
      * Get an instance from the service container.
      *
-     * @param string|null $abstract
-     * @param array $parameters
      * @return mixed|ContainerInterface
      */
     function app(?string $abstract = null, array $parameters = [])
@@ -33,7 +31,7 @@ if (!function_exists('app')) {
             return $container;
         }
 
-        if (!empty($parameters) && $container instanceof SymfonyContainerInterface) {
+        if (! empty($parameters) && $container instanceof SymfonyContainerInterface) {
             // Symfony doesn't support parameters in get() the same way Laravel does
             // We need to use a factory or manually inject parameters
             throw new RuntimeException('Parameters are not yet supported in app() helper. Use constructor injection instead.');
@@ -43,12 +41,12 @@ if (!function_exists('app')) {
     }
 }
 
-if (!function_exists('collect')) {
+if (! function_exists('collect')) {
     /**
      * Create a collection from the given value.
      * Returns an array wrapper that mimics Laravel Collection methods.
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return \Dedoc\Scramble\Support\Collection
      */
     function collect($value = [])
@@ -57,12 +55,12 @@ if (!function_exists('collect')) {
     }
 }
 
-if (!function_exists('config')) {
+if (! function_exists('config')) {
     /**
      * Get / set the specified configuration value.
      *
-     * @param array|string|null $key
-     * @param mixed $default
+     * @param  array|string|null  $key
+     * @param  mixed  $default
      * @return mixed
      */
     function config($key = null, $default = null)
@@ -96,12 +94,10 @@ if (!function_exists('config')) {
     }
 }
 
-if (!function_exists('logger')) {
+if (! function_exists('logger')) {
     /**
      * Log a debug message to the logs.
      *
-     * @param string|null $message
-     * @param array $context
      * @return \Psr\Log\LoggerInterface|void
      */
     function logger(?string $message = null, array $context = [])
@@ -117,13 +113,11 @@ if (!function_exists('logger')) {
     }
 }
 
-if (!function_exists('url')) {
+if (! function_exists('url')) {
     /**
      * Generate a URL for the application.
      *
-     * @param string|null $path
-     * @param mixed $parameters
-     * @param bool|null $secure
+     * @param  mixed  $parameters
      * @return string|\Symfony\Component\Routing\Generator\UrlGeneratorInterface
      */
     function url(?string $path = null, $parameters = [], ?bool $secure = null)
@@ -144,7 +138,7 @@ if (!function_exists('url')) {
             $host = $context->getHost();
             $baseUrl = $context->getBaseUrl();
 
-            return $scheme . '://' . $host . $baseUrl . $path;
+            return $scheme.'://'.$host.$baseUrl.$path;
         }
 
         // Assume it's a route name
@@ -152,23 +146,24 @@ if (!function_exists('url')) {
     }
 }
 
-if (!function_exists('tap')) {
+if (! function_exists('tap')) {
     /**
      * Call the given Closure with the given value then return the value.
      *
-     * @param mixed $value
-     * @param callable|null $callback
+     * @param  mixed  $value
      * @return mixed
      */
     function tap($value, ?callable $callback = null)
     {
         if ($callback === null) {
-            return new class($value) {
+            return new class($value)
+            {
                 public function __construct(public $target) {}
 
                 public function __call($method, $parameters)
                 {
                     $this->target->{$method}(...$parameters);
+
                     return $this->target;
                 }
             };
@@ -180,16 +175,16 @@ if (!function_exists('tap')) {
     }
 }
 
-if (!function_exists('class_basename')) {
+if (! function_exists('class_basename')) {
     /**
      * Get the class "basename" of the given object / class.
      *
-     * @param string|object $class
-     * @return string
+     * @param  string|object  $class
      */
     function class_basename($class): string
     {
         $class = is_object($class) ? get_class($class) : $class;
+
         return basename(str_replace('\\', '/', $class));
     }
 }

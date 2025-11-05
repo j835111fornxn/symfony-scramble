@@ -2,7 +2,6 @@
 
 namespace Dedoc\Scramble\Support;
 
-use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -52,7 +51,7 @@ class ContainerUtils
 
             if ($paramTypeName && isset($contextfulBindings[$paramTypeName])) {
                 $allArguments[] = $contextfulBindings[$paramTypeName];
-            } elseif ($paramTypeName && $paramType instanceof ReflectionNamedType && !$paramType->isBuiltin() && $container->has($paramTypeName)) {
+            } elseif ($paramTypeName && $paramType instanceof ReflectionNamedType && ! $paramType->isBuiltin() && $container->has($paramTypeName)) {
                 $allArguments[] = $container->get($paramTypeName);
             } elseif ($param->isOptional()) {
                 $allArguments[] = $param->getDefaultValue();

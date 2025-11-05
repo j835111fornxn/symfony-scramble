@@ -7,10 +7,10 @@ use Dedoc\Scramble\Exceptions\ConsoleRenderable;
 use Dedoc\Scramble\Exceptions\RouteAware;
 use Dedoc\Scramble\Generator;
 use Dedoc\Scramble\Scramble;
-use Illuminate\Console\Command;
-use Illuminate\Routing\Route;
 use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Str;
+use Illuminate\Console\Command;
+use Illuminate\Routing\Route;
 use Throwable;
 
 class AnalyzeDocumentation extends Command

@@ -3,11 +3,11 @@
 namespace Dedoc\Scramble\Support\Type;
 
 use Dedoc\Scramble\Infer\Scope\Scope;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Type\Contracts\LateResolvingType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralBooleanType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
-use Dedoc\Scramble\Support\Collection;
 use PhpParser\Node;
 use PhpParser\PrettyPrinter\Standard;
 use ReflectionNamedType;
@@ -19,11 +19,11 @@ class TypeHelper
     public static function mergeTypes(...$types)
     {
         $types = collect($types)
-            ->flatMap(fn($type) => $type instanceof Union ? $type->types : [$type])
-            ->unique(fn(Type $type) => $type->toString())
+            ->flatMap(fn ($type) => $type instanceof Union ? $type->types : [$type])
+            ->unique(fn (Type $type) => $type->toString())
             ->pipe(function (Collection $c) {
-                if ($c->count() > 1 && $c->contains(fn($t) => $t instanceof VoidType)) {
-                    return $c->reject(fn($t) => $t instanceof VoidType);
+                if ($c->count() > 1 && $c->contains(fn ($t) => $t instanceof VoidType)) {
+                    return $c->reject(fn ($t) => $t instanceof VoidType);
                 }
 
                 return $c;
@@ -86,12 +86,12 @@ class TypeHelper
 
         if ($typeNode instanceof Node\UnionType) {
             return Union::wrap(array_map(
-                fn($node) => static::createTypeFromTypeNode($node),
+                fn ($node) => static::createTypeFromTypeNode($node),
                 $typeNode->types
             ));
         }
 
-        return new UnknownType('Cannot get type from AST node ' . (new Standard)->prettyPrint([$typeNode]));
+        return new UnknownType('Cannot get type from AST node '.(new Standard)->prettyPrint([$typeNode]));
     }
 
     /**
@@ -143,8 +143,8 @@ class TypeHelper
         [$name, $index] = $parameterNameIndex;
 
         return collect($args)->first(
-            fn($arg) => ($arg->name->name ?? '') === $name,
-            fn() => empty($args[$index]->name->name) ? ($args[$index] ?? null) : null,
+            fn ($arg) => ($arg->name->name ?? '') === $name,
+            fn () => empty($args[$index]->name->name) ? ($args[$index] ?? null) : null,
         );
     }
 
@@ -168,7 +168,7 @@ class TypeHelper
 
         if (is_array($value)) {
             return new KeyedArrayType(array_map(
-                fn($key) => new ArrayItemType_($key, static::createTypeFromValue($value[$key])),
+                fn ($key) => new ArrayItemType_($key, static::createTypeFromValue($value[$key])),
                 array_keys($value),
             ));
         }
@@ -202,7 +202,7 @@ class TypeHelper
 
         if ($reflectionType instanceof ReflectionUnionType) {
             return Union::wrap(array_map(
-                fn($node) => static::createTypeFromReflectionType($node, $handleNullable),
+                fn ($node) => static::createTypeFromReflectionType($node, $handleNullable),
                 $reflectionType->getTypes(),
             ));
         }
@@ -231,7 +231,7 @@ class TypeHelper
             return new ObjectType($reflectionType->getName());
         }
 
-        return new UnknownType('Cannot create type from reflection type ' . ((string) $reflectionType));
+        return new UnknownType('Cannot create type from reflection type '.((string) $reflectionType));
     }
 
     public static function isResolvable(Type $type): bool

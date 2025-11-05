@@ -51,12 +51,13 @@ class RouteInfo
     public function isClassBased(): bool
     {
         $uses = $this->route->getAction('uses');
+
         return is_string($uses) || is_array($uses);
     }
 
     public function className(): ?string
     {
-        if (!$this->isClassBased()) {
+        if (! $this->isClassBased()) {
             return null;
         }
 
@@ -70,6 +71,7 @@ class RouteInfo
         if (is_string($uses)) {
             // Laravel format: "Controller@method" or Symfony format: "Controller::method"
             $separator = str_contains($uses, '@') ? '@' : '::';
+
             return ltrim(explode($separator, $uses)[0], '\\');
         }
 
@@ -78,7 +80,7 @@ class RouteInfo
 
     public function methodName(): ?string
     {
-        if (!$this->isClassBased()) {
+        if (! $this->isClassBased()) {
             return null;
         }
 
@@ -93,6 +95,7 @@ class RouteInfo
             // Laravel format: "Controller@method" or Symfony format: "Controller::method"
             $separator = str_contains($uses, '@') ? '@' : '::';
             $parts = explode($separator, $uses);
+
             return $parts[1] ?? null;
         }
 

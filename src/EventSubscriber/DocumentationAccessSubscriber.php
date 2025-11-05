@@ -3,7 +3,6 @@
 namespace Dedoc\Scramble\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -40,14 +39,14 @@ class DocumentationAccessSubscriber implements EventSubscriberInterface
      */
     public function onKernelRequest(RequestEvent $event): void
     {
-        if (!$event->isMainRequest()) {
+        if (! $event->isMainRequest()) {
             return;
         }
 
         $request = $event->getRequest();
 
         // Only check documentation routes
-        if (!$this->isDocumentationRoute($request->getPathInfo())) {
+        if (! $this->isDocumentationRoute($request->getPathInfo())) {
             return;
         }
 

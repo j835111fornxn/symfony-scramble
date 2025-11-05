@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Route as SymfonyRoute;
 class RouteAdapter
 {
     private SymfonyRoute $route;
+
     private string $name;
 
     public function __construct(SymfonyRoute $route, string $name = '')
@@ -36,7 +37,8 @@ class RouteAdapter
     public function methods(): array
     {
         $methods = $this->route->getMethods();
-        return !empty($methods) ? $methods : ['GET', 'HEAD'];
+
+        return ! empty($methods) ? $methods : ['GET', 'HEAD'];
     }
 
     /**
@@ -99,14 +101,14 @@ class RouteAdapter
 
     /**
      * Get signature parameters (for reflection).
-     * 
-     * @param string|array|null $subClass Filter by subclass or options like ['backedEnum' => true]
+     *
+     * @param  string|array|null  $subClass  Filter by subclass or options like ['backedEnum' => true]
      */
     public function signatureParameters(string|array|null $subClass = null): array
     {
         $controller = $this->getAction('uses');
 
-        if (!$controller) {
+        if (! $controller) {
             return [];
         }
 
@@ -136,14 +138,15 @@ class RouteAdapter
             if (is_array($subClass) && isset($subClass['backedEnum']) && $subClass['backedEnum']) {
                 return array_filter($parameters, function ($param) {
                     $type = $param->getType();
-                    if (!$type instanceof \ReflectionNamedType) {
+                    if (! $type instanceof \ReflectionNamedType) {
                         return false;
                     }
                     $typeName = $type->getName();
-                    if (!enum_exists($typeName)) {
+                    if (! enum_exists($typeName)) {
                         return false;
                     }
                     $enumReflection = new \ReflectionEnum($typeName);
+
                     return $enumReflection->isBacked();
                 });
             }
@@ -152,10 +155,11 @@ class RouteAdapter
             if (is_string($subClass)) {
                 return array_filter($parameters, function ($param) use ($subClass) {
                     $type = $param->getType();
-                    if (!$type instanceof \ReflectionNamedType || $type->isBuiltin()) {
+                    if (! $type instanceof \ReflectionNamedType || $type->isBuiltin()) {
                         return false;
                     }
                     $typeName = $type->getName();
+
                     return is_a($typeName, $subClass, true);
                 });
             }

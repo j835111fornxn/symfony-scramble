@@ -50,7 +50,7 @@ class RulesToParameter
         }
 
         $description = (string) Str::of($this->docNode->getAttribute('summary') ?: '')
-            ->append(' ' . ($this->docNode->getAttribute('description') ?: ''))
+            ->append(' '.($this->docNode->getAttribute('description') ?: ''))
             ->trim();
 
         if ($description) {

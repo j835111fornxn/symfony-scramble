@@ -18,13 +18,11 @@ class RouteCollectionProvider
 
     /**
      * Get filtered routes based on api_path and api_domain configuration.
-     *
-     * @return RouteCollection
      */
     public function getRoutes(): RouteCollection
     {
         $allRoutes = $this->router->getRouteCollection();
-        $filteredRoutes = new RouteCollection();
+        $filteredRoutes = new RouteCollection;
 
         $apiPath = $this->config['api_path'] ?? 'api';
         $apiDomain = $this->config['api_domain'] ?? null;
@@ -46,7 +44,7 @@ class RouteCollectionProvider
     {
         // Check path prefix
         $path = $route->getPath();
-        if ($apiPath && !str_starts_with(ltrim($path, '/'), $apiPath)) {
+        if ($apiPath && ! str_starts_with(ltrim($path, '/'), $apiPath)) {
             return false;
         }
 

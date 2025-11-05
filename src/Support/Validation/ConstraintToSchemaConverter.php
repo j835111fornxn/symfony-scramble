@@ -20,7 +20,7 @@ class ConstraintToSchemaConverter
     /**
      * Apply an array of constraints to a Type object.
      *
-     * @param Constraint[] $constraints
+     * @param  Constraint[]  $constraints
      */
     public function applyConstraints(array $constraints, Type $type, string $propertyName): void
     {
@@ -56,7 +56,7 @@ class ConstraintToSchemaConverter
 
     private function applyLength(Constraints\Length $constraint, Type $type): void
     {
-        if (!$type instanceof StringType) {
+        if (! $type instanceof StringType) {
             return;
         }
 
@@ -71,7 +71,7 @@ class ConstraintToSchemaConverter
 
     private function applyRange(Constraints\Range $constraint, Type $type): void
     {
-        if (!$type instanceof NumberType) {
+        if (! $type instanceof NumberType) {
             return;
         }
 
@@ -98,7 +98,7 @@ class ConstraintToSchemaConverter
 
     private function applyCount(Constraints\Count $constraint, Type $type): void
     {
-        if (!$type instanceof ArrayType) {
+        if (! $type instanceof ArrayType) {
             return;
         }
 
@@ -113,14 +113,14 @@ class ConstraintToSchemaConverter
 
     private function applyChoice(Constraints\Choice $constraint, Type $type): void
     {
-        if (!empty($constraint->choices)) {
+        if (! empty($constraint->choices)) {
             $type->enum = $constraint->choices;
         }
     }
 
     private function applyPositive(Constraints\Positive $constraint, Type $type): void
     {
-        if (!$type instanceof NumberType) {
+        if (! $type instanceof NumberType) {
             return;
         }
 
@@ -130,7 +130,7 @@ class ConstraintToSchemaConverter
 
     private function applyPositiveOrZero(Constraints\PositiveOrZero $constraint, Type $type): void
     {
-        if (!$type instanceof NumberType) {
+        if (! $type instanceof NumberType) {
             return;
         }
 
@@ -139,7 +139,7 @@ class ConstraintToSchemaConverter
 
     private function applyNegative(Constraints\Negative $constraint, Type $type): void
     {
-        if (!$type instanceof NumberType) {
+        if (! $type instanceof NumberType) {
             return;
         }
 
@@ -149,7 +149,7 @@ class ConstraintToSchemaConverter
 
     private function applyNegativeOrZero(Constraints\NegativeOrZero $constraint, Type $type): void
     {
-        if (!$type instanceof NumberType) {
+        if (! $type instanceof NumberType) {
             return;
         }
 

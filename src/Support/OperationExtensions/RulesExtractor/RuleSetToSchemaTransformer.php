@@ -2,11 +2,11 @@
 
 namespace Dedoc\Scramble\Support\OperationExtensions\RulesExtractor;
 
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Generator\Types\Type as OpenApiType;
 use Dedoc\Scramble\Support\Generator\Types\UnknownType;
 use Dedoc\Scramble\Support\Generator\TypeTransformer;
-use Dedoc\Scramble\Support\Arr;
-use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Str;
 use Illuminate\Validation\Rules\ExcludeIf;
 use Illuminate\Validation\Rules\ProhibitedIf;

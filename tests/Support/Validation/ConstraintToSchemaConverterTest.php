@@ -3,7 +3,6 @@
 namespace Dedoc\Scramble\Tests\Support\Validation;
 
 use Dedoc\Scramble\Support\Generator\Types\ArrayType;
-use Dedoc\Scramble\Support\Generator\Types\IntegerType;
 use Dedoc\Scramble\Support\Generator\Types\NumberType;
 use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Dedoc\Scramble\Support\Validation\ConstraintToSchemaConverter;
@@ -16,12 +15,12 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->converter = new ConstraintToSchemaConverter();
+        $this->converter = new ConstraintToSchemaConverter;
     }
 
     public function test_applies_length_constraint_to_string(): void
     {
-        $type = new StringType();
+        $type = new StringType;
         $constraint = new Assert\Length(min: 5, max: 50);
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
@@ -32,7 +31,7 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_range_constraint_to_number(): void
     {
-        $type = new NumberType();
+        $type = new NumberType;
         $constraint = new Assert\Range(min: 10, max: 100);
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
@@ -43,8 +42,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_email_constraint(): void
     {
-        $type = new StringType();
-        $constraint = new Assert\Email();
+        $type = new StringType;
+        $constraint = new Assert\Email;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -53,7 +52,7 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_regex_constraint(): void
     {
-        $type = new StringType();
+        $type = new StringType;
         $constraint = new Assert\Regex(pattern: '/^[A-Z]+$/');
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
@@ -63,7 +62,7 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_count_constraint_to_array(): void
     {
-        $type = new ArrayType();
+        $type = new ArrayType;
         $constraint = new Assert\Count(min: 1, max: 10);
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
@@ -74,7 +73,7 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_choice_constraint(): void
     {
-        $type = new StringType();
+        $type = new StringType;
         $constraint = new Assert\Choice(choices: ['active', 'inactive', 'pending']);
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
@@ -84,8 +83,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_positive_constraint(): void
     {
-        $type = new NumberType();
-        $constraint = new Assert\Positive();
+        $type = new NumberType;
+        $constraint = new Assert\Positive;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -95,8 +94,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_positive_or_zero_constraint(): void
     {
-        $type = new NumberType();
-        $constraint = new Assert\PositiveOrZero();
+        $type = new NumberType;
+        $constraint = new Assert\PositiveOrZero;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -105,8 +104,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_url_constraint(): void
     {
-        $type = new StringType();
-        $constraint = new Assert\Url();
+        $type = new StringType;
+        $constraint = new Assert\Url;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -115,8 +114,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_uuid_constraint(): void
     {
-        $type = new StringType();
-        $constraint = new Assert\Uuid();
+        $type = new StringType;
+        $constraint = new Assert\Uuid;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -125,8 +124,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_datetime_constraint(): void
     {
-        $type = new StringType();
-        $constraint = new Assert\DateTime();
+        $type = new StringType;
+        $constraint = new Assert\DateTime;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -135,8 +134,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_date_constraint(): void
     {
-        $type = new StringType();
-        $constraint = new Assert\Date();
+        $type = new StringType;
+        $constraint = new Assert\Date;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -145,8 +144,8 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_time_constraint(): void
     {
-        $type = new StringType();
-        $constraint = new Assert\Time();
+        $type = new StringType;
+        $constraint = new Assert\Time;
 
         $this->converter->applyConstraints([$constraint], $type, 'test');
 
@@ -155,11 +154,11 @@ class ConstraintToSchemaConverterTest extends TestCase
 
     public function test_applies_multiple_constraints(): void
     {
-        $type = new StringType();
+        $type = new StringType;
         $constraints = [
-            new Assert\NotBlank(),
+            new Assert\NotBlank,
             new Assert\Length(min: 5, max: 100),
-            new Assert\Email(),
+            new Assert\Email,
         ];
 
         $this->converter->applyConstraints($constraints, $type, 'test');

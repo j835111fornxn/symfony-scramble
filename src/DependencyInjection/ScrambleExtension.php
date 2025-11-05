@@ -17,7 +17,7 @@ class ScrambleExtension extends Extension
         // Load service definitions
         $loader = new YamlFileLoader(
             $container,
-            new FileLocator(__DIR__ . '/../../config')
+            new FileLocator(__DIR__.'/../../config')
         );
         $loader->load('services.yaml');
 
@@ -26,7 +26,7 @@ class ScrambleExtension extends Extension
             $twigFilesystemLoaderDefinition = $container->getDefinition('twig.loader.native_filesystem');
             $twigFilesystemLoaderDefinition->addMethodCall(
                 'addPath',
-                [__DIR__ . '/../../templates', 'Scramble']
+                [__DIR__.'/../../templates', 'Scramble']
             );
         }
 

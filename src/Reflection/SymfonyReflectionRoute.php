@@ -2,18 +2,16 @@
 
 namespace Dedoc\Scramble\Reflection;
 
-use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionMethod;
-use ReflectionNamedType;
 use ReflectionParameter;
 use Symfony\Component\Routing\Route;
 use WeakMap;
 
 /**
  * Reflection helper for Symfony routes.
- * 
+ *
  * @internal
  */
 class SymfonyReflectionRoute
@@ -31,12 +29,12 @@ class SymfonyReflectionRoute
 
     /**
      * Get mapping of route parameter names to controller method parameter names.
-     * 
+     *
      * For example:
      * Route: /users/{user_id}/posts/{post_id}
      * Controller method: public function show(int $userId, int $postId)
      * Result: ['user_id' => 'userId', 'post_id' => 'postId']
-     * 
+     *
      * @return array<string, string>
      */
     public function getSignatureParametersMap(): array
@@ -66,7 +64,7 @@ class SymfonyReflectionRoute
             }
 
             // If no match found, use snake_case name
-            if (!isset($map[$routeParam])) {
+            if (! isset($map[$routeParam])) {
                 $map[$routeParam] = $routeParam;
             }
         }
@@ -76,7 +74,7 @@ class SymfonyReflectionRoute
 
     /**
      * Get route parameter names from path.
-     * 
+     *
      * @return array<int, string>
      */
     private function getRouteParameterNames(): array
@@ -89,7 +87,7 @@ class SymfonyReflectionRoute
 
     /**
      * Get controller method parameters.
-     * 
+     *
      * @return ReflectionParameter[]
      */
     private function getControllerParameters(): array
@@ -97,7 +95,7 @@ class SymfonyReflectionRoute
         $defaults = $this->route->getDefaults();
         $controller = $defaults['_controller'] ?? null;
 
-        if (!$controller) {
+        if (! $controller) {
             return [];
         }
 
@@ -134,7 +132,7 @@ class SymfonyReflectionRoute
 
     /**
      * Get controller class and method name.
-     * 
+     *
      * @return array{class: string|null, method: string|null}
      */
     public function getControllerInfo(): array
@@ -142,17 +140,19 @@ class SymfonyReflectionRoute
         $defaults = $this->route->getDefaults();
         $controller = $defaults['_controller'] ?? null;
 
-        if (!$controller) {
+        if (! $controller) {
             return ['class' => null, 'method' => null];
         }
 
         if (is_string($controller) && str_contains($controller, '::')) {
             [$class, $method] = explode('::', $controller, 2);
+
             return ['class' => $class, 'method' => $method];
         }
 
         if (is_array($controller)) {
             [$class, $method] = $controller;
+
             return ['class' => is_string($class) ? $class : get_class($class), 'method' => $method];
         }
 
@@ -165,7 +165,7 @@ class SymfonyReflectionRoute
 
     /**
      * Get bound parameter types based on route requirements.
-     * 
+     *
      * @return array<string, string>
      */
     public function getBoundParametersTypes(): array

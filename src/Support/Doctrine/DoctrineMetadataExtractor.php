@@ -20,16 +20,17 @@ class DoctrineMetadataExtractor
     /**
      * Check if a class is a Doctrine entity.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      */
     public function isEntity(string $className): bool
     {
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return false;
         }
 
         try {
             $this->entityManager->getMetadataFactory()->getMetadataFor($className);
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -39,16 +40,17 @@ class DoctrineMetadataExtractor
     /**
      * Get entity metadata.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      */
     public function getMetadata(string $className): ?ClassMetadata
     {
-        if (!$this->isEntity($className)) {
+        if (! $this->isEntity($className)) {
             return null;
         }
 
         try {
             $metadata = $this->entityManager->getMetadataFactory()->getMetadataFor($className);
+
             return $metadata instanceof ClassMetadata ? $metadata : null;
         } catch (\Exception $e) {
             return null;
@@ -58,14 +60,14 @@ class DoctrineMetadataExtractor
     /**
      * Get all field names for an entity.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      * @return string[]
      */
     public function getFieldNames(string $className): array
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata) {
+        if (! $metadata) {
             return [];
         }
 
@@ -78,13 +80,13 @@ class DoctrineMetadataExtractor
     /**
      * Get field type for a property.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      */
     public function getFieldType(string $className, string $fieldName): ?string
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata) {
+        if (! $metadata) {
             return null;
         }
 
@@ -102,13 +104,13 @@ class DoctrineMetadataExtractor
     /**
      * Check if a field is nullable.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      */
     public function isNullable(string $className, string $fieldName): bool
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata || !$metadata->hasField($fieldName)) {
+        if (! $metadata || ! $metadata->hasField($fieldName)) {
             return false;
         }
 
@@ -120,13 +122,13 @@ class DoctrineMetadataExtractor
     /**
      * Check if a property is an association.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      */
     public function isAssociation(string $className, string $fieldName): bool
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata) {
+        if (! $metadata) {
             return false;
         }
 
@@ -136,14 +138,14 @@ class DoctrineMetadataExtractor
     /**
      * Get all association names for an entity.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      * @return string[]
      */
     public function getAssociationNames(string $className): array
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata) {
+        if (! $metadata) {
             return [];
         }
 
@@ -153,14 +155,14 @@ class DoctrineMetadataExtractor
     /**
      * Get association mapping info.
      *
-     * @param class-string $className
+     * @param  class-string  $className
      * @return array<string, mixed>|null
      */
     public function getAssociationMapping(string $className, string $fieldName): ?array
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata || !$metadata->hasAssociation($fieldName)) {
+        if (! $metadata || ! $metadata->hasAssociation($fieldName)) {
             return null;
         }
 
@@ -173,14 +175,14 @@ class DoctrineMetadataExtractor
     /**
      * Get identifier field name(s).
      *
-     * @param class-string $className
+     * @param  class-string  $className
      * @return string[]
      */
     public function getIdentifierFieldNames(string $className): array
     {
         $metadata = $this->getMetadata($className);
 
-        if (!$metadata) {
+        if (! $metadata) {
             return [];
         }
 

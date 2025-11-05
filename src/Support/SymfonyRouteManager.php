@@ -2,7 +2,6 @@
 
 namespace Dedoc\Scramble\Support;
 
-use Dedoc\Scramble\Support\RouteAdapter;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\RouterInterface;
@@ -21,7 +20,7 @@ class SymfonyRouteManager
 
     /**
      * Get all routes that should be documented based on configuration.
-     * 
+     *
      * @return RouteAdapter[]
      */
     public function getDocumentedRoutes(): array
@@ -47,7 +46,7 @@ class SymfonyRouteManager
         }
 
         $allRoutes = $this->router->getRouteCollection();
-        $filteredRoutes = new RouteCollection();
+        $filteredRoutes = new RouteCollection;
 
         $apiPath = $this->config['api_path'] ?? 'api';
         $apiDomain = $this->config['api_domain'] ?? null;
@@ -69,13 +68,13 @@ class SymfonyRouteManager
     {
         // Skip routes without controllers
         $defaults = $route->getDefaults();
-        if (!isset($defaults['_controller'])) {
+        if (! isset($defaults['_controller'])) {
             return false;
         }
 
         // Check path prefix
         $path = ltrim($route->getPath(), '/');
-        if ($apiPath && !str_starts_with($path, $apiPath)) {
+        if ($apiPath && ! str_starts_with($path, $apiPath)) {
             return false;
         }
 

@@ -4,7 +4,6 @@ namespace Dedoc\Scramble\Support;
 
 use Dedoc\Scramble\Support\Generator\Server;
 use Dedoc\Scramble\Support\Generator\ServerVariable;
-use Dedoc\Scramble\Support\Str;
 
 class ServerFactory
 {
@@ -32,7 +31,7 @@ class ServerFactory
 
         return collect($this->variables)
             ->only($params)
-            ->merge($params->reject(fn($p) => array_key_exists($p, $this->variables))->mapWithKeys(fn($p) => [
+            ->merge($params->reject(fn ($p) => array_key_exists($p, $this->variables))->mapWithKeys(fn ($p) => [
                 $p => ServerVariable::make('example'), // @phpstan-ignore array.invalidKey
             ]))
             ->toArray();

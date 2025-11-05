@@ -29,10 +29,10 @@ class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
 
         $originalMessage = $message;
         if ($file) {
-            $message = rtrim($message, '.') . '. Got when analyzing an expression in file [' . $file . '] on line ' . $line;
+            $message = rtrim($message, '.').'. Got when analyzing an expression in file ['.$file.'] on line '.$line;
         }
 
-        $exception = new static($path . ': ' . $message);
+        $exception = new static($path.': '.$message);
 
         $exception->originalMessage = $originalMessage;
         $exception->originFile = $file;
@@ -48,7 +48,7 @@ class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
         $action = $route->getAction('uses');
         $uri = $route->uri();
 
-        return "'$method $uri' ($action): " . $msg;
+        return "'$method $uri' ($action): ".$msg;
     }
 
     public function renderInConsole(SymfonyStyle $outputStyle): void

@@ -11,8 +11,7 @@ class Arr
     /**
      * Wrap the given value in an array if it's not already an array.
      *
-     * @param mixed $value
-     * @return array
+     * @param  mixed  $value
      */
     public static function wrap($value): array
     {
@@ -26,9 +25,8 @@ class Arr
     /**
      * Return the first element in an array passing a given truth test.
      *
-     * @param iterable $array
-     * @param callable|null $callback
-     * @param mixed $default
+     * @param  iterable  $array
+     * @param  mixed  $default
      * @return mixed
      */
     public static function first($array, ?callable $callback = null, $default = null)
@@ -57,14 +55,14 @@ class Arr
     /**
      * Get an item from an array using "dot" notation.
      *
-     * @param array $array
-     * @param string|int|null $key
-     * @param mixed $default
+     * @param  array  $array
+     * @param  string|int|null  $key
+     * @param  mixed  $default
      * @return mixed
      */
     public static function get($array, $key, $default = null)
     {
-        if (!is_array($array)) {
+        if (! is_array($array)) {
             return $default;
         }
 
@@ -76,7 +74,7 @@ class Arr
             return $array[$key];
         }
 
-        if (!str_contains((string) $key, '.')) {
+        if (! str_contains((string) $key, '.')) {
             return $array[$key] ?? $default;
         }
 
@@ -94,10 +92,9 @@ class Arr
     /**
      * Push an item onto the beginning of an array.
      *
-     * @param array $array
-     * @param mixed $value
-     * @param mixed $key
-     * @return array
+     * @param  array  $array
+     * @param  mixed  $value
+     * @param  mixed  $key
      */
     public static function prepend($array, $value, $key = null): array
     {
@@ -113,15 +110,14 @@ class Arr
     /**
      * Determine if an array has any of the given keys.
      *
-     * @param array $array
-     * @param string|array $keys
-     * @return bool
+     * @param  array  $array
+     * @param  string|array  $keys
      */
     public static function hasAny($array, $keys): bool
     {
         $keys = (array) $keys;
 
-        if (!$array || $keys === []) {
+        if (! $array || $keys === []) {
             return false;
         }
 
@@ -137,9 +133,8 @@ class Arr
     /**
      * Return the last element in an array passing a given truth test.
      *
-     * @param array $array
-     * @param callable|null $callback
-     * @param mixed $default
+     * @param  array  $array
+     * @param  mixed  $default
      * @return mixed
      */
     public static function last($array, ?callable $callback = null, $default = null)
@@ -154,16 +149,15 @@ class Arr
     /**
      * Flatten a multi-dimensional array into a single level.
      *
-     * @param iterable $array
-     * @param int $depth
-     * @return array
+     * @param  iterable  $array
+     * @param  int  $depth
      */
     public static function flatten($array, $depth = INF): array
     {
         $result = [];
 
         foreach ($array as $item) {
-            if (!is_array($item)) {
+            if (! is_array($item)) {
                 $result[] = $item;
             } else {
                 $values = $depth === 1

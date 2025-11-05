@@ -29,7 +29,7 @@ class ModelToSchema extends TypeToSchemaExtension
     public function shouldHandle(Type $type)
     {
         // Only handle if Laravel's Eloquent Model class exists (optional dependency)
-        if (!class_exists(self::ELOQUENT_MODEL_CLASS)) {
+        if (! class_exists(self::ELOQUENT_MODEL_CLASS)) {
             return false;
         }
 
@@ -56,7 +56,7 @@ class ModelToSchema extends TypeToSchemaExtension
     public function toResponse(Type $type)
     {
         return Response::make(200)
-            ->setDescription('`' . $this->openApiContext->references->schemas->uniqueName($type->name) . '`')
+            ->setDescription('`'.$this->openApiContext->references->schemas->uniqueName($type->name).'`')
             ->setContent(
                 'application/json',
                 Schema::fromType($this->openApiTransformer->transform($type)),

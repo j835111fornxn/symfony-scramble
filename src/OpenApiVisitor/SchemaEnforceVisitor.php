@@ -25,7 +25,7 @@ class SchemaEnforceVisitor extends AbstractOpenApiVisitor
 
     public function popReferences()
     {
-        return tap($this->operationReferences, fn() => $this->operationReferences = []);
+        return tap($this->operationReferences, fn () => $this->operationReferences = []);
     }
 
     public function enter($object, array $path = [])

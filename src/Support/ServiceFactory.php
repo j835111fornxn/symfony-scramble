@@ -43,7 +43,7 @@ class ServiceFactory
         $index = new Index;
 
         // Load class definitions from dictionary
-        $dictionaryPath = dirname(__DIR__, 2) . '/dictionaries/classMap.php';
+        $dictionaryPath = dirname(__DIR__, 2).'/dictionaries/classMap.php';
         foreach ((require $dictionaryPath) ?: [] as $className => $serializedClassDefinition) {
             $index->classesDefinitions[$className] = unserialize($serializedClassDefinition);
         }

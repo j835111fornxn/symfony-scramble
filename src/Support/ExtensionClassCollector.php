@@ -35,8 +35,9 @@ class ExtensionClassCollector
     private function collectExtensionClasses(): void
     {
         // If tagged services are provided (from compiler pass), use them
-        if (!empty($this->taggedServiceIds)) {
+        if (! empty($this->taggedServiceIds)) {
             $this->collectFromTaggedServices();
+
             return;
         }
 
@@ -49,7 +50,7 @@ class ExtensionClassCollector
     {
         foreach ($this->taggedServiceIds as $serviceId) {
             try {
-                if (!$this->container->has($serviceId)) {
+                if (! $this->container->has($serviceId)) {
                     continue;
                 }
 
@@ -98,7 +99,7 @@ class ExtensionClassCollector
         ];
 
         foreach ($knownExtensions as $class) {
-            if (!class_exists($class)) {
+            if (! class_exists($class)) {
                 continue;
             }
 

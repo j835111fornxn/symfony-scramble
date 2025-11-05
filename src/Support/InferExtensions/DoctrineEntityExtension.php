@@ -46,7 +46,7 @@ class DoctrineEntityExtension implements PropertyTypeExtension
 
     public function getPropertyType(PropertyFetchEvent $event): ?Type
     {
-        if (!$this->hasProperty($event->getInstance(), $event->getName())) {
+        if (! $this->hasProperty($event->getInstance(), $event->getName())) {
             return null;
         }
 
@@ -61,7 +61,7 @@ class DoctrineEntityExtension implements PropertyTypeExtension
         // Regular field
         $fieldType = $this->metadataExtractor->getFieldType($className, $propertyName);
 
-        if (!$fieldType) {
+        if (! $fieldType) {
             return new UnknownType("Cannot determine type for field {$propertyName}");
         }
 
@@ -98,10 +98,10 @@ class DoctrineEntityExtension implements PropertyTypeExtension
             'datetime_immutable', 'datetimetz_immutable', 'time_immutable' => new StringType,
 
             // JSON types - could be arrays or objects
-            'json', 'json_array' => new UnknownType("JSON field type inference not fully supported"),
+            'json', 'json_array' => new UnknownType('JSON field type inference not fully supported'),
 
             // Array types
-            'simple_array', 'array' => new UnknownType("Array field type inference not fully supported"),
+            'simple_array', 'array' => new UnknownType('Array field type inference not fully supported'),
 
             // Binary types
             'blob', 'binary' => new StringType,
@@ -118,14 +118,14 @@ class DoctrineEntityExtension implements PropertyTypeExtension
     {
         $mapping = $this->metadataExtractor->getAssociationMapping($className, $propertyName);
 
-        if (!$mapping) {
+        if (! $mapping) {
             return new UnknownType("Cannot determine association type for {$propertyName}");
         }
 
         $targetEntity = $mapping['targetEntity'] ?? null;
 
-        if (!$targetEntity) {
-            return new UnknownType("Association target entity not found");
+        if (! $targetEntity) {
+            return new UnknownType('Association target entity not found');
         }
 
         $targetType = new ObjectType($targetEntity);

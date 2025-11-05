@@ -31,7 +31,7 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
     {
         $requestClassName = $this->getValidatedRequestClassName($routeInfo);
 
-        if (!$requestClassName || !$this->constraintExtractor->hasConstraints($requestClassName)) {
+        if (! $requestClassName || ! $this->constraintExtractor->hasConstraints($requestClassName)) {
             return $parameterExtractionResults;
         }
 
@@ -42,7 +42,7 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
 
     private function getValidatedRequestClassName(RouteInfo $routeInfo): ?string
     {
-        if (!$reflectionAction = $routeInfo->reflectionAction()) {
+        if (! $reflectionAction = $routeInfo->reflectionAction()) {
             return null;
         }
 
@@ -61,13 +61,13 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
 
     private function isValidatedRequestParam(ReflectionParameter $parameter): bool
     {
-        if (!$parameter->getType() instanceof ReflectionNamedType) {
+        if (! $parameter->getType() instanceof ReflectionNamedType) {
             return false;
         }
 
         $className = $parameter->getType()->getName();
 
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return false;
         }
 
@@ -165,6 +165,7 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
     private function getSchemaName(string $className): ?string
     {
         $parts = explode('\\', $className);
+
         return end($parts);
     }
 
@@ -177,6 +178,7 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
             if ($docComment) {
                 // Extract first line of doc comment as description
                 preg_match('/\/\*\*\s*\n\s*\*\s*(.+?)\n/', $docComment, $matches);
+
                 return $matches[1] ?? '';
             }
         } catch (\Exception $e) {

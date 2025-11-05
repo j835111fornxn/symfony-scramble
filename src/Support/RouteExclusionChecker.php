@@ -20,7 +20,7 @@ class RouteExclusionChecker
     {
         $controller = $route->getAction('uses');
 
-        if (!$controller || !is_string($controller)) {
+        if (! $controller || ! is_string($controller)) {
             return false;
         }
 
@@ -36,7 +36,7 @@ class RouteExclusionChecker
             $classReflection = new ReflectionClass($class);
             $classAttributes = $classReflection->getAttributes(ExcludeAllRoutesFromDocs::class);
 
-            if (!empty($classAttributes)) {
+            if (! empty($classAttributes)) {
                 return true;
             }
 
@@ -45,7 +45,7 @@ class RouteExclusionChecker
                 $methodReflection = new ReflectionMethod($class, $method);
                 $methodAttributes = $methodReflection->getAttributes(ExcludeRouteFromDocs::class);
 
-                if (!empty($methodAttributes)) {
+                if (! empty($methodAttributes)) {
                     return true;
                 }
             }
@@ -64,7 +64,7 @@ class RouteExclusionChecker
     {
         $controller = $route->getAction('uses');
 
-        if (!$controller || !is_string($controller)) {
+        if (! $controller || ! is_string($controller)) {
             return false;
         }
 
