@@ -369,6 +369,36 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return new static($this->items);
     }
 
+    public function get($key, $default = null)
+    {
+        if (array_key_exists($key, $this->items)) {
+            return $this->items[$key];
+        }
+
+        return $default;
+    }
+
+    public function has($key): bool
+    {
+        return array_key_exists($key, $this->items);
+    }
+
+    public function concat($source): self
+    {
+        $result = new static($this);
+
+        foreach ($source as $item) {
+            $result->items[] = $item;
+        }
+
+        return $result;
+    }
+
+    public function merge($items): self
+    {
+        return new static(array_merge($this->items, $this->getArrayableItems($items)));
+    }
+
     public function values(): self
     {
         return new static(array_values($this->items));
@@ -432,6 +462,19 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
                 '<=' => $retrieved <= $value,
                 default => false,
             };
+        });
+    }
+
+    public function containsStrict($key, $value = null): bool
+    {
+        if (func_num_args() === 1) {
+            return in_array($key, $this->items, true);
+        }
+
+        return $this->contains(function ($item) use ($key, $value) {
+            $retrieved = is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null);
+
+            return $retrieved === $value;
         });
     }
 

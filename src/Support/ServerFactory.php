@@ -4,7 +4,7 @@ namespace Dedoc\Scramble\Support;
 
 use Dedoc\Scramble\Support\Generator\Server;
 use Dedoc\Scramble\Support\Generator\ServerVariable;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 class ServerFactory
 {

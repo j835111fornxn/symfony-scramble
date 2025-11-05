@@ -14,8 +14,8 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\TypeHelper;
 use Dedoc\Scramble\Support\Type\Union;
-use Illuminate\Support\Str;
-use Illuminate\Support\Stringable;
+use Dedoc\Scramble\Support\Str;
+use Dedoc\Scramble\Support\Stringable;
 use Illuminate\Validation\ConditionalRules;
 use Illuminate\Validation\Rules\Enum;
 

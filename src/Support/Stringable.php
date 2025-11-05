@@ -306,4 +306,12 @@ class Stringable
 
         return $this;
     }
+
+    /**
+     * Split the string by the given delimiter and return a Collection.
+     */
+    public function explode(string $delimiter, int $limit = PHP_INT_MAX): Collection
+    {
+        return new Collection(explode($delimiter, $this->value, $limit));
+    }
 }

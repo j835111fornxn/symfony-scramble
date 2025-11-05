@@ -8,8 +8,8 @@ use Dedoc\Scramble\Support\Generator\Types\ArrayType;
 use Dedoc\Scramble\Support\Generator\Types\ObjectType;
 use Dedoc\Scramble\Support\Generator\Types\Type;
 use Dedoc\Scramble\Support\Generator\Types\UnknownType;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\Str;
 
 class DeepParametersMerger
 {

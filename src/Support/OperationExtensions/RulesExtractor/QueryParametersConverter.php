@@ -4,8 +4,8 @@ namespace Dedoc\Scramble\Support\OperationExtensions\RulesExtractor;
 
 use Dedoc\Scramble\Support\Generator\Parameter;
 use Dedoc\Scramble\Support\Generator\Types\ArrayType;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\Str;
 
 class QueryParametersConverter
 {

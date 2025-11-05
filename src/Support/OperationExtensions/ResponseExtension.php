@@ -16,7 +16,7 @@ use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\RouteInfo;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\Union;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 use ReflectionAttribute;
 
 class ResponseExtension extends OperationExtension

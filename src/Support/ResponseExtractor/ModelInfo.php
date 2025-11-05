@@ -5,7 +5,7 @@ namespace Dedoc\Scramble\Support\ResponseExtractor;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
 use SplFileObject;

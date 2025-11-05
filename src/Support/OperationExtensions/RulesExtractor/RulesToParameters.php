@@ -6,8 +6,8 @@ use Dedoc\Scramble\Support\Generator\Parameter;
 use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\RulesDocumentationRetriever;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\RulesNodes;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Collection;
 use PhpParser\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 
