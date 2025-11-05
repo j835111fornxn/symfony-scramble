@@ -7,7 +7,7 @@ use Dedoc\Scramble\Contracts\DocumentTransformer;
 use Dedoc\Scramble\OpenApiContext;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Tag;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 use ReflectionAttribute;
 
 class AddDocumentTags implements DocumentTransformer

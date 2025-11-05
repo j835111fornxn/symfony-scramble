@@ -4,7 +4,7 @@ namespace Dedoc\Scramble\Infer\Visitors;
 
 use Dedoc\Scramble\Infer\Services\FileNameResolver;
 use Dedoc\Scramble\Support\PhpDoc;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use PhpParser\Comment;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;

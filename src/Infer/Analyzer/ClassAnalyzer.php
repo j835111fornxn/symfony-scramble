@@ -10,7 +10,7 @@ use Dedoc\Scramble\Infer\Scope\Index;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\TypeHelper;
 use Dedoc\Scramble\Support\Type\UnknownType;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use ReflectionClass;
 
 class ClassAnalyzer

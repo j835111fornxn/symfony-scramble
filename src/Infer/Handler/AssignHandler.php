@@ -7,7 +7,7 @@ use Dedoc\Scramble\Support\Type\ArrayItemType_;
 use Dedoc\Scramble\Support\Type\KeyedArrayType;
 use Dedoc\Scramble\Support\Type\OffsetSetType;
 use Dedoc\Scramble\Support\Type\TemplatePlaceholderType;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 

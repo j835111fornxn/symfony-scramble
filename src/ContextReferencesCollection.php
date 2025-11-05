@@ -3,7 +3,7 @@
 namespace Dedoc\Scramble;
 
 use Dedoc\Scramble\Support\Generator\Reference;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 /** @internal */
 class ContextReferencesCollection

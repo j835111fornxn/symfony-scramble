@@ -5,7 +5,7 @@ namespace Dedoc\Scramble\DocumentTransformers;
 use Dedoc\Scramble\Contracts\DocumentTransformer;
 use Dedoc\Scramble\OpenApiContext;
 use Dedoc\Scramble\Support\Generator\OpenApi;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 class CleanupUnusedResponseReferencesTransformer implements DocumentTransformer
 {

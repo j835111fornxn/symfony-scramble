@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble\Infer\Services;
 
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use PhpParser\NameContext;
 use PhpParser\Node\Name;
 use PhpParser\NodeTraverser;

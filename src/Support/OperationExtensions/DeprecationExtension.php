@@ -66,6 +66,6 @@ class DeprecationExtension extends OperationExtension
      */
     private function generateDescription(array $deprecation)
     {
-        return implode("\n", array_map(fn ($tag) => $tag->description, $deprecation));
+        return implode("\n", array_map(fn($tag) => $tag->description, $deprecation));
     }
 }

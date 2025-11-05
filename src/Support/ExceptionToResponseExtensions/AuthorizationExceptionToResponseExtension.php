@@ -10,7 +10,7 @@ use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 class AuthorizationExceptionToResponseExtension extends ExceptionToResponseExtension
 {

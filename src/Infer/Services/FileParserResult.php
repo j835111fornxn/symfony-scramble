@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble\Infer\Services;
 
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 use PhpParser\Node;
 use PhpParser\NodeFinder;
 

@@ -10,8 +10,8 @@ use Dedoc\Scramble\Configuration\ServerVariables;
 use Dedoc\Scramble\Support\Generator\ServerVariable;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Str;
 use ReflectionFunction;
 use ReflectionNamedType;
 

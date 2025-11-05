@@ -22,8 +22,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Str;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use ReflectionParameter;
 

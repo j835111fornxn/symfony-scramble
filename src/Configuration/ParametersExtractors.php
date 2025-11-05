@@ -8,7 +8,7 @@ use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\MethodCallsPar
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\ParameterExtractor;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\PathParametersExtractor;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\ValidateCallParametersExtractor;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 
 class ParametersExtractors
 {

@@ -25,7 +25,7 @@ use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\TypeWalker;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 use LogicException;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;

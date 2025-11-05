@@ -13,7 +13,7 @@ use Dedoc\Scramble\Infer\Services\FileNameResolver;
 use Dedoc\Scramble\Infer\TypeInferer;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\TypeHelper;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 use PhpParser\Node\PropertyItem;
 use PhpParser\NodeTraverser;
 use ReflectionProperty;
