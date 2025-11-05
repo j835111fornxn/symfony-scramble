@@ -51,10 +51,10 @@ class RulesToParameters
     {
         return collect($this->rules)
             ->pipe($this->handleConfirmed(...))
-            ->map(fn ($rules, $name) => (new RulesToParameter($name, $rules, $this->rulesDocs[$name] ?? null, $this->openApiTransformer, $this->in))->generate())
+            ->map(fn($rules, $name) => (new RulesToParameter($name, $rules, $this->rulesDocs[$name] ?? null, $this->openApiTransformer, $this->in))->generate())
             ->filter()
             ->values()
-            ->pipe(fn ($c) => $this->mergeDotNotatedKeys ? collect((new DeepParametersMerger($c))->handle()) : $c)
+            ->pipe(fn($c) => $this->mergeDotNotatedKeys ? collect((new DeepParametersMerger($c))->handle()) : $c)
             ->all();
     }
 
@@ -65,13 +65,13 @@ class RulesToParameters
     private function handleConfirmed(Collection $rules): Collection
     {
         $confirmedParamNameRules = $rules
-            ->map(fn ($rules, $name) => [$name, Arr::wrap(is_string($rules) ? explode('|', $rules) : $rules)])
-            ->filter(fn ($nameRules) => in_array('confirmed', $nameRules[1], true));
+            ->map(fn($rules, $name) => [$name, Arr::wrap(is_string($rules) ? explode('|', $rules) : $rules)])
+            ->filter(fn($nameRules) => in_array('confirmed', $nameRules[1], true));
 
         foreach ($confirmedParamNameRules as $confirmedParamNameRule) {
             $rules->offsetSet(
                 "$confirmedParamNameRule[0]_confirmation",
-                array_filter($confirmedParamNameRule[1], fn ($rule) => $rule !== 'confirmed'),
+                array_filter($confirmedParamNameRule[1], fn($rule) => $rule !== 'confirmed'),
             );
         }
 

@@ -48,7 +48,7 @@ class Reference extends Type
         $casesDescription = $this->getEnumReferenceCasesDescription();
 
         if ($description && $casesDescription) {
-            $description = Str::replaceLast($casesDescription, '', $description)."\n".$casesDescription;
+            $description = Str::replaceLast($casesDescription, '', $description) . "\n" . $casesDescription;
         }
 
         return parent::setDescription($description);

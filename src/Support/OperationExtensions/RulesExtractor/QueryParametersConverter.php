@@ -19,19 +19,19 @@ class QueryParametersConverter
      */
     public function handle(): array
     {
-        $paramsByName = $this->parameters->keyBy(fn ($p) => $p->name);
+        $paramsByName = $this->parameters->keyBy(fn($p) => $p->name);
 
         /*
          * Rejecting array "container" parameters for cases when there are properties specified. For example:
          * ['filter' => 'array', 'filter.accountable' => 'integer']
          * In this ruleset `filter` should not be documented at all as the accountable is enough.
          */
-        $parameters = $this->parameters->reject(fn (Parameter $p) => $paramsByName->keys()->some(fn (string $key) => Str::startsWith($key, $p->name.'.')));
+        $parameters = $this->parameters->reject(fn(Parameter $p) => $paramsByName->keys()->some(fn(string $key) => Str::startsWith($key, $p->name . '.')));
 
         [$parametersToAdapt, $otherParameters] = $parameters->partition($this->shouldAdaptParameterForQuery(...))->all();
 
         return $parametersToAdapt
-            ->map(fn ($p) => $this->convertParameterToQueryAdapted($p, $paramsByName))
+            ->map(fn($p) => $this->convertParameterToQueryAdapted($p, $paramsByName))
             ->merge(array_map(
                 $this->maybeMarkDeepParameter(...),
                 $this->convertDotNamedParamsToComplexStructures($otherParameters),
@@ -72,7 +72,7 @@ class QueryParametersConverter
 
         $parameter->name = Str::of($parameter->name)
             ->explode('.')
-            ->map(fn ($str, $i) => $i === 0 ? $str : ($str === '*' ? '[]' : "[$str]"))
+            ->map(fn($str, $i) => $i === 0 ? $str : ($str === '*' ? '[]' : "[$str]"))
             ->join('');
 
         if ($parameter->schema?->type instanceof ArrayType) {

@@ -314,4 +314,20 @@ class Stringable
     {
         return new Collection(explode($delimiter, $this->value, $limit));
     }
+
+    /**
+     * Determine if the string is not empty.
+     */
+    public function isNotEmpty(): bool
+    {
+        return $this->value !== '';
+    }
+
+    /**
+     * Determine if the string is empty.
+     */
+    public function isEmpty(): bool
+    {
+        return $this->value === '';
+    }
 }

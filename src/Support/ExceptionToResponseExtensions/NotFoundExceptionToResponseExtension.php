@@ -10,7 +10,7 @@ use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Illuminate\Database\RecordsNotFoundException;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class NotFoundExceptionToResponseExtension extends ExceptionToResponseExtension

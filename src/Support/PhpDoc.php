@@ -74,8 +74,8 @@ class PhpDoc
     public static function addSummaryAttributes(PhpDocNode $phpDoc)
     {
         $text = collect($phpDoc->children)
-            ->filter(fn ($v) => $v instanceof PhpDocTextNode)
-            ->map(fn (PhpDocTextNode $n) => $n->text)
+            ->filter(fn($v) => $v instanceof PhpDocTextNode)
+            ->map(fn(PhpDocTextNode $n) => $n->text)
             ->implode("\n");
 
         $text = Str::of($text)

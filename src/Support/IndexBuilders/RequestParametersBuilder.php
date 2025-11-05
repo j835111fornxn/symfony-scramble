@@ -19,7 +19,7 @@ use Dedoc\Scramble\Support\Type\Type as InferType;
 use Dedoc\Scramble\Support\Type\TypeHelper;
 use Dedoc\Scramble\Support\Type\UnknownType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\NodeAbstract;
@@ -183,7 +183,7 @@ class RequestParametersBuilder implements IndexBuilder
     private function makeQueryParameter(Scope $scope, Node $node)
     {
         return [
-            tap(new UnknownType, fn (InferType $t) => $t->setAttribute('isInQuery', true)),
+            tap(new UnknownType, fn(InferType $t) => $t->setAttribute('isInQuery', true)),
             TypeHelper::getArgType($scope, $node->args, ['default', 1])->value ?? null,
         ];
     }
@@ -195,12 +195,12 @@ class RequestParametersBuilder implements IndexBuilder
          * so when description is taken only if comment is marked with @param
          */
         if ($phpDoc = $node->getAttribute('parsedPhpDoc')) {
-            return trim($phpDoc->getAttribute('summary').' '.$phpDoc->getAttribute('description'));
+            return trim($phpDoc->getAttribute('summary') . ' ' . $phpDoc->getAttribute('description'));
         }
 
         if ($node->getComments()) {
             $docText = collect($node->getComments())
-                ->map(fn (Comment $c) => $c->getReformattedText())
+                ->map(fn(Comment $c) => $c->getReformattedText())
                 ->join("\n");
 
             return (string) Str::of($docText)->replace(['//', ' * ', '/**', '/*', '*/'], '')->trim();

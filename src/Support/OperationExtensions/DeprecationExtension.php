@@ -7,7 +7,7 @@ use Dedoc\Scramble\Infer\Reflector\ClassReflector;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\PhpDoc;
 use Dedoc\Scramble\Support\RouteInfo;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use PHPStan\PhpDocParser\Ast\PhpDoc\DeprecatedTagValueNode;
 
 /**

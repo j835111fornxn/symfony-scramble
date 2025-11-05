@@ -61,7 +61,7 @@ class Schema
 
                 $type->addProperty($parameter->name, $paramType);
             })
-            ->tap(fn (Collection $params) => $type->setRequired(
+            ->tap(fn(Collection $params) => $type->setRequired(
                 $params->where('required', true)->map->name->values()->all()
             ));
 

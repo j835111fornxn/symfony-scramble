@@ -19,9 +19,9 @@ use Dedoc\Scramble\Support\PhpDoc;
 use Dedoc\Scramble\Support\RouteInfo;
 use Dedoc\Scramble\Support\ServerFactory;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\Str;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use ReflectionAttribute;
 use ReflectionMethod;
@@ -67,15 +67,15 @@ class RequestEssentialsExtension extends OperationExtension
 
         $pathAliases = ReflectionRoute::createFromRoute($routeInfo->route)->getSignatureParametersMap();
 
-        $tagResolver = Scramble::$tagResolver ?? fn () => $this->getDefaultTags($operation, $routeInfo);
+        $tagResolver = Scramble::$tagResolver ?? fn() => $this->getDefaultTags($operation, $routeInfo);
 
         $uriWithoutOptionalParams = Str::replace('?}', '}', $routeInfo->route->uri);
 
         $operation
             ->setMethod(strtolower($routeInfo->route->methods()[0]))
             ->setPath(Str::replace(
-                collect($pathAliases)->keys()->map(fn ($k) => '{'.$k.'}')->all(),
-                collect($pathAliases)->values()->map(fn ($v) => '{'.$v.'}')->all(),
+                collect($pathAliases)->keys()->map(fn($k) => '{' . $k . '}')->all(),
+                collect($pathAliases)->values()->map(fn($v) => '{' . $v . '}')->all(),
                 $uriWithoutOptionalParams,
             ))
             ->setTags($tagResolver($routeInfo, $operation))
@@ -102,13 +102,13 @@ class RequestEssentialsExtension extends OperationExtension
 
         [$protocol] = explode('://', url('/'));
         $expectedServer = (new ServerFactory($this->config->serverVariables->all()))
-            ->make($protocol.'://'.$route->getDomain().'/'.$this->config->get('api_path', 'api'));
+            ->make($protocol . '://' . $route->getDomain() . '/' . $this->config->get('api_path', 'api'));
 
         if ($this->isServerMatchesAllGivenServers($expectedServer, $this->openApi->servers)) {
             return [];
         }
 
-        $matchingServers = collect($this->openApi->servers)->filter(fn (Server $s) => $this->isMatchingServerUrls($expectedServer->url, $s->url));
+        $matchingServers = collect($this->openApi->servers)->filter(fn(Server $s) => $this->isMatchingServerUrls($expectedServer->url, $s->url));
         if ($matchingServers->count()) {
             return $matchingServers->values()->toArray();
         }
@@ -118,7 +118,7 @@ class RequestEssentialsExtension extends OperationExtension
 
     private function isServerMatchesAllGivenServers(Server $expectedServer, array $actualServers)
     {
-        return collect($actualServers)->every(fn (Server $s) => $this->isMatchingServerUrls($expectedServer->url, $s->url));
+        return collect($actualServers)->every(fn(Server $s) => $this->isMatchingServerUrls($expectedServer->url, $s->url));
     }
 
     private function isMatchingServerUrls(string $expectedUrl, string $actualUrl)
@@ -130,7 +130,7 @@ class RequestEssentialsExtension extends OperationExtension
             /** @var Collection<int, string> $params */
             $params = Str::of($domain)->matchAll('/\{(.*?)\}/');
 
-            return $params->join('.').'/'.$path;
+            return $params->join('.') . '/' . $path;
         };
 
         return $mask($expectedUrl) === $mask($actualUrl);
@@ -194,7 +194,7 @@ class RequestEssentialsExtension extends OperationExtension
 
                     return Str::camel($part);
                 })
-                ->reject(fn ($p) => in_array(Str::lower($p), ['app', 'http', 'api', 'controllers', 'invoke']))
+                ->reject(fn($p) => in_array(Str::lower($p), ['app', 'http', 'api', 'controllers', 'invoke']))
                 ->values()
                 ->toArray(),
         );

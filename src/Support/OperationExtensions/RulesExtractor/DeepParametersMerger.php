@@ -24,7 +24,7 @@ class DeepParametersMerger
     public function handle(): array
     {
         return $this->parameters->groupBy('in') // @phpstan-ignore return.type
-            ->map(fn ($parameters) => $this->handleNested($parameters->keyBy('name'))->values())
+            ->map(fn($parameters) => $this->handleNested($parameters->keyBy('name'))->values())
             ->flatten() // `flatten` type inference is not working hence ignore
             ->values()
             ->all();
@@ -40,29 +40,29 @@ class DeepParametersMerger
          * @var Collection<string, Parameter> $forcedFlatParameters
          * @var Collection<string, Parameter> $maybeDeepParameters
          */
-        [$forcedFlatParameters, $maybeDeepParameters] = $parameters->partition(fn (Parameter $p) => $p->getAttribute('isFlat') === true);
+        [$forcedFlatParameters, $maybeDeepParameters] = $parameters->partition(fn(Parameter $p) => $p->getAttribute('isFlat') === true);
 
         /**
          * @var Collection<string, Parameter> $nested
          * @var Collection<string, Parameter> $parameters
          */
         [$nested, $parameters] = $maybeDeepParameters
-            ->sortBy(fn ($_, $key) => count(explode('.', $key)))
-            ->partition(fn ($_, $key) => Str::contains($key, '.'));
+            ->sortBy(fn($_, $key) => count(explode('.', $key)))
+            ->partition(fn($_, $key) => Str::contains($key, '.'));
 
-        $nestedParentsKeys = $nested->keys()->map(fn ($key) => explode('.', $key)[0]);
+        $nestedParentsKeys = $nested->keys()->map(fn($key) => explode('.', $key)[0]);
 
         /**
          * @var Collection<string, Parameter> $nestedParents
          * @var Collection<string, Parameter> $parameters
          */
-        [$nestedParents, $parameters] = $parameters->partition(fn ($_, $key) => $nestedParentsKeys->contains($key));
+        [$nestedParents, $parameters] = $parameters->partition(fn($_, $key) => $nestedParentsKeys->contains($key));
 
         /** @var Collection<string, Parameter> $nested */
         $nested = $nested->merge($nestedParents);
 
         $nested = $nested
-            ->groupBy(fn ($_, $key) => explode('.', $key)[0])
+            ->groupBy(fn($_, $key) => explode('.', $key)[0])
             ->map(function (Collection $params, $groupName) {
                 $params = $params->keyBy('name');
 
@@ -99,9 +99,9 @@ class DeepParametersMerger
             explode('.', $key)[0] === '*'
                 ? explode('.', $key)
                 : collect(explode('.', $key))
-                    ->splice(1)
-                    ->values()
-                    ->all(),
+                ->splice(1)
+                ->values()
+                ->all(),
         );
 
         $settingKey = collect(explode('.', $key))->last();
@@ -137,7 +137,7 @@ class DeepParametersMerger
 
         if ($isSettingArrayItems && $containingType instanceof ObjectType) {
             $containingType->properties = collect($containingType->properties)
-                ->map(fn ($prop) => $prop instanceof UnknownType ? $typeToSet : $prop)
+                ->map(fn($prop) => $prop instanceof UnknownType ? $typeToSet : $prop)
                 ->all();
         }
     }

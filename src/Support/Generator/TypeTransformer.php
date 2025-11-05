@@ -88,7 +88,7 @@ class TypeTransformer
                 ->setMax(count($type->items))
                 ->setPrefixItems(
                     array_map(
-                        fn ($item) => $this->transform($item->value),
+                        fn($item) => $this->transform($item->value),
                         $type->items
                     )
                 )
@@ -147,7 +147,7 @@ class TypeTransformer
                     ? $this->transform(PhpDocTypeHelper::toType($varNode->type))
                     : $openApiType;
 
-                $commentDescription = trim($docNode->getAttribute('summary').' '.$docNode->getAttribute('description'));
+                $commentDescription = trim($docNode->getAttribute('summary') . ' ' . $docNode->getAttribute('description'));
                 $varNodeDescription = $varNode && $varNode->description ? trim($varNode->description) : '';
                 if ($commentDescription || $varNodeDescription) {
                     $openApiType->setDescription(implode('. ', array_filter([$varNodeDescription, $commentDescription])));
@@ -166,8 +166,8 @@ class TypeTransformer
                 }
             }
         } elseif ($type instanceof Union) {
-            if (count($type->types) === 2 && collect($type->types)->contains(fn ($t) => $t instanceof \Dedoc\Scramble\Support\Type\NullType)) {
-                $notNullType = collect($type->types)->first(fn ($t) => ! ($t instanceof \Dedoc\Scramble\Support\Type\NullType));
+            if (count($type->types) === 2 && collect($type->types)->contains(fn($t) => $t instanceof \Dedoc\Scramble\Support\Type\NullType)) {
+                $notNullType = collect($type->types)->first(fn($t) => ! ($t instanceof \Dedoc\Scramble\Support\Type\NullType));
                 if ($notNullType) {
                     $openApiType = $this->transform($notNullType)->nullable(true);
                 } else {
@@ -175,11 +175,11 @@ class TypeTransformer
                 }
             } else {
                 [$literals, $otherTypes] = collect($type->types)
-                    ->partition(fn ($t) => $t instanceof LiteralStringType || $t instanceof LiteralIntegerType)
+                    ->partition(fn($t) => $t instanceof LiteralStringType || $t instanceof LiteralIntegerType)
                     ->all();
 
                 [$stringLiterals, $integerLiterals] = collect($literals)
-                    ->partition(fn ($t) => $t instanceof LiteralStringType)
+                    ->partition(fn($t) => $t instanceof LiteralStringType)
                     ->all();
 
                 $items = array_map($this->transform(...), $otherTypes->values()->toArray()); // @phpstan-ignore argument.type
@@ -197,7 +197,7 @@ class TypeTransformer
                 }
 
                 // Removing duplicated schemas before making a resulting AnyOf type.
-                $uniqueItems = collect($items)->unique(fn ($i) => json_encode($i->toArray()))->values()->all();
+                $uniqueItems = collect($items)->unique(fn($i) => json_encode($i->toArray()))->values()->all();
                 $openApiType = count($uniqueItems) === 1 ? $uniqueItems[0] : (new AnyOf)->setItems($uniqueItems);
             }
         } elseif ($type instanceof LiteralStringType) {
@@ -236,7 +236,7 @@ class TypeTransformer
             }
         } elseif ($type instanceof \Dedoc\Scramble\Support\Type\IntersectionType) {
             $openApiType = (new AllOf)->setItems(array_map(
-                fn ($t) => $this->transform($t),
+                fn($t) => $this->transform($t),
                 $type->types,
             ));
         }
@@ -308,7 +308,7 @@ class TypeTransformer
         // In case of union type being returned and all of its types resulting in the same response, we want to make
         // sure to take only unique types to avoid having the same types in the response.
         if ($type instanceof Union) {
-            $uniqueItems = collect($type->types)->unique(fn ($i) => json_encode($this->transform($i)->toArray()))->values()->all();
+            $uniqueItems = collect($type->types)->unique(fn($i) => json_encode($this->transform($i)->toArray()))->values()->all();
             $type = count($uniqueItems) === 1 ? $uniqueItems[0] : Union::wrap($uniqueItems);
         }
 
@@ -327,8 +327,8 @@ class TypeTransformer
         /** @var PhpDocNode $docNode */
         if ($docNode = $type->getAttribute('docNode')) {
             $description = (string) Str::of($docNode->getAttribute('summary') ?: '')
-                ->append("\n\n".($docNode->getAttribute('description') ?: ''))
-                ->append("\n\n".$response->description)
+                ->append("\n\n" . ($docNode->getAttribute('description') ?: ''))
+                ->append("\n\n" . $response->description)
                 ->trim();
             $response->description($description);
 

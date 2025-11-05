@@ -64,10 +64,10 @@ class ResponseExtension extends OperationExtension
             })
             ->map($this->openApiTransformer->toResponse(...))
             ->filter()
-            ->unique(fn ($response) => ($response instanceof Response ? $response->code : 'ref').':'.json_encode($response->toArray()))
+            ->unique(fn($response) => ($response instanceof Response ? $response->code : 'ref') . ':' . json_encode($response->toArray()))
             ->values();
 
-        [$responses, $references] = $responses->partition(fn ($r) => $r instanceof Response)->all();
+        [$responses, $references] = $responses->partition(fn($r) => $r instanceof Response)->all();
         /** @var Collection<int, Response> $responses */
         /** @var Collection<int, Reference> $references */
 
@@ -95,8 +95,8 @@ class ResponseExtension extends OperationExtension
             $responseAttributeInstance = $responseAttribute->newInstance();
 
             $originalResponse = $inferredResponses
-                ->map(fn (Response|Reference $r): Response => $r instanceof Reference ? $r->resolve() : $r)
-                ->first(fn (Response $r) => $r->code === $responseAttributeInstance->status);
+                ->map(fn(Response|Reference $r): Response => $r instanceof Reference ? $r->resolve() : $r)
+                ->first(fn(Response $r) => $r->code === $responseAttributeInstance->status);
 
             $newResponse = ResponseAttribute::toOpenApiResponse(
                 $responseAttributeInstance,
@@ -148,7 +148,7 @@ class ResponseExtension extends OperationExtension
                 ->setDescription(trim($responses->map->description->join("\n\n")))
                 ->setLinks($this->mergeLinks($responses))
                 ->setHeaders($this->mergeHeaders($responses)),
-            fn (Response $r) => $this->addContentToResponse($r, $responses),
+            fn(Response $r) => $this->addContentToResponse($r, $responses),
         );
     }
 
@@ -198,8 +198,8 @@ class ResponseExtension extends OperationExtension
                      * Empty response body can happen, and in case it is going to be grouped
                      * by status, it should become an empty string.
                      */
-                    ->map(fn ($type) => $type ?: new OpenApiTypes\StringType)
-                    ->unique(fn ($type) => json_encode($type->toArray()))
+                    ->map(fn($type) => $type ?: new OpenApiTypes\StringType)
+                    ->unique(fn($type) => json_encode($type->toArray()))
                     ->values()
                     ->all();
 

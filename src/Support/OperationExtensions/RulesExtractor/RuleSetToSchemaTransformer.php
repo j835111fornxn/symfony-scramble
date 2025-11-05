@@ -25,7 +25,16 @@ use Illuminate\Validation\Rules\RequiredIf;
 class RuleSetToSchemaTransformer
 {
     private const RULES_PRIORITY = [
-        'bool', 'boolean', 'numeric', 'int', 'integer', 'file', 'image', 'string', 'array', 'exists',
+        'bool',
+        'boolean',
+        'numeric',
+        'int',
+        'integer',
+        'file',
+        'image',
+        'string',
+        'array',
+        'exists',
     ];
 
     private const IGNORE_STRINGABLE_RULES = [

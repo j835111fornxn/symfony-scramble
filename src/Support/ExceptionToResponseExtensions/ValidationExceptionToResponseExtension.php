@@ -9,7 +9,7 @@ use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ValidationExceptionToResponseExtension extends ExceptionToResponseExtension

@@ -330,4 +330,14 @@ class Str
 
         return substr_count($haystack, $needle, $offset);
     }
+
+    /**
+     * Begin a string with a single instance of a given value.
+     */
+    public static function start(string $value, string $prefix): string
+    {
+        $quoted = preg_quote($prefix, '/');
+
+        return $prefix . preg_replace('/^(?:' . $quoted . ')+/u', '', $value);
+    }
 }

@@ -19,9 +19,9 @@ use Dedoc\Scramble\Support\OperationExtensions\RulesExtractor\DeepParametersMerg
 use Dedoc\Scramble\Support\OperationExtensions\RulesExtractor\ParametersExtractionResult;
 use Dedoc\Scramble\Support\OperationExtensions\RulesExtractor\QueryParametersConverter;
 use Dedoc\Scramble\Support\RouteInfo;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\Str;
 use Throwable;
 
 class RequestBodyExtension extends OperationExtension
@@ -41,14 +41,14 @@ class RequestBodyExtension extends OperationExtension
             if (Scramble::shouldThrowOnError()) {
                 throw $exception;
             }
-            $description = $description->append('⚠️ Cannot generate request documentation: '.$exception->getMessage());
+            $description = $description->append('⚠️ Cannot generate request documentation: ' . $exception->getMessage());
         }
 
         $operation
             ->summary(Str::of($routeInfo->phpDoc()->getAttribute('summary'))->rtrim('.'))  // @phpstan-ignore argument.type
             ->description($description);
 
-        $allParams = $rulesResults->flatMap(fn ($p) => $p->parameters)->unique(fn ($p) => "$p->name.$p->in")->values()->all();
+        $allParams = $rulesResults->flatMap(fn($p) => $p->parameters)->unique(fn($p) => "$p->name.$p->in")->values()->all();
 
         if (empty($allParams)) {
             return;
@@ -61,9 +61,9 @@ class RequestBodyExtension extends OperationExtension
         }
 
         [$nonBodyParams, $bodyParams] = array_map(
-            fn ($c) => $c->all(),
+            fn($c) => $c->all(),
             collect($allParams)
-                ->partition(fn (Parameter $p) => $p->in !== 'body' || $p->getAttribute('isInQuery') || $p->getAttribute('nonBody'))
+                ->partition(fn(Parameter $p) => $p->in !== 'body' || $p->getAttribute('isInQuery') || $p->getAttribute('nonBody'))
                 ->all(),
         );
 
@@ -78,13 +78,13 @@ class RequestBodyExtension extends OperationExtension
 
         $schemas = $schemaResults->merge($schemalessResults)
             ->map(function (ParametersExtractionResult $r) use ($nonBodyParams) {
-                $qpNames = collect($nonBodyParams)->keyBy(fn ($p) => "$p->name.$p->in");
+                $qpNames = collect($nonBodyParams)->keyBy(fn($p) => "$p->name.$p->in");
 
-                $r->parameters = collect($r->parameters)->filter(fn ($p) => ! $qpNames->has("$p->name.$p->in"))->values()->all();
+                $r->parameters = collect($r->parameters)->filter(fn($p) => ! $qpNames->has("$p->name.$p->in"))->values()->all();
 
                 return $r;
             })
-            ->filter(fn (ParametersExtractionResult $r) => count($r->parameters) || $r->schemaName)
+            ->filter(fn(ParametersExtractionResult $r) => count($r->parameters) || $r->schemaName)
             ->map($this->makeSchemaFromResults(...));
 
         if ($schemas->isEmpty()) {
@@ -160,7 +160,7 @@ class RequestBodyExtension extends OperationExtension
     protected function mergeSchemalessRulesResults(Collection $schemalessResults): ParametersExtractionResult
     {
         return new ParametersExtractionResult(
-            parameters: $this->convertDotNamedParamsToComplexStructures($schemalessResults->values()->flatMap->parameters->unique(fn ($p) => "$p->name.$p->in")->values()->all()),
+            parameters: $this->convertDotNamedParamsToComplexStructures($schemalessResults->values()->flatMap->parameters->unique(fn($p) => "$p->name.$p->in")->values()->all()),
         );
     }
 
