@@ -1,7 +1,5 @@
 <?php
 
-use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
-
 return [
     /*
      * Your API path. By default, all routes starting with this path will be added to the docs.
@@ -128,8 +126,8 @@ return [
     'flatten_deep_query_parameters' => true,
 
     'middleware' => [
-        'web',
-        RestrictedDocsAccess::class,
+        // Access control is now handled by DocumentationAccessSubscriber event subscriber
+        // Add custom middleware here if needed
     ],
 
     'extensions' => [],

@@ -83,6 +83,13 @@ services:
             $twig: '@twig'
         tags: ['controller.service_arguments']
 
+    # Event Subscribers
+    Dedoc\Scramble\EventSubscriber\DocumentationAccessSubscriber:
+        arguments:
+            $environment: '%kernel.environment%'
+            $authorizationCallback: null
+        tags: ['kernel.event_subscriber']
+
     # Built-in Infer Extensions
     Dedoc\Scramble\Support\InferExtensions\ResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']

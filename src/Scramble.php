@@ -6,7 +6,6 @@ use Dedoc\Scramble\Configuration\GeneratorConfigCollection;
 use Dedoc\Scramble\Extensions\ExceptionToResponseExtension;
 use Dedoc\Scramble\Extensions\OperationExtension;
 use Dedoc\Scramble\Extensions\TypeToSchemaExtension;
-use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 use Dedoc\Scramble\Infer\Extensions\InferExtension;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\ServerVariable;
@@ -125,8 +124,8 @@ class Scramble
         $forbiddenSchemas = Arr::wrap($schemaTypes);
 
         static::enforceSchema(
-            fn ($schema, $path) => ! in_array($schema::class, $forbiddenSchemas),
-            fn ($schema) => 'Schema ['.$schema::class.'] is not allowed.',
+            fn($schema, $path) => ! in_array($schema::class, $forbiddenSchemas),
+            fn($schema) => 'Schema [' . $schema::class . '] is not allowed.',
             $ignorePaths,
             $throw,
         );
@@ -157,7 +156,7 @@ class Scramble
                 'config' => $config,
             ]);
         })
-            ->middleware($config->get('middleware', [RestrictedDocsAccess::class]));
+            ->middleware($config->get('middleware', []));
     }
 
     public static function registerJsonSpecificationRoute(string $path, string $api = 'default'): Route
@@ -169,7 +168,7 @@ class Scramble
 
             return response()->json($generator($config), options: JSON_PRETTY_PRINT);
         })
-            ->middleware($config->get('middleware', [RestrictedDocsAccess::class]));
+            ->middleware($config->get('middleware', []));
     }
 
     public static function getGeneratorConfig(string $api): GeneratorConfig
