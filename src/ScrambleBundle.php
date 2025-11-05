@@ -20,6 +20,10 @@ class ScrambleBundle extends Bundle
     {
         parent::boot();
 
+        // Set global container reference for app() helper function
+        // This allows legacy code to access the service container
+        $GLOBALS['__scramble_container'] = $this->container;
+
         // Route registration will be handled by the configuration
         // Routes are registered dynamically based on bundle configuration
     }

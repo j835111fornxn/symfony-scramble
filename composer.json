@@ -54,7 +54,10 @@
         "psr-4": {
             "Dedoc\\Scramble\\": "src",
             "Dedoc\\Scramble\\Database\\Factories\\": "database/factories"
-        }
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
