@@ -9,7 +9,7 @@ use Dedoc\Scramble\Support\OperationExtensions\RequestBodyExtension;
 use Dedoc\Scramble\Support\OperationExtensions\RequestEssentialsExtension;
 use Dedoc\Scramble\Support\OperationExtensions\ResponseExtension;
 use Dedoc\Scramble\Support\OperationExtensions\ResponseHeadersExtension;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 
 class OperationTransformers
 {

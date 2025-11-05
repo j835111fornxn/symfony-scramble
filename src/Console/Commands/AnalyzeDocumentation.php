@@ -9,8 +9,8 @@ use Dedoc\Scramble\Generator;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Console\Command;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\Str;
 use Throwable;
 
 class AnalyzeDocumentation extends Command

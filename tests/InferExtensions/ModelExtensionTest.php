@@ -11,7 +11,7 @@ use Dedoc\Scramble\Tests\Files\SamplePostModel;
 use Dedoc\Scramble\Tests\Files\SampleUserModel;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);

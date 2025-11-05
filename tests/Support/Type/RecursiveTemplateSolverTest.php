@@ -11,7 +11,7 @@ use Dedoc\Scramble\Support\Type\RecursiveTemplateSolver;
 use Dedoc\Scramble\Support\Type\StringType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Union;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 
 beforeEach(function () {
     $this->solver = new RecursiveTemplateSolver;

@@ -4,8 +4,8 @@ namespace Dedoc\Scramble\Configuration;
 
 use Dedoc\Scramble\Infer\Configuration\ClassLike;
 use Dedoc\Scramble\Infer\Configuration\DefinitionMatcher;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Str;
 
 /**
  * @internal

@@ -3,7 +3,7 @@
 namespace Dedoc\Scramble\Configuration;
 
 use Dedoc\Scramble\Contracts\DocumentTransformer;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 
 class DocumentTransformers
 {

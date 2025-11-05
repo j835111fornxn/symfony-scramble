@@ -52,6 +52,6 @@ class AddDocumentTags implements DocumentTransformer
             return $acc;
         }, collect());
 
-        return $tags->sortBy(fn (Tag $t) => $t->getAttribute('weight', INF))->values()->all();
+        return $tags->sortBy(fn(Tag $t) => $t->getAttribute('weight', INF))->values()->all();
     }
 }

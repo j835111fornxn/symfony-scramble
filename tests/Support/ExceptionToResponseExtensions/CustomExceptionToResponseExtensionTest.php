@@ -15,7 +15,7 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 beforeEach(function () {
     $this->components = new Components;

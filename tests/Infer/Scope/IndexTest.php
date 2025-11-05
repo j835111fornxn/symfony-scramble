@@ -13,7 +13,7 @@ use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\IntegerType;
 use Dedoc\Scramble\Support\Type\Reference\MethodCallReferenceType;
 use Dedoc\Scramble\Support\Type\StringType;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 
 beforeEach(function () {
     $this->index = new Index;

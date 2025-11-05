@@ -10,7 +10,7 @@ use Dedoc\Scramble\Infer\Scope\Index;
 use Dedoc\Scramble\Infer\Services\FileNameResolver;
 use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\TemplateType;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 
 function buildAstFunctionDefinition(MethodReflector $reflector, ?ClassDefinition $classDefinition = null): FunctionLikeDefinition
 {

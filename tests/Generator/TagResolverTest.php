@@ -2,7 +2,7 @@
 
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\RouteInfo;
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 use Illuminate\Support\Facades\Route as RouteFacade;
 
 it('documents tags based resolveTagsUsing', function () {
