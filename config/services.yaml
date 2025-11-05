@@ -38,6 +38,13 @@ services:
     Dedoc\Scramble\Support\RouteExclusionChecker:
         public: false
 
+    # Documentation Controller
+    Dedoc\Scramble\Http\Controller\DocumentationController:
+        arguments:
+            $generator: '@Dedoc\Scramble\Generator'
+            $twig: '@twig'
+        tags: ['controller.service_arguments']
+
     # Parser
     PhpParser\Parser:
         class: PhpParser\Parser\Php7

@@ -21,6 +21,15 @@ class ScrambleExtension extends Extension
         );
         $loader->load('services.yaml');
 
+        // Register Twig namespace for templates
+        if ($container->hasDefinition('twig.loader.native_filesystem')) {
+            $twigFilesystemLoaderDefinition = $container->getDefinition('twig.loader.native_filesystem');
+            $twigFilesystemLoaderDefinition->addMethodCall(
+                'addPath',
+                [__DIR__.'/../../templates', 'Scramble']
+            );
+        }
+
         // Set config as container parameters
         $container->setParameter('scramble.api_path', $config['api_path']);
         $container->setParameter('scramble.api_domain', $config['api_domain']);
