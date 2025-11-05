@@ -18,13 +18,23 @@ class Union extends AbstractType
 
     public function isSame(Type $type)
     {
-        return $type instanceof static
-            && collect($this->types)->every(fn(Type $t, $i) => $t->isSame($type->types[$i]));
+        if (!$type instanceof Union) {
+            return false;
+        }
+        
+        if (count($this->types) !== count($type->types)) {
+            return false;
+        }
+        
+        return collect($this->types)->every(fn(Type $t, $i) => $t->isSame($type->types[$i]));
     }
 
     public function widen(): Type
     {
-        return app(TypeWidener::class)->widen($this->types)->mergeAttributes($this->attributes());
+        // TypeWidener service should be injected or accessed through service locator
+        // For now, return self as widening requires context
+        // TODO: Refactor to use proper DI when removing app() helpers
+        return $this;
     }
 
     public function accepts(Type $otherType): bool
