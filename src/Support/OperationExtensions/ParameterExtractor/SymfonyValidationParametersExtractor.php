@@ -114,7 +114,7 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
         );
     }
 
-    private function inferPropertySchema(string $className, string $propertyName): Schema
+    private function inferPropertySchema(string $className, string $propertyName): \Dedoc\Scramble\Support\Generator\Types\Type
     {
         // Try to infer type from property type hint
         try {
@@ -135,7 +135,7 @@ class SymfonyValidationParametersExtractor implements ParameterExtractor
         return new \Dedoc\Scramble\Support\Generator\Types\StringType;
     }
 
-    private function createSchemaFromType(string $typeName): Schema
+    private function createSchemaFromType(string $typeName): \Dedoc\Scramble\Support\Generator\Types\Type
     {
         return match ($typeName) {
             'int', 'integer' => new \Dedoc\Scramble\Support\Generator\Types\IntegerType,
