@@ -15,7 +15,12 @@ applyTo: '**'
   _Implemented logger() helper that returns LoggerInterface from container. Calls debug() when message provided._
 - [x] phase11-url-helper: Replace url() with Symfony UrlGenerator 🟡
   _Implemented url() using router.default service (UrlGeneratorInterface). Handles both absolute paths and route names._
+- [x] phase11-console-deps: Replace Laravel Console with Symfony Console 🟡
+  _Replaced Illuminate\Console\OutputStyle with Symfony\Component\Console\Style\SymfonyStyle in all console-related classes._
+- [x] phase11-route-deps: Remove remaining Illuminate\Routing\Route dependencies 🟡
+  _Removed all Illuminate\Routing\Route references from RouteInfo. Deprecated reflectionClosure() as Laravel SerializableClosure not available._
 - [-] phase11-str-class: Replace Illuminate\Support\Str with Symfony String component 🟡
+  _20+ files use Str methods. Need to create Str helper class with common methods._
 - [ ] phase11-arr-class: Replace Illuminate\Support\Arr with native array functions 🟢
 </todos>
 
