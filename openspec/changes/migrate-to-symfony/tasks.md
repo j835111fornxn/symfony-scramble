@@ -160,11 +160,15 @@
 - [x] 12.1 Replace all uses of Illuminate\Support\Arr with native PHP array functions or Symfony ArrayUtil
 - [x] 12.2 Replace all uses of Illuminate\Support\Str with Symfony String component
 - [x] 12.3 Replace all uses of Illuminate\Support\Collection with Doctrine\Common\Collections or arrays
-- [ ] 12.4 Remove app() calls and use dependency injection (20+ calls identified)
+- [ ] 12.4 Remove app() calls and use dependency injection (20+ calls identified, 1 temporarily disabled in Union::widen())
 - [ ] 12.5 Remove config() calls and inject configuration
 - [ ] 12.6 Remove view() calls and inject Twig environment
 - [ ] 12.7 Remove response() calls and return Symfony Response objects
 - [ ] 12.8 Update all helper usages throughout the codebase
+  - [x] Replaced Illuminate imports in Type classes (Union, TypeHelper, OffsetSetType, OffsetUnsetType)
+  - [x] Replaced Illuminate imports in some TypeToSchema extensions (ServerFactory, CollectionToSchema, EnumToSchema)
+  - [ ] Complete ResponseTypeToSchema (still has Laravel Response/JsonResponse dependencies)
+  - [ ] Update remaining 20+ files with Illuminate imports
 
 ## 13. Infer Extensions Migration
 
