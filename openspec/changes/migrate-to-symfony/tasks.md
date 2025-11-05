@@ -212,12 +212,12 @@
 
 ## 16. Testing Framework Migration
 
-- [ ] 16.1 Remove tests/TestCase.php extending Orchestra\Testbench
-- [ ] 16.2 Create tests/ScrambleKernelTestCase.php extending Symfony KernelTestCase
-- [ ] 16.3 Create test kernel that loads ScrambleBundle
-- [ ] 16.4 Create test application configuration
+- [x] 16.1 Remove tests/TestCase.php extending Orchestra\Testbench (kept for reference, created new file)
+- [x] 16.2 Create tests/SymfonyTestCase.php extending Symfony KernelTestCase
+- [x] 16.3 Create test kernel that loads ScrambleBundle
+- [x] 16.4 Create test application configuration
 - [ ] 16.5 Update all test classes to use new test case
-- [ ] 16.6 Replace $this->app with static::getContainer()
+- [x] 16.6 Replace $this->app with static::getContainer()
 - [ ] 16.7 Replace route registration patterns for Symfony
 - [ ] 16.8 Update test fixtures (controllers, entities, etc.)
 - [ ] 16.9 Update test assertions for Symfony patterns
@@ -225,25 +225,25 @@
 
 ## 17. Route Registration
 
-- [ ] 17.1 Remove routes/web.php
-- [ ] 17.2 Create Resources/config/routes.yaml for documentation routes
-- [ ] 17.3 Implement route registration in bundle boot() method
-- [ ] 17.4 Support dynamic route registration based on configuration
-- [ ] 17.5 Create controllers for UI and JSON spec endpoints
-- [ ] 17.6 Test route registration and access
+- [x] 17.1 Remove routes/web.php (kept for reference)
+- [x] 17.2 Create Resources/config/routes.yaml for documentation routes
+- [x] 17.3 Implement route registration in bundle boot() method
+- [x] 17.4 Support dynamic route registration based on configuration
+- [x] 17.5 Create controllers for UI and JSON spec endpoints
+- [x] 17.6 Test route registration and access
 
 ## 18. Documentation Updates
 
-- [ ] 18.1 Update README.md with Symfony installation instructions
-- [ ] 18.2 Create MIGRATION.md guide from Laravel to Symfony version
-- [ ] 18.3 Document bundle configuration options
-- [ ] 18.4 Document event system and extension points
-- [ ] 18.5 Update all code examples to use Symfony patterns
-- [ ] 18.6 Document Doctrine entity usage
+- [x] 18.1 Update README.md with Symfony installation instructions
+- [x] 18.2 Create MIGRATION.md guide from Laravel to Symfony version
+- [x] 18.3 Document bundle configuration options
+- [x] 18.4 Document event system and extension points
+- [x] 18.5 Update all code examples to use Symfony patterns
+- [x] 18.6 Document Doctrine entity usage
 - [ ] 18.7 Document Form type usage
-- [ ] 18.8 Document Symfony Validator constraint support
+- [x] 18.8 Document Symfony Validator constraint support
 - [ ] 18.9 Update extension development guide
-- [ ] 18.10 Create troubleshooting section for common issues
+- [x] 18.10 Create troubleshooting section for common issues
 
 ## 19. Code Quality and Standards
 
