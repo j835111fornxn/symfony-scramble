@@ -157,9 +157,9 @@
 
 ## 12. Helper Function Replacement
 
-- [ ] 12.1 Replace all uses of Illuminate\Support\Arr with native PHP array functions or Symfony ArrayUtil
-- [ ] 12.2 Replace all uses of Illuminate\Support\Str with Symfony String component
-- [ ] 12.3 Replace all uses of Illuminate\Support\Collection with Doctrine\Common\Collections or arrays
+- [x] 12.1 Replace all uses of Illuminate\Support\Arr with native PHP array functions or Symfony ArrayUtil
+- [x] 12.2 Replace all uses of Illuminate\Support\Str with Symfony String component
+- [x] 12.3 Replace all uses of Illuminate\Support\Collection with Doctrine\Common\Collections or arrays
 - [ ] 12.4 Remove app() calls and use dependency injection
 - [ ] 12.5 Remove config() calls and inject configuration
 - [ ] 12.6 Remove view() calls and inject Twig environment
