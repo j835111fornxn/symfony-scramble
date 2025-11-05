@@ -399,6 +399,13 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return new static(array_merge($this->items, $this->getArrayableItems($items)));
     }
 
+    public function sortKeys($descending = false): self
+    {
+        $items = $this->items;
+        $descending ? krsort($items) : ksort($items);
+        return new static($items);
+    }
+
     public function only($keys): self
     {
         if (is_null($keys)) {

@@ -62,17 +62,28 @@ class Union extends AbstractType
     /**
      * Create a Union type from the given types.
      * 
-     * @param Type|Type[] ...$types Can be called with:
-     *                              - Multiple Type arguments: wrap($type1, $type2)
-     *                              - Single array: wrap([$type1, $type2])
-     *                              - array_map result: wrap(array_map(...))
+     * Accepts either:
+     * - Multiple Type arguments: wrap($type1, $type2)
+     * - Single array of Types: wrap([$type1, $type2])
+     * - Array unpacking: wrap(...$arrayOfTypes)
+     * 
+     * @param Type|Type[] $types First argument (Type or array of Types)
+     * @param Type ...$moreTypes Additional Type arguments (if first arg was Type)
      * @return Type
      */
-    public static function wrap(...$types): Type
+    public static function wrap($types, Type ...$moreTypes): Type
     {
-        // Flatten the arguments: if single array passed, use it; otherwise use all args
-        if (count($types) === 1 && is_array($types[0])) {
-            $types = $types[0];
+        // If first arg is a Type object and we have more args, collect them all
+        if ($types instanceof Type) {
+            $types = [$types, ...$moreTypes];
+        }
+        // If first arg is already an array, use it (array_map pattern)
+        elseif (is_array($types)) {
+            // $types is already an array of Type objects
+        }
+        // Otherwise invalid input
+        else {
+            throw new \InvalidArgumentException('First argument must be Type or array of Type objects');
         }
 
         $types = collect(array_values($types))

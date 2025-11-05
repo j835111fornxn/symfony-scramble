@@ -6,6 +6,7 @@ use Dedoc\Scramble\Extensions\OperationExtension;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\Parameter;
 use Dedoc\Scramble\Support\RouteInfo;
+use Dedoc\Scramble\Support\Str;
 use Dedoc\Scramble\Support\Type\FunctionType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
@@ -49,25 +50,35 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
+        // Use Symfony's NotFoundHttpException instead
         $methodType->exceptions = [
             ...$methodType->exceptions,
-            new ObjectType(ModelNotFoundException::class),
+            new ObjectType(NotFoundHttpException::class),
         ];
     }
 
     private function attachAuthorizationException(RouteInfo $routeInfo, FunctionType $methodType)
     {
-        if (! collect($routeInfo->route->gatherMiddleware())->contains(fn($m) => is_string($m) && Str::startsWith($m, ['can:', Authorize::class . ':']))) {
+        // Check route requirements/defaults for authorization hints
+        $route = $routeInfo->route->getSymfonyRoute();
+        $defaults = $route->getDefaults();
+
+        // Look for _security or authorization-related defaults
+        $hasAuthRequirement = isset($defaults['_security'])
+            || isset($defaults['_is_granted'])
+            || $this->hasSecurityAttribute($routeInfo);
+
+        if (! $hasAuthRequirement) {
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AuthorizationException::class))) {
+        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AccessDeniedException::class))) {
             return;
         }
 
         $methodType->exceptions = [
             ...$methodType->exceptions,
-            new ObjectType(AuthorizationException::class),
+            new ObjectType(AccessDeniedException::class),
         ];
     }
 
@@ -77,9 +88,16 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
-        $isAuthMiddleware = fn($m) => is_string($m) && ($m === 'auth' || Str::startsWith($m, 'auth:'));
+        // Check if route requires authentication
+        $route = $routeInfo->route->getSymfonyRoute();
+        $defaults = $route->getDefaults();
 
-        if (! collect($routeInfo->route->gatherMiddleware())->contains($isAuthMiddleware)) {
+        // Look for authentication requirements
+        $requiresAuth = isset($defaults['_security'])
+            || isset($defaults['_is_granted'])
+            || $this->hasSecurityAttribute($routeInfo);
+
+        if (! $requiresAuth) {
             return;
         }
 
@@ -91,6 +109,28 @@ class ErrorResponsesExtension extends OperationExtension
             ...$methodType->exceptions,
             new ObjectType(AuthenticationException::class),
         ];
+    }
+
+    /**
+     * Check if controller method has security attributes.
+     */
+    private function hasSecurityAttribute(RouteInfo $routeInfo): bool
+    {
+        $method = $routeInfo->reflectionMethod();
+        if (!$method) {
+            return false;
+        }
+
+        // Check for Symfony security attributes
+        $attributes = $method->getAttributes();
+        foreach ($attributes as $attribute) {
+            $name = $attribute->getName();
+            if (Str::contains($name, ['Security', 'IsGranted'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function attachValidationExceptions(FunctionType $methodType)
