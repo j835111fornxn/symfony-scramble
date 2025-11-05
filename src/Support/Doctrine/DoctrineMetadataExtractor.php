@@ -134,6 +134,23 @@ class DoctrineMetadataExtractor
     }
 
     /**
+     * Get all association names for an entity.
+     *
+     * @param class-string $className
+     * @return string[]
+     */
+    public function getAssociationNames(string $className): array
+    {
+        $metadata = $this->getMetadata($className);
+
+        if (!$metadata) {
+            return [];
+        }
+
+        return $metadata->getAssociationNames();
+    }
+
+    /**
      * Get association mapping info.
      *
      * @param class-string $className

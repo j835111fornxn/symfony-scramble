@@ -160,8 +160,9 @@ services:
         tags: ['scramble.type_to_schema_extension']
 
     # JsonResourceTypeToSchema removed - Laravel-specific
+    # ModelToSchema removed - Laravel Eloquent specific
 
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema:
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\DoctrineEntityToSchema:
         tags: ['scramble.type_to_schema_extension']
 
     Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema:

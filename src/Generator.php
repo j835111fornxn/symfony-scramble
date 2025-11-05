@@ -193,7 +193,8 @@ class Generator
         $typeToSchemaExtensions = [
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\EnumToSchema::class,
             // JsonResourceTypeToSchema removed - Laravel-specific
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema::class,
+            // ModelToSchema removed - Laravel Eloquent specific, replaced by DoctrineEntityToSchema
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\DoctrineEntityToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema::class,
             // EloquentCollectionToSchema removed - Doctrine collections handled by CollectionToSchema
             // ResourceCollectionTypeToSchema removed - Laravel-specific
