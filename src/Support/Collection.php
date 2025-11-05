@@ -261,6 +261,17 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return $result;
     }
 
+    public function prepend($value, $key = null): self
+    {
+        if ($key === null) {
+            array_unshift($this->items, $value);
+        } else {
+            $this->items = [$key => $value] + $this->items;
+        }
+
+        return new static($this->items);
+    }
+
     public function values(): self
     {
         return new static(array_values($this->items));
