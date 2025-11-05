@@ -90,6 +90,22 @@ services:
             $authorizationCallback: null
         tags: ['kernel.event_subscriber']
 
+    # Validation Services
+    Dedoc\Scramble\Support\Validation\ConstraintExtractor:
+        arguments:
+            $validator: '@validator'
+        public: false
+
+    Dedoc\Scramble\Support\Validation\ConstraintToSchemaConverter:
+        public: false
+
+    Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\SymfonyValidationParametersExtractor:
+        arguments:
+            $constraintExtractor: '@Dedoc\Scramble\Support\Validation\ConstraintExtractor'
+            $constraintConverter: '@Dedoc\Scramble\Support\Validation\ConstraintToSchemaConverter'
+            $openApiTransformer: '@Dedoc\Scramble\Support\Generator\TypeTransformer'
+        public: false
+
     # Built-in Infer Extensions
     Dedoc\Scramble\Support\InferExtensions\ResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']

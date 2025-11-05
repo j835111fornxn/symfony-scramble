@@ -2,104 +2,104 @@
 
 ## 1. Project Setup and Dependencies
 
-- [ ] 1.1 Update composer.json to require Symfony packages (^6.4|^7.0)
-  - [ ] Add symfony/dependency-injection
-  - [ ] Add symfony/config
-  - [ ] Add symfony/http-kernel
-  - [ ] Add symfony/http-foundation
-  - [ ] Add symfony/routing
-  - [ ] Add symfony/event-dispatcher
-  - [ ] Add symfony/validator
-  - [ ] Add symfony/serializer
-  - [ ] Add symfony/twig-bundle
-  - [ ] Add symfony/console
-  - [ ] Add doctrine/orm
-  - [ ] Add doctrine/doctrine-bundle
-- [ ] 1.2 Remove Laravel dependencies from composer.json
-  - [ ] Remove illuminate/contracts
-  - [ ] Remove illuminate/routing
-  - [ ] Remove illuminate/http
-  - [ ] Remove illuminate/database
-  - [ ] Remove illuminate/validation
-  - [ ] Remove illuminate/view
-  - [ ] Remove illuminate/support
-  - [ ] Remove spatie/laravel-package-tools
-- [ ] 1.3 Update dev dependencies for testing
-  - [ ] Remove orchestra/testbench
-  - [ ] Add symfony/test-pack or symfony/phpunit-bridge
-  - [ ] Add symfony/browser-kit for functional tests
-- [ ] 1.4 Update minimum PHP version constraints if needed
-- [ ] 1.5 Run composer update and resolve any conflicts
+- [x] 1.1 Update composer.json to require Symfony packages (^6.4|^7.0)
+  - [x] Add symfony/dependency-injection
+  - [x] Add symfony/config
+  - [x] Add symfony/http-kernel
+  - [x] Add symfony/http-foundation
+  - [x] Add symfony/routing
+  - [x] Add symfony/event-dispatcher
+  - [x] Add symfony/validator
+  - [x] Add symfony/serializer
+  - [x] Add symfony/twig-bundle
+  - [x] Add symfony/console
+  - [x] Add doctrine/orm
+  - [x] Add doctrine/doctrine-bundle
+- [x] 1.2 Remove Laravel dependencies from composer.json
+  - [x] Remove illuminate/contracts
+  - [x] Remove illuminate/routing
+  - [x] Remove illuminate/http
+  - [x] Remove illuminate/database
+  - [x] Remove illuminate/validation
+  - [x] Remove illuminate/view
+  - [x] Remove illuminate/support
+  - [x] Remove spatie/laravel-package-tools
+- [x] 1.3 Update dev dependencies for testing
+  - [x] Remove orchestra/testbench
+  - [x] Add symfony/test-pack or symfony/phpunit-bridge
+  - [x] Add symfony/browser-kit for functional tests
+- [x] 1.4 Update minimum PHP version constraints if needed
+- [x] 1.5 Run composer update and resolve any conflicts
 
 ## 2. Bundle Creation
 
-- [ ] 2.1 Create `src/ScrambleBundle.php` extending Symfony\Component\HttpKernel\Bundle\Bundle
-- [ ] 2.2 Implement `build()` method to register compiler passes
-- [ ] 2.3 Implement `boot()` method for route registration
-- [ ] 2.4 Create `src/DependencyInjection/ScrambleExtension.php` for configuration
-- [ ] 2.5 Create `src/DependencyInjection/Configuration.php` for configuration tree
-- [ ] 2.6 Create `src/DependencyInjection/Compiler/ScrambleExtensionPass.php` for extension discovery
-- [ ] 2.7 Create `Resources/config/services.yaml` for service definitions
-- [ ] 2.8 Configure service autowiring and autoconfiguration
-- [ ] 2.9 Define service tags for extensions (scramble.infer_extension, scramble.type_to_schema_extension, etc.)
+- [x] 2.1 Create `src/ScrambleBundle.php` extending Symfony\Component\HttpKernel\Bundle\Bundle
+- [x] 2.2 Implement `build()` method to register compiler passes
+- [x] 2.3 Implement `boot()` method for route registration
+- [x] 2.4 Create `src/DependencyInjection/ScrambleExtension.php` for configuration
+- [x] 2.5 Create `src/DependencyInjection/Configuration.php` for configuration tree
+- [x] 2.6 Create `src/DependencyInjection/Compiler/ScrambleExtensionPass.php` for extension discovery
+- [x] 2.7 Create `Resources/config/services.yaml` for service definitions
+- [x] 2.8 Configure service autowiring and autoconfiguration
+- [x] 2.9 Define service tags for extensions (scramble.infer_extension, scramble.type_to_schema_extension, etc.)
 
 ## 3. Configuration Migration
 
-- [ ] 3.1 Convert config/scramble.php to Resources/config/packages/scramble.yaml
-- [ ] 3.2 Update Configuration.php to define configuration tree
-- [ ] 3.3 Create configuration validators for complex settings
-- [ ] 3.4 Support both YAML and PHP configuration formats
-- [ ] 3.5 Update ScrambleExtension to process and normalize configuration
-- [ ] 3.6 Test configuration validation with invalid values
+- [x] 3.1 Convert config/scramble.php to Resources/config/packages/scramble.yaml
+- [x] 3.2 Update Configuration.php to define configuration tree
+- [x] 3.3 Create configuration validators for complex settings
+- [x] 3.4 Support both YAML and PHP configuration formats
+- [x] 3.5 Update ScrambleExtension to process and normalize configuration
+- [x] 3.6 Test configuration validation with invalid values
 
 ## 4. Routing Integration
 
-- [ ] 4.1 Update Scramble.php to work with Symfony Router instead of Route facade
-- [ ] 4.2 Create service to retrieve routes from RouterInterface::getRouteCollection()
-- [ ] 4.3 Implement route filtering based on api_path and api_domain configuration
-- [ ] 4.4 Update ReflectionRoute.php to work with Symfony\Component\Routing\Route
-- [ ] 4.5 Add support for route attributes (#[Route]) on controllers
-- [ ] 4.6 Implement controller method resolution from route defaults
-- [ ] 4.7 Add support for invokable controllers
-- [ ] 4.8 Extract route parameter requirements and map to OpenAPI constraints
-- [ ] 4.9 Handle optional route parameters with defaults
-- [ ] 4.10 Update tests for route parsing
+- [x] 4.1 Update Scramble.php to work with Symfony Router instead of Route facade
+- [x] 4.2 Create service to retrieve routes from RouterInterface::getRouteCollection()
+- [x] 4.3 Implement route filtering based on api_path and api_domain configuration
+- [x] 4.4 Update ReflectionRoute.php to work with Symfony\Component\Routing\Route
+- [x] 4.5 Add support for route attributes (#[Route]) on controllers
+- [x] 4.6 Implement controller method resolution from route defaults
+- [x] 4.7 Add support for invokable controllers
+- [x] 4.8 Extract route parameter requirements and map to OpenAPI constraints
+- [x] 4.9 Handle optional route parameters with defaults
+- [x] 4.10 Update tests for route parsing
 
 ## 5. Service Provider to Bundle Migration
 
-- [ ] 5.1 Remove ScrambleServiceProvider.php
-- [ ] 5.2 Move singleton registrations to services.yaml
-- [ ] 5.3 Move service bindings (when/needs/give) to service configuration
-- [ ] 5.4 Convert facade-based registrations (RouteFacade) to service injection
-- [ ] 5.5 Update all app() calls to use dependency injection
-- [ ] 5.6 Remove any remaining Laravel container bindings
-- [ ] 5.7 Update extension registration to use service tags
-- [ ] 5.8 Test service resolution and dependency injection
+- [x] 5.1 Remove ScrambleServiceProvider.php
+- [x] 5.2 Move singleton registrations to services.yaml
+- [x] 5.3 Move service bindings (when/needs/give) to service configuration
+- [x] 5.4 Convert facade-based registrations (RouteFacade) to service injection
+- [x] 5.5 Update all app() calls to use dependency injection
+- [x] 5.6 Remove any remaining Laravel container bindings
+- [x] 5.7 Update extension registration to use service tags
+- [x] 5.8 Test service resolution and dependency injection
 
 ## 6. Middleware to Event System Migration
 
-- [ ] 6.1 Remove src/Http/Middleware/RestrictedDocsAccess.php
-- [ ] 6.2 Create src/EventSubscriber/DocumentationAccessSubscriber.php
-- [ ] 6.3 Implement onKernelRequest() to check access control
-- [ ] 6.4 Integrate with Symfony Security component for authorization
-- [ ] 6.5 Support role-based access control (ROLE_ADMIN, etc.)
-- [ ] 6.6 Support environment-based access control (dev only, etc.)
-- [ ] 6.7 Create event for pre-generation hook (scramble.generation.start)
-- [ ] 6.8 Create event for post-generation hook (scramble.generation.complete)
-- [ ] 6.9 Create event for operation generation (scramble.operation.generated)
-- [ ] 6.10 Document event system for extension developers
+- [x] 6.1 Remove src/Http/Middleware/RestrictedDocsAccess.php
+- [x] 6.2 Create src/EventSubscriber/DocumentationAccessSubscriber.php
+- [x] 6.3 Implement onKernelRequest() to check access control
+- [x] 6.4 Integrate with Symfony Security component for authorization
+- [x] 6.5 Support role-based access control (ROLE_ADMIN, etc.)
+- [x] 6.6 Support environment-based access control (dev only, etc.)
+- [x] 6.7 Create event for pre-generation hook (scramble.generation.start)
+- [x] 6.8 Create event for post-generation hook (scramble.generation.complete)
+- [x] 6.9 Create event for operation generation (scramble.operation.generated)
+- [x] 6.10 Document event system for extension developers
 
 ## 7. View Layer Migration
 
-- [ ] 7.1 Create templates/docs.html.twig from resources/views/docs.blade.php
-- [ ] 7.2 Convert Blade syntax to Twig syntax
-  - [ ] {{ $var }} → {{ var }}
-  - [ ] @if/@endif → {% if %}/{% endif %}
-  - [ ] @json() → |json_encode|raw filter
-- [ ] 7.3 Configure Twig loader with @Scramble namespace
-- [ ] 7.4 Update template variable passing
-- [ ] 7.5 Test template rendering with sample data
-- [ ] 7.6 Document template overriding process
+- [x] 7.1 Create templates/docs.html.twig from resources/views/docs.blade.php
+- [x] 7.2 Convert Blade syntax to Twig syntax
+  - [x] {{ $var }} → {{ var }}
+  - [x] @if/@endif → {% if %}/{% endif %}
+  - [x] @json() → |json_encode|raw filter
+- [x] 7.3 Configure Twig loader with @Scramble namespace
+- [x] 7.4 Update template variable passing
+- [x] 7.5 Test template rendering with sample data
+- [x] 7.6 Document template overriding process
 
 ## 8. Validation Integration
 
