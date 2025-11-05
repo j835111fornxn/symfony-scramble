@@ -287,4 +287,35 @@ class Str
     {
         return (new UnicodeString($value))->ascii()->toString();
     }
+
+    /**
+     * Determine if a given string matches a given pattern.
+     *
+     * @param string|array $pattern
+     * @param string $value
+     * @return bool
+     */
+    public static function is(string|array $pattern, string $value): bool
+    {
+        $patterns = is_array($pattern) ? $pattern : [$pattern];
+
+        foreach ($patterns as $pattern) {
+            $pattern = (string) $pattern;
+
+            // If the given value is an exact match we can return immediately
+            if ($pattern === $value) {
+                return true;
+            }
+
+            // Asterisk is a wildcard character
+            $pattern = preg_quote($pattern, '#');
+            $pattern = str_replace('\\*', '.*', $pattern);
+
+            if (preg_match('#^' . $pattern . '\\z#u', $value) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble;
 
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 class OpenApiTraverser
 {

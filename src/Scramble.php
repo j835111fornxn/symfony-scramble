@@ -10,10 +10,9 @@ use Dedoc\Scramble\Infer\Extensions\InferExtension;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\ServerVariable;
 use Dedoc\Scramble\Support\Generator\Types\Type as OpenApiType;
+use Dedoc\Scramble\Support\Arr;
 use Dedoc\Scramble\Support\RouteInfo;
-use Illuminate\Routing\Route;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Route as RouteFacade;
+use Symfony\Component\Routing\Route;
 
 class Scramble
 {
@@ -79,7 +78,7 @@ class Scramble
         static::configure()->withDocumentTransformers($afterOpenApiGenerated);
     }
 
-    public static function routes(callable $routeResolver)
+    public static function routes(\Closure $routeResolver)
     {
         static::configure()->routes($routeResolver);
     }
@@ -144,31 +143,20 @@ class Scramble
         static::configure()->withServerVariables($variables);
     }
 
-    public static function registerUiRoute(string $path, string $api = 'default'): Route
+    /**
+     * @deprecated Use Symfony routing configuration instead
+     */
+    public static function registerUiRoute(string $path, string $api = 'default'): void
     {
-        $config = static::getGeneratorConfig($api);
-
-        return RouteFacade::get($path, function (Generator $generator) use ($api) {
-            $config = static::getGeneratorConfig($api);
-
-            return view('scramble::docs', [
-                'spec' => $generator($config),
-                'config' => $config,
-            ]);
-        })
-            ->middleware($config->get('middleware', []));
+        throw new \RuntimeException('registerUiRoute() is deprecated. Use Symfony routing configuration instead.');
     }
 
-    public static function registerJsonSpecificationRoute(string $path, string $api = 'default'): Route
+    /**
+     * @deprecated Use Symfony routing configuration instead
+     */
+    public static function registerJsonSpecificationRoute(string $path, string $api = 'default'): void
     {
-        $config = static::getGeneratorConfig($api);
-
-        return RouteFacade::get($path, function (Generator $generator) use ($api) {
-            $config = static::getGeneratorConfig($api);
-
-            return response()->json($generator($config), options: JSON_PRETTY_PRINT);
-        })
-            ->middleware($config->get('middleware', []));
+        throw new \RuntimeException('registerJsonSpecificationRoute() is deprecated. Use Symfony routing configuration instead.');
     }
 
     public static function getGeneratorConfig(string $api): GeneratorConfig

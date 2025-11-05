@@ -4,7 +4,7 @@ namespace Dedoc\Scramble;
 
 use Dedoc\Scramble\Exceptions\InvalidSchema;
 use Dedoc\Scramble\Support\Generator\Types\Type as OpenApiType;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 class SchemaValidator
 {
@@ -38,10 +38,15 @@ class SchemaValidator
                 continue;
             }
 
-            throw_if(
-                $throw,
-                $exception = InvalidSchema::createForSchema(value($errorMessageGetter, $type, $path), $path, $type),
-            );
+            $errorMessage = is_callable($errorMessageGetter)
+                ? $errorMessageGetter($type, $path)
+                : $errorMessageGetter;
+
+            $exception = InvalidSchema::createForSchema($errorMessage, $path, $type);
+
+            if ($throw) {
+                throw $exception;
+            }
 
             $exceptions[] = $exception;
         }

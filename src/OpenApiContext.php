@@ -3,8 +3,8 @@
 namespace Dedoc\Scramble;
 
 use Dedoc\Scramble\Attributes\Group;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\Generator\OpenApi;
-use Illuminate\Support\Collection;
 use ReflectionAttribute;
 
 class OpenApiContext
