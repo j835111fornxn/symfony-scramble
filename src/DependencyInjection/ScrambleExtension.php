@@ -11,17 +11,17 @@ class ScrambleExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $configuration = new Configuration();
+        $configuration = new Configuration;
         $config = $this->processConfiguration($configuration, $configs);
 
         // Load service definitions
         $loader = new YamlFileLoader(
             $container,
-            new FileLocator(__DIR__ . '/../../config')
+            new FileLocator(__DIR__.'/../../config')
         );
         $loader->load('services.yaml');
 
-                // Set config as container parameters
+        // Set config as container parameters
         $container->setParameter('scramble.api_path', $config['api_path']);
         $container->setParameter('scramble.api_domain', $config['api_domain']);
         $container->setParameter('scramble.export_path', $config['export_path']);

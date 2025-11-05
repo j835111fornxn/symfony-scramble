@@ -13,7 +13,7 @@ class ScrambleBundle extends Bundle
         parent::build($container);
 
         // Register compiler pass for extension discovery
-        $container->addCompilerPass(new ScrambleExtensionPass());
+        $container->addCompilerPass(new ScrambleExtensionPass);
     }
 
     public function boot(): void

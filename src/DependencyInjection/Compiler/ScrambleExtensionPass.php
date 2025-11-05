@@ -30,7 +30,7 @@ class ScrambleExtensionPass implements CompilerPassInterface
             $def = $container->getDefinition($id);
             $class = $def->getClass();
 
-            if (!is_a($class, $interface, true)) {
+            if (! is_a($class, $interface, true)) {
                 throw new \InvalidArgumentException(
                     sprintf('Service "%s" must implement "%s".', $id, $interface)
                 );
@@ -40,6 +40,6 @@ class ScrambleExtensionPass implements CompilerPassInterface
         }
 
         // Store collected extensions as a parameter for use in services
-        $container->setParameter($tag . '.collection', $extensions);
+        $container->setParameter($tag.'.collection', $extensions);
     }
 }
