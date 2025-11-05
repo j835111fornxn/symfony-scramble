@@ -10,14 +10,14 @@ use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 class ValidationExceptionToResponseExtension extends ExceptionToResponseExtension
 {
     public function shouldHandle(Type $type)
     {
         return $type instanceof ObjectType
-            && $type->isInstanceOf(ValidationException::class);
+            && $type->isInstanceOf(ValidationFailedException::class);
     }
 
     public function toResponse(Type $type)

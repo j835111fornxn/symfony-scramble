@@ -9,7 +9,6 @@ use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
-use Illuminate\Database\RecordsNotFoundException;
 use Dedoc\Scramble\Support\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,10 +17,7 @@ class NotFoundExceptionToResponseExtension extends ExceptionToResponseExtension
     public function shouldHandle(Type $type)
     {
         return $type instanceof ObjectType
-            && (
-                $type->isInstanceOf(RecordsNotFoundException::class)
-                || $type->isInstanceOf(NotFoundHttpException::class)
-            );
+            && $type->isInstanceOf(NotFoundHttpException::class);
     }
 
     public function toResponse(Type $type)

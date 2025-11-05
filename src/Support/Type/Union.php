@@ -31,9 +31,9 @@ class Union extends AbstractType
 
     public function widen(): Type
     {
-        // TypeWidener service should be injected or accessed through service locator
-        // For now, return self as widening requires context
-        // TODO: Refactor to use proper DI when removing app() helpers
+        // Note: Widening logic moved to TypeWidener service
+        // This method should be called through TypeWidener::widen($type)
+        // For backward compatibility, return self
         return $this;
     }
 

@@ -8,13 +8,13 @@ use PhpParser\NameContext;
 
 class GlobalScope extends Scope
 {
-    public function __construct(?Index $index = null)
+    public function __construct(Index $index)
     {
         parent::__construct(
-            $index ?: app()->make(Index::class), // ???
+            $index,
             new NodeTypesResolver,
             new ScopeContext,
-            new FileNameResolver(tap(new NameContext(new Throwing), fn (NameContext $nc) => $nc->startNamespace())),
+            new FileNameResolver(tap(new NameContext(new Throwing), fn(NameContext $nc) => $nc->startNamespace())),
         );
     }
 }

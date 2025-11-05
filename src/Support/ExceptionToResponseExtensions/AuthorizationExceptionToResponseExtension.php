@@ -9,7 +9,7 @@ use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\Types as OpenApiTypes;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
-use Illuminate\Auth\Access\AuthorizationException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Dedoc\Scramble\Support\Str;
 
 class AuthorizationExceptionToResponseExtension extends ExceptionToResponseExtension
@@ -17,7 +17,7 @@ class AuthorizationExceptionToResponseExtension extends ExceptionToResponseExten
     public function shouldHandle(Type $type)
     {
         return $type instanceof ObjectType
-            && $type->isInstanceOf(AuthorizationException::class);
+            && $type->isInstanceOf(AccessDeniedException::class);
     }
 
     public function toResponse(Type $type)
