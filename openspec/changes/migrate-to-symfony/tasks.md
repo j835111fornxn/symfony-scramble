@@ -160,7 +160,7 @@
 - [x] 12.1 Replace all uses of Illuminate\Support\Arr with native PHP array functions or Symfony ArrayUtil
 - [x] 12.2 Replace all uses of Illuminate\Support\Str with Symfony String component
 - [x] 12.3 Replace all uses of Illuminate\Support\Collection with Doctrine\Common\Collections or arrays
-- [ ] 12.4 Remove app() calls and use dependency injection
+- [ ] 12.4 Remove app() calls and use dependency injection (20+ calls identified)
 - [ ] 12.5 Remove config() calls and inject configuration
 - [ ] 12.6 Remove view() calls and inject Twig environment
 - [ ] 12.7 Remove response() calls and return Symfony Response objects
@@ -183,9 +183,9 @@
 
 ## 14. Type to Schema Extensions Migration
 
-- [ ] 14.1 Keep EnumToSchema (PHP enums work same way)
-- [ ] 14.2 Remove or replace JsonResourceTypeToSchema
-- [ ] 14.3 Replace ModelToSchema with entity-based schema generator
+- [x] 14.1 Keep EnumToSchema (PHP enums work same way)
+- [x] 14.2 Remove or replace JsonResourceTypeToSchema
+- [x] 14.3 Replace ModelToSchema with entity-based schema generator (DoctrineEntityToSchema created)
 - [ ] 14.4 Update CollectionToSchema for Doctrine collections
 - [ ] 14.5 Remove EloquentCollectionToSchema
 - [ ] 14.6 Remove ResourceCollectionTypeToSchema (Laravel-specific)
