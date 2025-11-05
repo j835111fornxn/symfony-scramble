@@ -15,8 +15,12 @@ This is a complete rewrite of Scramble to work with Symfony instead of Laravel, 
 - **Symfony Router Adapter**: `RouteAdapter` and `SymfonyRouteManager` for route handling
 - **Symfony Event System**: Integration with Symfony EventDispatcher
 - **Symfony Testing Infrastructure**: New `SymfonyTestCase` base class
-- **Doctrine ORM Support**: Automatic entity documentation generation
+- **Doctrine ORM Support**: Automatic entity documentation generation via `DoctrineEntityExtension`
 - **Symfony Validation**: Support for Symfony Validator constraints
+- **Symfony Serializer Integration**: `SymfonySerializerExtension` with support for:
+  - `@Groups` annotation for selective serialization
+  - `@SerializedName` for custom field names
+  - `@Ignore` for excluding fields
 - **Custom Collection Classes**: Framework-agnostic helper classes
   - `Collection` class with 32 Laravel-compatible methods
   - `Str` class with 33 string manipulation methods
@@ -24,6 +28,12 @@ This is a complete rewrite of Scramble to work with Symfony instead of Laravel, 
   - `Stringable` class with 25 chainable methods
 - **Global Helper Functions**: `collect()`, `tap()`, `app()`, `config()`, `logger()`, `url()`, `class_basename()`
 - **Symfony HTTP Exceptions**: Proper exception handling with Symfony's HTTP kernel exceptions
+- **Exception Response Extensions**: All exception handlers updated for Symfony exceptions:
+  - `ValidationFailedException` → 422 responses
+  - `AuthenticationException` → 401 responses
+  - `AccessDeniedException` → 403 responses
+  - `NotFoundHttpException` → 404 responses
+  - All HTTP kernel exceptions properly documented
 - **Optional Laravel Support**: Eloquent models and Laravel responses work when packages are installed
 
 ### Changed
@@ -45,6 +55,34 @@ This is a complete rewrite of Scramble to work with Symfony instead of Laravel, 
 - **Extensibility**: Cleaner extension points via Symfony's compiler passes
 - **Performance**: Optimized service loading and caching
 - **Testing**: Comprehensive test infrastructure with Symfony KernelTestCase
+
+### Technical Details
+
+- **Total Changes**: 627 files changed, 48,535 insertions(+), 43,367 deletions(-)
+- **Commits**: 1,008 commits on `feature/migrate-to-symfony` branch
+- **PHP Version**: ^8.1
+- **Symfony Version**: 6.4 | 7.0
+- **Main Dependencies**:
+  - symfony/framework-bundle
+  - symfony/routing
+  - symfony/http-kernel
+  - symfony/dependency-injection
+  - symfony/console
+  - doctrine/orm (optional)
+  - symfony/validator (optional)
+  - symfony/serializer (optional)
+
+### Remaining Work
+
+The following advanced features are planned for future releases:
+
+- Form Type inference and documentation (8.5-8.8)
+- Custom Doctrine type handling (9.6, 9.9)
+- Custom normalizer inference (10.6)
+- Console command migration (15.1-15.6)
+- Complete test migration (16.2-16.4)
+- Additional Infer extensions (13.1-13.12)
+- Additional TypeToSchema extensions (14.4-14.13)
 
 ### Migration
 
