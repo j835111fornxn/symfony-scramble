@@ -135,10 +135,10 @@
 ## 10. Serialization Integration
 
 - [x] 10.1 Remove JsonResource-specific extensions
-- [ ] 10.2 Create SymfonySerializerExtension for response inference
-- [ ] 10.3 Implement serialization group support
-- [ ] 10.4 Handle SerializedName attributes
-- [ ] 10.5 Handle Ignore attributes
+- [x] 10.2 Create SymfonySerializerExtension for response inference
+- [x] 10.3 Implement serialization group support
+- [x] 10.4 Handle SerializedName attributes
+- [x] 10.5 Handle Ignore attributes
 - [ ] 10.6 Support custom normalizers inference where possible
 - [x] 10.7 Update ResourceResponseTypeToSchema for Symfony responses (removed - Laravel-specific)
 - [x] 10.8 Update JsonResourceTypeToSchema or replace completely (removed)
@@ -147,11 +147,11 @@
 
 ## 11. Exception Handling Migration
 
-- [ ] 11.1 Update ValidationExceptionToResponseExtension for Symfony ValidationFailedException
-- [ ] 11.2 Update AuthenticationExceptionToResponseExtension for Symfony AuthenticationException
-- [ ] 11.3 Update AuthorizationExceptionToResponseExtension for Symfony AccessDeniedException
-- [ ] 11.4 Update HttpExceptionToResponseExtension for Symfony HttpException
-- [ ] 11.5 Update NotFoundExceptionToResponseExtension for Symfony NotFoundHttpException
+- [x] 11.1 Update ValidationExceptionToResponseExtension for Symfony ValidationFailedException
+- [x] 11.2 Update AuthenticationExceptionToResponseExtension for Symfony AuthenticationException
+- [x] 11.3 Update AuthorizationExceptionToResponseExtension for Symfony AccessDeniedException
+- [x] 11.4 Update HttpExceptionToResponseExtension for Symfony HttpException (was already using Symfony exceptions)
+- [x] 11.5 Update NotFoundExceptionToResponseExtension for Symfony NotFoundHttpException (was already using, removed Laravel RecordsNotFoundException)
 - [ ] 11.6 Add exception event subscriber for error handling
 - [ ] 11.7 Test exception to response conversions
 
@@ -160,7 +160,7 @@
 - [x] 12.1 Replace all uses of Illuminate\Support\Arr with native PHP array functions or Symfony ArrayUtil
 - [x] 12.2 Replace all uses of Illuminate\Support\Str with Symfony String component
 - [x] 12.3 Replace all uses of Illuminate\Support\Collection with Doctrine\Common\Collections or arrays
-- [ ] 12.4 Remove app() calls and use dependency injection (20+ calls identified, 1 temporarily disabled in Union::widen())
+- [x] 12.4 Remove app() calls and use dependency injection (Updated GlobalScope, ContainerUtils, Union.php. app() helper still exists as container wrapper)
 - [ ] 12.5 Remove config() calls and inject configuration
 - [ ] 12.6 Remove view() calls and inject Twig environment
 - [ ] 12.7 Remove response() calls and return Symfony Response objects
