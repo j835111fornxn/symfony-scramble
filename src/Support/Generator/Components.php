@@ -3,7 +3,7 @@
 namespace Dedoc\Scramble\Support\Generator;
 
 use Dedoc\Scramble\Exceptions\OpenApiReferenceTargetNotFoundException;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use InvalidArgumentException;
 
 class Components

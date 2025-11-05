@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble\Support\Generator;
 
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 
 class UniqueNamesOptionsCollection
 {

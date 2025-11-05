@@ -144,6 +144,103 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         });
     }
 
+    public function last(?callable $callback = null, $default = null)
+    {
+        if ($callback === null) {
+            if (empty($this->items)) {
+                return $default;
+            }
+            $items = $this->items;
+            return end($items);
+        }
+
+        $items = array_reverse($this->items, true);
+        foreach ($items as $key => $value) {
+            if ($callback($value, $key)) {
+                return $value;
+            }
+        }
+
+        return $default;
+    }
+
+    public function push(...$values): self
+    {
+        foreach ($values as $value) {
+            $this->items[] = $value;
+        }
+
+        return $this;
+    }
+
+    public function where($key, $operator = null, $value = null): self
+    {
+        return $this->filter(function ($item) use ($key, $operator, $value) {
+            $retrieved = is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null);
+
+            if (func_num_args() === 2) {
+                return $retrieved == $operator;
+            }
+
+            return match ($operator) {
+                '=' => $retrieved == $value,
+                '==' => $retrieved == $value,
+                '===' => $retrieved === $value,
+                '!=' => $retrieved != $value,
+                '!==' => $retrieved !== $value,
+                '>' => $retrieved > $value,
+                '>=' => $retrieved >= $value,
+                '<' => $retrieved < $value,
+                '<=' => $retrieved <= $value,
+                default => false,
+            };
+        });
+    }
+
+    public function tap(callable $callback): self
+    {
+        $callback($this);
+
+        return $this;
+    }
+
+    public function partition($key, $operator = null, $value = null): self
+    {
+        $passed = [];
+        $failed = [];
+
+        $callback = is_callable($key) ? $key : function ($item) use ($key, $operator, $value) {
+            $retrieved = is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null);
+
+            if (func_num_args() === 2) {
+                return $retrieved == $operator;
+            }
+
+            return match ($operator) {
+                '=' => $retrieved == $value,
+                '==' => $retrieved == $value,
+                '===' => $retrieved === $value,
+                '!=' => $retrieved != $value,
+                '!==' => $retrieved !== $value,
+                '>' => $retrieved > $value,
+                '>=' => $retrieved >= $value,
+                '<' => $retrieved < $value,
+                '<=' => $retrieved <= $value,
+                default => false,
+            };
+        };
+
+        foreach ($this->items as $key => $item) {
+            if ($callback($item, $key)) {
+                $passed[$key] = $item;
+            } else {
+                $failed[$key] = $item;
+            }
+        }
+
+        return new static([new static($passed), new static($failed)]);
+    }
+
     public function pluck(string $value, ?string $key = null): self
     {
         $results = [];
@@ -433,5 +530,20 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     public function __toString(): string
     {
         return json_encode($this->toArray());
+    }
+
+    /**
+     * Dynamically access collection proxies (higher order messages).
+     *
+     * @param string $key
+     * @return HigherOrderCollectionProxy
+     */
+    public function __get($key)
+    {
+        if (!in_array($key, ['filter', 'map', 'pluck', 'reject', 'sortBy', 'sortByDesc', 'unique'], true)) {
+            throw new \Exception("Property [{$key}] does not exist on this collection instance.");
+        }
+
+        return new HigherOrderCollectionProxy($this, $key);
     }
 }

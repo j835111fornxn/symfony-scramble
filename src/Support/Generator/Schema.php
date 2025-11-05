@@ -5,7 +5,7 @@ namespace Dedoc\Scramble\Support\Generator;
 use Dedoc\Scramble\Support\Generator\Types\ObjectType;
 use Dedoc\Scramble\Support\Generator\Types\StringType;
 use Dedoc\Scramble\Support\Generator\Types\Type;
-use Illuminate\Support\Collection;
+use Dedoc\Scramble\Support\Collection;
 
 class Schema
 {

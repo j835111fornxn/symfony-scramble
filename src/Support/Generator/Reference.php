@@ -5,7 +5,7 @@ namespace Dedoc\Scramble\Support\Generator;
 use Dedoc\Scramble\Support\Generator\Combined\AnyOf;
 use Dedoc\Scramble\Support\Generator\Types\NullType;
 use Dedoc\Scramble\Support\Generator\Types\Type;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 
 class Reference extends Type
 {

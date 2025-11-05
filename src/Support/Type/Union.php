@@ -21,11 +21,11 @@ class Union extends AbstractType
         if (!$type instanceof Union) {
             return false;
         }
-        
+
         if (count($this->types) !== count($type->types)) {
             return false;
         }
-        
+
         return collect($this->types)->every(fn(Type $t, $i) => $t->isSame($type->types[$i]));
     }
 

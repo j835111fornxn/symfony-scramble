@@ -38,7 +38,7 @@ class EnumToSchema extends TypeToSchemaExtension
             return new UnknownType;
         }
 
-        $values = array_map(fn ($s) => $s->value, $name::cases());
+        $values = array_map(fn($s) => $s->value, $name::cases());
 
         $schemaType = is_string($values[0]) ? new StringType : new IntegerType;
         $schemaType->enum($values);
@@ -63,16 +63,16 @@ class EnumToSchema extends TypeToSchemaExtension
 
         $cases = collect(array_filter(
             $enumReflection->getCases(),
-            fn ($case) => $case instanceof ReflectionEnumBackedCase,
+            fn($case) => $case instanceof ReflectionEnumBackedCase,
         ))
-            ->keyBy(fn (ReflectionEnumBackedCase $case): int|string => $case->getBackingValue())
+            ->keyBy(fn(ReflectionEnumBackedCase $case): int|string => $case->getBackingValue())
             ->map(function (ReflectionEnumBackedCase $case) {
                 $doc = PhpDoc::parse($case->getDocComment() ?: '/** */');
 
-                return trim(Str::replace("\n", ' ', $doc->getAttribute('summary').' '.$doc->getAttribute('description'))); // @phpstan-ignore binaryOp.invalid, binaryOp.invalid
+                return trim(Str::replace("\n", ' ', $doc->getAttribute('summary') . ' ' . $doc->getAttribute('description'))); // @phpstan-ignore binaryOp.invalid, binaryOp.invalid
             });
 
-        if (! $cases->some(fn ($description) => (bool) $description)) {
+        if (! $cases->some(fn($description) => (bool) $description)) {
             return;
         }
 
@@ -96,13 +96,13 @@ class EnumToSchema extends TypeToSchemaExtension
         $enumReflection = new ReflectionEnum($type->name); // @phpstan-ignore argument.type
 
         $doc = PhpDoc::parse($enumReflection->getDocComment() ?: '/** */');
-        $description = trim(Str::replace("\n", ' ', $doc->getAttribute('summary').' '.$doc->getAttribute('description'))); // @phpstan-ignore binaryOp.invalid, binaryOp.invalid
+        $description = trim(Str::replace("\n", ' ', $doc->getAttribute('summary') . ' ' . $doc->getAttribute('description'))); // @phpstan-ignore binaryOp.invalid, binaryOp.invalid
 
         if (! $description) {
             return;
         }
 
-        $schemaType->setDescription($description."\n".$schemaType->description);
+        $schemaType->setDescription($description . "\n" . $schemaType->description);
 
         /*
          * Cases description are stored in attribute due to if enum is used as a property in some object,
@@ -123,9 +123,9 @@ class EnumToSchema extends TypeToSchemaExtension
         $enumReflection = new ReflectionEnum($type->name); // @phpstan-ignore argument.type
 
         $nameCases = collect($enumReflection->getCases())
-            ->filter(fn (ReflectionEnumUnitCase $case) => $case instanceof ReflectionEnumBackedCase)
-            ->keyBy(fn (ReflectionEnumBackedCase $case): int|string => $case->getBackingValue())
-            ->map(fn (ReflectionEnumBackedCase $case) => $case->getName());
+            ->filter(fn(ReflectionEnumUnitCase $case) => $case instanceof ReflectionEnumBackedCase)
+            ->keyBy(fn(ReflectionEnumBackedCase $case): int|string => $case->getBackingValue())
+            ->map(fn(ReflectionEnumBackedCase $case) => $case->getName());
 
         $this->handleEnumNames($schemaType, $nameCases, $enumNameStrategy);
     }
@@ -136,7 +136,7 @@ class EnumToSchema extends TypeToSchemaExtension
     protected function handleDescriptionEnumStrategy(OpenApi\Type $schema, Collection $cases): void
     {
         $description = $cases
-            ->map(fn ($description, $value) => "| `{$value}` <br/> {$description} |")
+            ->map(fn($description, $value) => "| `{$value}` <br/> {$description} |")
             ->prepend('|---|')
             ->prepend('| |')
             ->join("\n");

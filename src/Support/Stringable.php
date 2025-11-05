@@ -286,4 +286,24 @@ class Stringable
 
         return $this;
     }
+
+    /**
+     * Append the given values to the string.
+     */
+    public function append(string ...$values): static
+    {
+        $this->value .= implode('', $values);
+
+        return $this;
+    }
+
+    /**
+     * Prepend the given values to the string.
+     */
+    public function prepend(string ...$values): static
+    {
+        $this->value = implode('', $values) . $this->value;
+
+        return $this;
+    }
 }

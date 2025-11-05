@@ -29,8 +29,8 @@ use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\Union;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\Str;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 
 use function DeepCopy\deep_copy;

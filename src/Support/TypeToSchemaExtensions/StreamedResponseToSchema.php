@@ -16,7 +16,7 @@ use Dedoc\Scramble\Support\Type\KeyedArrayType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\Type;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedJsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -100,12 +100,12 @@ class StreamedResponseToSchema extends TypeToSchemaExtension
     {
         $stringLiteralContentTypeHeader = $headersType instanceof KeyedArrayType
             ? collect($headersType->items)
-                ->first(function (ArrayItemType_ $t) {
-                    return is_string($t->key)
-                        && Str::lower($t->key) === 'content-type'
-                        && $t->value instanceof LiteralStringType;
-                })
-                ?->value
+            ->first(function (ArrayItemType_ $t) {
+                return is_string($t->key)
+                    && Str::lower($t->key) === 'content-type'
+                    && $t->value instanceof LiteralStringType;
+            })
+            ?->value
             : null;
 
         if ($stringLiteralContentTypeHeader instanceof LiteralStringType) {
