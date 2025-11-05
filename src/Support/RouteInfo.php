@@ -41,7 +41,7 @@ class RouteInfo
     public readonly Infer\Extensions\IndexBuildingBroker $indexBuildingBroker;
 
     public function __construct(
-        public readonly Route $route,
+        public readonly Route|RouteAdapter $route,
         private Infer $infer, // @phpstan-ignore property.onlyWritten
     ) {
         /** @var Bag<array<string, InferredParameter>> $bag */
@@ -52,21 +52,53 @@ class RouteInfo
 
     public function isClassBased(): bool
     {
-        return is_string($this->route->getAction('uses'));
+        $uses = $this->route->getAction('uses');
+        return is_string($uses) || is_array($uses);
     }
 
     public function className(): ?string
     {
-        return $this->isClassBased()
-            ? ltrim(explode('@', $this->route->getAction('uses'))[0], '\\')
-            : null;
+        if (!$this->isClassBased()) {
+            return null;
+        }
+
+        $uses = $this->route->getAction('uses');
+
+        if (is_array($uses) && isset($uses[0])) {
+            // Symfony format: [ControllerClass::class, 'method']
+            return is_object($uses[0]) ? get_class($uses[0]) : ltrim($uses[0], '\\');
+        }
+
+        if (is_string($uses)) {
+            // Laravel format: "Controller@method" or Symfony format: "Controller::method"
+            $separator = str_contains($uses, '@') ? '@' : '::';
+            return ltrim(explode($separator, $uses)[0], '\\');
+        }
+
+        return null;
     }
 
     public function methodName(): ?string
     {
-        return $this->isClassBased()
-            ? explode('@', $this->route->getAction('uses'))[1]
-            : null;
+        if (!$this->isClassBased()) {
+            return null;
+        }
+
+        $uses = $this->route->getAction('uses');
+
+        if (is_array($uses) && isset($uses[1])) {
+            // Symfony format: [ControllerClass::class, 'method']
+            return $uses[1];
+        }
+
+        if (is_string($uses)) {
+            // Laravel format: "Controller@method" or Symfony format: "Controller::method"
+            $separator = str_contains($uses, '@') ? '@' : '::';
+            $parts = explode($separator, $uses);
+            return $parts[1] ?? null;
+        }
+
+        return null;
     }
 
     public function phpDoc(): PhpDocNode
@@ -159,11 +191,17 @@ class RouteInfo
     public function getActionReflector(): MethodReflector|ClosureReflector
     {
         if ($this->isClassBased()) {
-            return MethodReflector::make(...explode('@', $this->route->getAction('uses')));
+            $className = $this->className();
+            $methodName = $this->methodName();
+
+            if ($className && $methodName) {
+                return MethodReflector::make($className, $methodName);
+            }
         }
 
-        if ($this->route->getAction('uses') instanceof Closure) {
-            return ClosureReflector::make($this->route->getAction('uses'));
+        $uses = $this->route->getAction('uses');
+        if ($uses instanceof Closure) {
+            return ClosureReflector::make($uses);
         }
 
         throw new LogicException('Cannot determine the action reflector');

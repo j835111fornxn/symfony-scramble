@@ -20,11 +20,12 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Generator\UniqueNameOptions;
 use Dedoc\Scramble\Support\Generator\UniqueNamesOptionsCollection;
 use Dedoc\Scramble\Support\OperationBuilder;
+use Dedoc\Scramble\Support\RouteAdapter;
 use Dedoc\Scramble\Support\RouteInfo;
 use Dedoc\Scramble\Support\ServerFactory;
+use Dedoc\Scramble\Support\SymfonyRouteManager;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use ReflectionException;
@@ -39,6 +40,7 @@ class Generator
 
     public function __construct(
         private OperationBuilder $operationBuilder,
+        private SymfonyRouteManager $routeManager,
         private Infer $infer
     ) {}
 
@@ -81,8 +83,8 @@ class Generator
                             $action = '{closure}';
                         }
 
-                        dump("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – ".($e->getFile().' on line '.$e->getLine()));
-                        logger()->error("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – ".($e->getFile().' on line '.$e->getLine()));
+                        dump("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – " . ($e->getFile() . ' on line ' . $e->getLine()));
+                        logger()->error("Error when analyzing route '$method $route->uri' ($action): {$e->getMessage()} – " . ($e->getFile() . ' on line ' . $e->getLine()));
                     }
 
                     throw $e;
@@ -90,7 +92,7 @@ class Generator
             })
             ->filter()
             ->sortBy($this->createOperationsSorter())
-            ->each(fn (Operation $operation) => $openApi->addPath(
+            ->each(fn(Operation $operation) => $openApi->addPath(
                 Path::make(
                     (string) Str::of($operation->path)
                         ->replaceStart($config->get('api_path', 'api'), '')
@@ -123,7 +125,7 @@ class Generator
             }
 
             // @phpstan-ignore deadCode.unreachable
-            throw new InvalidArgumentException('(callable(OpenApi, OpenApiContext): void)|DocumentTransformer type for document transformer expected, received '.$openApiTransformer::class);
+            throw new InvalidArgumentException('(callable(OpenApi, OpenApiContext): void)|DocumentTransformer type for document transformer expected, received ' . $openApiTransformer::class);
         }
 
         return $openApi->toArray();
@@ -131,13 +133,13 @@ class Generator
 
     private function createOperationsSorter(): array
     {
-        $defaultSortValue = fn (Operation $o) => $o->tags[0] ?? null;
+        $defaultSortValue = fn(Operation $o) => $o->tags[0] ?? null;
 
         return [
-            fn (Operation $a, Operation $b) => $a->getAttribute('groupWeight', INF) <=> $b->getAttribute('groupWeight', INF),
-            fn (Operation $a, Operation $b) => $a->getAttribute('weight', INF) <=> $b->getAttribute('weight', INF), // @todo manual endpoint sorting
-            fn (Operation $a, Operation $b) => $defaultSortValue($a) <=> $defaultSortValue($b),
-            fn (Operation $a, Operation $b) => $a->getAttribute('index', INF) <=> $b->getAttribute('index', INF),
+            fn(Operation $a, Operation $b) => $a->getAttribute('groupWeight', INF) <=> $b->getAttribute('groupWeight', INF),
+            fn(Operation $a, Operation $b) => $a->getAttribute('weight', INF) <=> $b->getAttribute('weight', INF), // @todo manual endpoint sorting
+            fn(Operation $a, Operation $b) => $defaultSortValue($a) <=> $defaultSortValue($b),
+            fn(Operation $a, Operation $b) => $a->getAttribute('index', INF) <=> $b->getAttribute('index', INF),
         ];
     }
 
@@ -154,7 +156,7 @@ class Generator
         [$defaultProtocol] = explode('://', url('/'));
         $servers = $config->get('servers') ?: [
             '' => ($domain = $config->get('api_domain'))
-                ? $defaultProtocol.'://'.$domain.'/'.$config->get('api_path', 'api')
+                ? $defaultProtocol . '://' . $domain . '/' . $config->get('api_path', 'api')
                 : $config->get('api_path', 'api'),
         ];
         foreach ($servers as $description => $url) {
@@ -168,62 +170,22 @@ class Generator
 
     private function getRoutes(GeneratorConfig $config): Collection
     {
-        return collect(RouteFacade::getRoutes())
-            ->pipe(function (Collection $c) {
-                $onlyRoutes = $c->filter(function (Route $route) {
+        // Get documented routes from SymfonyRouteManager
+        // This already includes @only-docs filtering and exclusion checking
+        $routes = collect($this->routeManager->getDocumentedRoutes());
 
-                    if (! is_string($route->getAction('controller'))) {
-                        return false;
-                    }
+        // Filter routes named 'scramble.*' (internal documentation routes)
+        $routes = $routes->filter(function ($route) {
+            $name = $route->getName();
+            return !$name || !str_starts_with($name, 'scramble.');
+        });
 
-                    if (! is_string($route->getAction('uses'))) {
-                        return false;
-                    }
+        // Apply custom route filters from config
+        if ($customFilter = $config->routes()) {
+            $routes = $routes->filter($customFilter);
+        }
 
-                    try {
-                        $reflection = new ReflectionMethod(...explode('@', $route->getAction('uses')));
-
-                        if (str_contains($reflection->getDocComment() ?: '', '@only-docs')) {
-                            return true;
-                        }
-                    } catch (Throwable) {
-                    }
-
-                    return false;
-                });
-
-                return $onlyRoutes->count() ? $onlyRoutes : $c;
-            })
-            ->filter(function (Route $route) {
-                return ! ($name = $route->getAction('as')) || ! Str::startsWith($name, 'scramble');
-            })
-            ->filter($config->routes())
-            ->filter(function (Route $route) {
-                if (! is_string($route->getAction('uses'))) {
-                    return true;
-                }
-
-                try {
-                    $reflection = new ReflectionMethod(...explode('@', $route->getAction('uses')));
-                } catch (ReflectionException) {
-                    /*
-                     * If route is registered but route method doesn't exist, it will not be included
-                     * in the resulting documentation.
-                     */
-                    return false;
-                }
-
-                if (count($reflection->getAttributes(ExcludeRouteFromDocs::class))) {
-                    return false;
-                }
-
-                if (count($reflection->getDeclaringClass()->getAttributes(ExcludeAllRoutesFromDocs::class))) {
-                    return false;
-                }
-
-                return true;
-            })
-            ->values();
+        return $routes->values();
     }
 
     private function buildTypeTransformer(OpenApiContext $context): TypeTransformer
@@ -233,7 +195,7 @@ class Generator
         ]);
     }
 
-    private function routeToOperation(OpenApi $openApi, Route $route, GeneratorConfig $config, TypeTransformer $typeTransformer)
+    private function routeToOperation(OpenApi $openApi, Route|RouteAdapter $route, GeneratorConfig $config, TypeTransformer $typeTransformer)
     {
         $routeInfo = new RouteInfo($route, $this->infer);
 
@@ -244,7 +206,7 @@ class Generator
         return $operation;
     }
 
-    private function ensureSchemaTypes(Route $route, Operation $operation): void
+    private function ensureSchemaTypes(Route|RouteAdapter $route, Operation $operation): void
     {
         if (! Scramble::getSchemaValidator()->hasRules()) {
             return;
@@ -263,7 +225,7 @@ class Generator
         }
     }
 
-    private function createSchemaEnforceTraverser(Route $route)
+    private function createSchemaEnforceTraverser(Route|RouteAdapter $route)
     {
         $traverser = new OpenApiTraverser([$visitor = new SchemaEnforceVisitor($route, $this->throwExceptions, $this->exceptions)]);
 
@@ -280,9 +242,9 @@ class Generator
             $operations = collect($pathsGroup->pluck('operations')->flatten());
 
             $operationsHaveSameAlternativeServers = $operations->count()
-                && $operations->every(fn (Operation $o) => count($o->servers))
+                && $operations->every(fn(Operation $o) => count($o->servers))
                 && $operations->unique(function (Operation $o) {
-                    return collect($o->servers)->map(fn (Server $s) => $s->url)->join('.');
+                    return collect($o->servers)->map(fn(Server $s) => $s->url)->join('.');
                 })->count() === 1;
 
             if (! $operationsHaveSameAlternativeServers) {
