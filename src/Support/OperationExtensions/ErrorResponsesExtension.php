@@ -57,11 +57,11 @@ class ErrorResponsesExtension extends OperationExtension
 
     private function attachAuthorizationException(RouteInfo $routeInfo, FunctionType $methodType)
     {
-        if (! collect($routeInfo->route->gatherMiddleware())->contains(fn ($m) => is_string($m) && Str::startsWith($m, ['can:', Authorize::class.':']))) {
+        if (! collect($routeInfo->route->gatherMiddleware())->contains(fn($m) => is_string($m) && Str::startsWith($m, ['can:', Authorize::class . ':']))) {
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn (Type $e) => $e->isInstanceOf(AuthorizationException::class))) {
+        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AuthorizationException::class))) {
             return;
         }
 
@@ -77,13 +77,13 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
-        $isAuthMiddleware = fn ($m) => is_string($m) && ($m === 'auth' || Str::startsWith($m, 'auth:'));
+        $isAuthMiddleware = fn($m) => is_string($m) && ($m === 'auth' || Str::startsWith($m, 'auth:'));
 
         if (! collect($routeInfo->route->gatherMiddleware())->contains($isAuthMiddleware)) {
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn (Type $e) => $e->isInstanceOf(AuthenticationException::class))) {
+        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AuthenticationException::class))) {
             return;
         }
 

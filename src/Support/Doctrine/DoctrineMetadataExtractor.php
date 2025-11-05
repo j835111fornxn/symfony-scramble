@@ -64,7 +64,7 @@ class DoctrineMetadataExtractor
     public function getFieldNames(string $className): array
     {
         $metadata = $this->getMetadata($className);
-        
+
         if (!$metadata) {
             return [];
         }
@@ -83,7 +83,7 @@ class DoctrineMetadataExtractor
     public function getFieldType(string $className, string $fieldName): ?string
     {
         $metadata = $this->getMetadata($className);
-        
+
         if (!$metadata) {
             return null;
         }
@@ -107,13 +107,13 @@ class DoctrineMetadataExtractor
     public function isNullable(string $className, string $fieldName): bool
     {
         $metadata = $this->getMetadata($className);
-        
+
         if (!$metadata || !$metadata->hasField($fieldName)) {
             return false;
         }
 
         $fieldMapping = $metadata->getFieldMapping($fieldName);
-        
+
         return $fieldMapping['nullable'] ?? false;
     }
 
@@ -125,7 +125,7 @@ class DoctrineMetadataExtractor
     public function isAssociation(string $className, string $fieldName): bool
     {
         $metadata = $this->getMetadata($className);
-        
+
         if (!$metadata) {
             return false;
         }
@@ -142,13 +142,13 @@ class DoctrineMetadataExtractor
     public function getAssociationMapping(string $className, string $fieldName): ?array
     {
         $metadata = $this->getMetadata($className);
-        
+
         if (!$metadata || !$metadata->hasAssociation($fieldName)) {
             return null;
         }
 
         $mapping = $metadata->getAssociationMapping($fieldName);
-        
+
         // Convert AssociationMapping object to array for compatibility
         return is_array($mapping) ? $mapping : (array) $mapping;
     }
@@ -162,7 +162,7 @@ class DoctrineMetadataExtractor
     public function getIdentifierFieldNames(string $className): array
     {
         $metadata = $this->getMetadata($className);
-        
+
         if (!$metadata) {
             return [];
         }

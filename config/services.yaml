@@ -125,10 +125,10 @@ services:
     Dedoc\Scramble\Support\InferExtensions\JsonResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']
 
-    Dedoc\Scramble\Support\InferExtensions\ModelExtension:
-        tags: ['scramble.infer_extension']
-
-    Dedoc\Scramble\Support\InferExtensions\EloquentBuilderExtension:
+    # ModelExtension and EloquentBuilderExtension removed - replaced by DoctrineEntityExtension
+    Dedoc\Scramble\Support\InferExtensions\DoctrineEntityExtension:
+        arguments:
+            $metadataExtractor: '@Dedoc\Scramble\Support\Doctrine\DoctrineMetadataExtractor'
         tags: ['scramble.infer_extension']
 
     Dedoc\Scramble\Support\InferExtensions\RequestExtension:
@@ -180,8 +180,7 @@ services:
     Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema:
         tags: ['scramble.type_to_schema_extension']
 
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\EloquentCollectionToSchema:
-        tags: ['scramble.type_to_schema_extension']
+    # EloquentCollectionToSchema removed - Doctrine collections handled by CollectionToSchema
 
     Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceCollectionTypeToSchema:
         tags: ['scramble.type_to_schema_extension']

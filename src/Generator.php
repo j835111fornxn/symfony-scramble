@@ -195,7 +195,7 @@ class Generator
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\JsonResourceTypeToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\EloquentCollectionToSchema::class,
+            // EloquentCollectionToSchema removed - Doctrine collections handled by CollectionToSchema
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceCollectionTypeToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\CursorPaginatorTypeToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatorTypeToSchema::class,
