@@ -14,16 +14,54 @@ services:
             - '../src/Contracts/'
             - '../src/Support/Generator/Types/'
 
-    # Core services
+    # Core services (from ScrambleServiceProvider singletons)
     Dedoc\Scramble\Infer:
         public: true
 
     Dedoc\Scramble\Generator:
         public: true
 
-    Dedoc\Scramble\Support\Generator\TypeTransformer:
+    Dedoc\Scramble\Configuration\GeneratorConfigCollection:
+        public: true
+
+    # Parser services
+    PhpParser\Parser:
+        class: PhpParser\Parser\Php7
+        factory: ['PhpParser\ParserFactory', 'createForHostVersion']
+
+    PhpParser\PrettyPrinter:
+        class: PhpParser\PrettyPrinter\Standard
+        public: false
+
+    PhpParser\PrettyPrinter\Standard:
+        public: false
+
+    # File parsing service
+    Dedoc\Scramble\Infer\Services\FileParser:
         arguments:
-            $infer: '@Dedoc\Scramble\Infer'
+            $parser: '@PhpParser\Parser'
+        public: false
+
+    # Index services for type inference
+    Dedoc\Scramble\Infer\Scope\LazyShallowReflectionIndex:
+        factory: ['Dedoc\Scramble\Support\ServiceFactory', 'createLazyShallowReflectionIndex']
+        public: false
+
+    Dedoc\Scramble\Infer\Scope\Index:
+        factory: ['Dedoc\Scramble\Support\ServiceFactory', 'createIndex']
+        public: false
+
+    # Extension brokers with tagged services (services will be passed as instances)
+    Dedoc\Scramble\Infer\Extensions\ExtensionsBroker:
+        arguments:
+            $extensions: !tagged_iterator scramble.infer_extension
+
+    Dedoc\Scramble\Infer\Extensions\IndexBuildingBroker:
+        arguments:
+            $indexBuilders: !tagged_iterator scramble.index_builder
+
+    # Type transformer is created via factory since it needs special handling
+    # The actual TypeTransformer is instantiated in Generator class with proper context
 
     # Symfony Route Manager
     Dedoc\Scramble\Support\SymfonyRouteManager:
@@ -45,15 +83,135 @@ services:
             $twig: '@twig'
         tags: ['controller.service_arguments']
 
-    # Parser
-    PhpParser\Parser:
-        class: PhpParser\Parser\Php7
-        factory: ['PhpParser\ParserFactory', 'createForHostVersion']
+    # Built-in Infer Extensions
+    Dedoc\Scramble\Support\InferExtensions\ResponseMethodReturnTypeExtension:
+        tags: ['scramble.infer_extension']
 
-    PhpParser\PrettyPrinter\Standard:
-        public: false
+    Dedoc\Scramble\Support\InferExtensions\JsonResourceExtension:
+        tags: ['scramble.infer_extension']
 
-    # Auto-tag extensions
+    Dedoc\Scramble\Support\InferExtensions\ResourceResponseMethodReturnTypeExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\JsonResponseMethodReturnTypeExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\ModelExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\EloquentBuilderExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\RequestExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\AfterJsonResourceDefinitionCreatedExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\AfterResourceCollectionDefinitionCreatedExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\AfterAnonymousResourceCollectionDefinitionCreatedExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\PossibleExceptionInfer:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\AbortHelpersExceptionInfer:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\PaginateMethodsReturnTypeExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\ValidatorTypeInfer:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\ResourceCollectionTypeInfer:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\ResponseFactoryTypeInfer:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\ArrayMergeReturnTypeExtension:
+        tags: ['scramble.infer_extension']
+
+    Dedoc\Scramble\Support\InferExtensions\TypeTraceInfer:
+        tags: ['scramble.infer_extension']
+
+    # Built-in Type to Schema Extensions
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\EnumToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\JsonResourceTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\EloquentCollectionToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceCollectionTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\CursorPaginatorTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatorTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\LengthAwarePaginatorTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\ResponseTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\BinaryFileResponseToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\StreamedResponseToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceResponseTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatedResourceResponseTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    Dedoc\Scramble\Support\TypeToSchemaExtensions\VoidTypeToSchema:
+        tags: ['scramble.type_to_schema_extension']
+
+    # Built-in Exception to Response Extensions
+    Dedoc\Scramble\Support\ExceptionToResponseExtensions\ValidationExceptionToResponseExtension:
+        tags: ['scramble.exception_to_response_extension']
+
+    Dedoc\Scramble\Support\ExceptionToResponseExtensions\AuthorizationExceptionToResponseExtension:
+        tags: ['scramble.exception_to_response_extension']
+
+    Dedoc\Scramble\Support\ExceptionToResponseExtensions\AuthenticationExceptionToResponseExtension:
+        tags: ['scramble.exception_to_response_extension']
+
+    Dedoc\Scramble\Support\ExceptionToResponseExtensions\NotFoundExceptionToResponseExtension:
+        tags: ['scramble.exception_to_response_extension']
+
+    Dedoc\Scramble\Support\ExceptionToResponseExtensions\HttpExceptionToResponseExtension:
+        tags: ['scramble.exception_to_response_extension']
+
+    # Built-in Index Builders
+    Dedoc\Scramble\Support\IndexBuilders\PaginatorsCandidatesBuilder:
+        tags: ['scramble.index_builder']
+
+    # Operation Transformers
+    Dedoc\Scramble\DocumentTransformers\AddDocumentTags:
+        tags: ['scramble.document_transformer']
+
+    Dedoc\Scramble\DocumentTransformers\CleanupUnusedResponseReferencesTransformer:
+        tags: ['scramble.document_transformer']
+
+    # Auto-tag extensions (for user-defined extensions)
     _instanceof:
         Dedoc\Scramble\Infer\Extensions\InferExtension:
             tags: ['scramble.infer_extension']

@@ -189,8 +189,39 @@ class Generator
 
     private function buildTypeTransformer(OpenApiContext $context): TypeTransformer
     {
-        // TypeTransformer constructor signature: __construct(Infer $infer, OpenApiContext $context)
-        return new TypeTransformer($this->infer, $context);
+        // Build extension class lists (matches Laravel ServiceProvider configuration)
+        $typeToSchemaExtensions = [
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\EnumToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\JsonResourceTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\EloquentCollectionToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceCollectionTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\CursorPaginatorTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatorTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\LengthAwarePaginatorTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResponseTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\BinaryFileResponseToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\StreamedResponseToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceResponseTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatedResourceResponseTypeToSchema::class,
+            \Dedoc\Scramble\Support\TypeToSchemaExtensions\VoidTypeToSchema::class,
+        ];
+
+        $exceptionToResponseExtensions = [
+            \Dedoc\Scramble\Support\ExceptionToResponseExtensions\ValidationExceptionToResponseExtension::class,
+            \Dedoc\Scramble\Support\ExceptionToResponseExtensions\AuthorizationExceptionToResponseExtension::class,
+            \Dedoc\Scramble\Support\ExceptionToResponseExtensions\AuthenticationExceptionToResponseExtension::class,
+            \Dedoc\Scramble\Support\ExceptionToResponseExtensions\NotFoundExceptionToResponseExtension::class,
+            \Dedoc\Scramble\Support\ExceptionToResponseExtensions\HttpExceptionToResponseExtension::class,
+        ];
+
+        return new TypeTransformer(
+            $this->infer,
+            $context,
+            $typeToSchemaExtensions,
+            $exceptionToResponseExtensions
+        );
     }
 
     private function routeToOperation(OpenApi $openApi, RouteAdapter $route, GeneratorConfig $config, TypeTransformer $typeTransformer)
