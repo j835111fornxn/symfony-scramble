@@ -7,10 +7,9 @@ use Dedoc\Scramble\Configuration\DocumentTransformers;
 use Dedoc\Scramble\Configuration\OperationTransformers;
 use Dedoc\Scramble\Configuration\ParametersExtractors;
 use Dedoc\Scramble\Configuration\ServerVariables;
-use Dedoc\Scramble\Support\Generator\ServerVariable;
-use Illuminate\Routing\Route;
-use Illuminate\Routing\Router;
 use Dedoc\Scramble\Support\Arr;
+use Dedoc\Scramble\Support\Generator\ServerVariable;
+use Dedoc\Scramble\Support\RouteAdapter;
 use Dedoc\Scramble\Support\Str;
 use ReflectionFunction;
 use ReflectionNamedType;
@@ -18,12 +17,12 @@ use ReflectionNamedType;
 class GeneratorConfig
 {
     /**
-     * @var (Closure(Router, mixed): Route)|string|null
+     * @var (Closure(mixed, mixed): mixed)|string|null
      */
     public Closure|string|null $uiRoute = null;
 
     /**
-     * @var (Closure(Router, mixed): Route)|string|null
+     * @var (Closure(mixed, mixed): mixed)|string|null
      */
     public Closure|string|null $documentRoute = null;
 
@@ -57,8 +56,8 @@ class GeneratorConfig
     }
 
     /**
-     * @param  (Closure(Router, mixed): Route)|string|false  $ui
-     * @param  (Closure(Router, mixed): Route)|string|false  $document
+     * @param  (Closure(mixed, mixed): mixed)|string|false  $ui
+     * @param  (Closure(mixed, mixed): mixed)|string|false  $document
      */
     public function expose(Closure|string|false $ui = false, Closure|string|false $document = false): static
     {
@@ -75,14 +74,16 @@ class GeneratorConfig
         return $this;
     }
 
-    private function defaultRoutesFilter(Route $route)
+    private function defaultRoutesFilter(RouteAdapter $route)
     {
         $expectedDomain = $this->get('api_domain');
+        $symfonyRoute = $route->getSymfonyRoute();
 
-        $isBaseMatching = ! ($prefix = $this->get('api_path', 'api')) || Str::startsWith($route->uri, $prefix);
+        $isBaseMatching = ! ($prefix = $this->get('api_path', 'api')) || Str::startsWith($symfonyRoute->getPath(), $prefix);
 
+        $routeHost = $symfonyRoute->getHost();
         return $isBaseMatching
-            && (! $expectedDomain || $route->getDomain() === $expectedDomain);
+            && (! $expectedDomain || $routeHost === $expectedDomain);
     }
 
     public function afterOpenApiGenerated(?callable $afterOpenApiGenerated = null)

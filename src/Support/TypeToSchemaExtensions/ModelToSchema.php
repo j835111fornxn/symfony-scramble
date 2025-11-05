@@ -12,10 +12,11 @@ use Dedoc\Scramble\Support\Generator\Schema;
 use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
-use Illuminate\Database\Eloquent\Model;
 
 class ModelToSchema extends TypeToSchemaExtension
 {
+    private const ELOQUENT_MODEL_CLASS = 'Illuminate\\Database\\Eloquent\\Model';
+
     public function __construct(
         Infer $infer,
         TypeTransformer $openApiTransformer,
@@ -27,9 +28,14 @@ class ModelToSchema extends TypeToSchemaExtension
 
     public function shouldHandle(Type $type)
     {
+        // Only handle if Laravel's Eloquent Model class exists (optional dependency)
+        if (!class_exists(self::ELOQUENT_MODEL_CLASS)) {
+            return false;
+        }
+
         return $type instanceof ObjectType
-            && $type->isInstanceOf(Model::class)
-            && $type->name !== Model::class;
+            && $type->isInstanceOf(self::ELOQUENT_MODEL_CLASS)
+            && $type->name !== self::ELOQUENT_MODEL_CLASS;
     }
 
     /**

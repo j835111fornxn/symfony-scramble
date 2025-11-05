@@ -17,21 +17,33 @@ use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\Union;
 use Dedoc\Scramble\Support\Type\UnknownType;
 use Dedoc\Scramble\Support\Str;
-use Illuminate\Contracts\Support\Responsable;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\ResourceResponse;
 use LogicException;
+use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ResponseTypeToSchema extends TypeToSchemaExtension
 {
+    private const LARAVEL_RESPONSE_CLASS = 'Illuminate\\Http\\Response';
+    private const LARAVEL_JSON_RESPONSE_CLASS = 'Illuminate\\Http\\JsonResponse';
+    private const LARAVEL_RESPONSABLE_CLASS = 'Illuminate\\Contracts\\Support\\Responsable';
+    private const LARAVEL_RESOURCE_RESPONSE_CLASS = 'Illuminate\\Http\\Resources\\Json\\ResourceResponse';
+
     public function shouldHandle(Type $type)
     {
-        return $type instanceof Generic
-            && (
-                $type->isInstanceOf(\Illuminate\Http\Response::class)
-                || $type->isInstanceOf(JsonResponse::class)
-            )
-            && count($type->templateTypes) >= 2;
+        if (!$type instanceof Generic || count($type->templateTypes) < 2) {
+            return false;
+        }
+
+        // Check for Laravel Response classes (if available)
+        if (class_exists(self::LARAVEL_RESPONSE_CLASS) || class_exists(self::LARAVEL_JSON_RESPONSE_CLASS)) {
+            if ($type->isInstanceOf(self::LARAVEL_RESPONSE_CLASS) || $type->isInstanceOf(self::LARAVEL_JSON_RESPONSE_CLASS)) {
+                return true;
+            }
+        }
+
+        // Check for Symfony Response classes
+        return $type->isInstanceOf(SymfonyResponse::class) 
+            || $type->isInstanceOf(SymfonyJsonResponse::class);
     }
 
     /**
@@ -43,14 +55,16 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
             return $responsableResponse;
         }
 
-        if (! $type->templateTypes[1] instanceof LiteralIntegerType) {
+        $statusCodeType = $type->templateTypes[1];
+        if (! $statusCodeType instanceof LiteralIntegerType) {
             return null;
         }
 
-        $emptyContent = $type->templateTypes[0] instanceof NullType
-            || ($type->templateTypes[0]->value ?? null) === '';
+        $contentType = $type->templateTypes[0];
+        $emptyContent = $contentType instanceof NullType
+            || ($contentType instanceof LiteralStringType && $contentType->value === '');
 
-        $response = Response::make($code = $type->templateTypes[1]->value)
+        $response = Response::make($code = $statusCodeType->value)
             ->description($code === 204 ? 'No content' : '');
 
         if (! $emptyContent) {
@@ -69,7 +83,12 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
     {
         $data = $type->templateTypes[0];
 
-        return $data instanceof ObjectType && $data->isInstanceOf(Responsable::class);
+        // Check if Laravel Responsable interface exists
+        if (!interface_exists(self::LARAVEL_RESPONSABLE_CLASS)) {
+            return false;
+        }
+
+        return $data instanceof ObjectType && $data->isInstanceOf(self::LARAVEL_RESPONSABLE_CLASS);
     }
 
     private function handleResponsableResponse(Generic $jsonResponseType): ?Response
@@ -91,7 +110,11 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
         }
 
         $response->code = $responseStatusCode;
-        if (! $data->isInstanceOf(ResourceResponse::class)) {
+        // Check if this is a Laravel ResourceResponse (optional)
+        $isResourceResponse = class_exists(self::LARAVEL_RESOURCE_RESPONSE_CLASS) 
+            && $data->isInstanceOf(self::LARAVEL_RESOURCE_RESPONSE_CLASS);
+        
+        if (! $isResourceResponse) {
             $response->setContent(
                 'application/json',
                 Schema::fromType($this->openApiTransformer->transform($data)),
