@@ -9,9 +9,11 @@ parameters:
     stubFiles:
         - stubs/DeepCopy.stub
     tmpDir: build/phpstan
-    checkOctaneCompatibility: true
-    checkModelProperties: true
+    symfony:
+        container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml
+        constant_hassers: false
+        console_application_loader: tests/console-application.php
     typeAliases:
-        Rule: 'string|\Illuminate\Contracts\Validation\ValidationRule'
+        Rule: 'string|\Symfony\Component\Validator\Constraint'
         RuleSet: 'Rule|Rule[]'
     #reportUnmatchedIgnoredErrors: false

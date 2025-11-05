@@ -1,0 +1,98 @@
+<?php
+
+namespace Dedoc\Scramble\DependencyInjection;
+
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+
+class Configuration implements ConfigurationInterface
+{
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
+        $treeBuilder = new TreeBuilder('scramble');
+        $rootNode = $treeBuilder->getRootNode();
+
+        $rootNode
+            ->children()
+                ->scalarNode('api_path')
+                    ->defaultValue('api')
+                    ->info('Your API path. By default, all routes starting with this path will be added to the docs.')
+                ->end()
+                ->scalarNode('api_domain')
+                    ->defaultNull()
+                    ->info('Your API domain. By default, app domain is used.')
+                ->end()
+                ->scalarNode('export_path')
+                    ->defaultValue('api.json')
+                    ->info('The path where your OpenAPI specification will be exported.')
+                ->end()
+                ->arrayNode('info')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('version')
+                            ->defaultValue('0.0.1')
+                            ->info('API version.')
+                        ->end()
+                        ->scalarNode('description')
+                            ->defaultValue('')
+                            ->info('Description rendered on the home page of the API documentation.')
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('ui')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('title')
+                            ->defaultNull()
+                            ->info('Define the title of the documentation website.')
+                        ->end()
+                        ->enumNode('theme')
+                            ->values(['light', 'dark', 'system'])
+                            ->defaultValue('light')
+                            ->info('Define the theme of the documentation.')
+                        ->end()
+                        ->booleanNode('hide_try_it')
+                            ->defaultFalse()
+                            ->info('Hide the Try It feature.')
+                        ->end()
+                        ->booleanNode('hide_schemas')
+                            ->defaultFalse()
+                            ->info('Hide the schemas in the Table of Contents.')
+                        ->end()
+                        ->scalarNode('logo')
+                            ->defaultValue('')
+                            ->info('URL to an image that displays as a small square logo.')
+                        ->end()
+                        ->enumNode('try_it_credentials_policy')
+                            ->values(['omit', 'include', 'same-origin'])
+                            ->defaultValue('include')
+                            ->info('Credential policy for the Try It feature.')
+                        ->end()
+                        ->enumNode('layout')
+                            ->values(['sidebar', 'responsive', 'stacked'])
+                            ->defaultValue('responsive')
+                            ->info('Layout style for Elements.')
+                        ->end()
+                    ->end()
+                ->end()
+                ->arrayNode('servers')
+                    ->defaultNull()
+                    ->useAttributeAsKey('name')
+                    ->prototype('scalar')->end()
+                    ->info('The list of servers of the API.')
+                ->end()
+                ->arrayNode('middleware')
+                    ->defaultValue([])
+                    ->prototype('scalar')->end()
+                    ->info('Middleware to apply to documentation routes.')
+                ->end()
+                ->arrayNode('extensions')
+                    ->defaultValue([])
+                    ->prototype('scalar')->end()
+                    ->info('Custom extensions to register.')
+                ->end()
+            ->end();
+
+        return $treeBuilder;
+    }
+}

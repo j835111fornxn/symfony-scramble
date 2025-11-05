@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 # Git Commit Message Convention Guide - Traditional Chinese (繁體中文)
 
 掃描本次變更的檔案內容，並列出明確且一致的 Git 提交訊息規範，整合 JIRA 追蹤系統並使用繁體中文，加入變更的檔案後，最終進行提交的動作。

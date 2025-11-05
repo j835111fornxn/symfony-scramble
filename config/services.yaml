@@ -1,0 +1,51 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Make classes in src/ available as services
+    Dedoc\Scramble\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/ScrambleBundle.php'
+            - '../src/Attributes/'
+            - '../src/Contracts/'
+            - '../src/Support/Generator/Types/'
+
+    # Core services
+    Dedoc\Scramble\Infer:
+        public: true
+
+    Dedoc\Scramble\Generator:
+        public: true
+
+    Dedoc\Scramble\Support\Generator\TypeTransformer:
+        arguments:
+            $infer: '@Dedoc\Scramble\Infer'
+
+    # Parser
+    PhpParser\Parser:
+        class: PhpParser\Parser\Php7
+        factory: ['PhpParser\ParserFactory', 'createForHostVersion']
+
+    PhpParser\PrettyPrinter\Standard:
+        public: false
+
+    # Auto-tag extensions
+    _instanceof:
+        Dedoc\Scramble\Infer\Extensions\InferExtension:
+            tags: ['scramble.infer_extension']
+
+        Dedoc\Scramble\Extensions\TypeToSchemaExtension:
+            tags: ['scramble.type_to_schema_extension']
+
+        Dedoc\Scramble\Extensions\OperationExtension:
+            tags: ['scramble.operation_extension']
+
+        Dedoc\Scramble\Extensions\ExceptionToResponseExtension:
+            tags: ['scramble.exception_to_response_extension']
+
+        Dedoc\Scramble\Support\IndexBuilders\IndexBuilder:
+            tags: ['scramble.index_builder']
