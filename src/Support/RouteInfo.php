@@ -142,7 +142,21 @@ class RouteInfo
 
     public function actionNode(): ?FunctionLike
     {
-        return $this->isClassBased() ? $this->methodNode() : $this->closureNode(); // @phpstan-ignore method.deprecated
+        if ($this->isClassBased()) {
+            // Inline methodNode() logic to avoid calling deprecated method
+            if ($this->methodNode || ! $this->reflectionMethod()) {
+                return $this->methodNode;
+            }
+
+            $methodNode = $this->getActionReflector()->getAstNode();
+            if (! $methodNode instanceof ClassMethod) {
+                throw new LogicException('ClassMethod node expected from method reflector');
+            }
+
+            return $this->methodNode = $methodNode;
+        }
+
+        return $this->closureNode();
     }
 
     public function reflectionAction(): ReflectionMethod|ReflectionClosure|null
