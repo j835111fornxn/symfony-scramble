@@ -25,6 +25,15 @@ services:
         arguments:
             $infer: '@Dedoc\Scramble\Infer'
 
+    # Symfony Route Manager
+    Dedoc\Scramble\Support\SymfonyRouteManager:
+        arguments:
+            $router: '@router'
+            $config:
+                api_path: '%scramble.api_path%'
+                api_domain: '%scramble.api_domain%'
+        public: true
+
     # Parser
     PhpParser\Parser:
         class: PhpParser\Parser\Php7

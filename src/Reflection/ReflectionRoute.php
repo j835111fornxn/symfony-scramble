@@ -2,6 +2,7 @@
 
 namespace Dedoc\Scramble\Reflection;
 
+use Dedoc\Scramble\Support\RouteAdapter;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -11,6 +12,7 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionNamedType;
 use ReflectionParameter;
+use Symfony\Component\Routing\Route as SymfonyRoute;
 use WeakMap;
 
 /**
@@ -20,11 +22,16 @@ class ReflectionRoute
 {
     private static WeakMap $cache;
 
-    private function __construct(private Route $route) {}
+    private function __construct(private Route|RouteAdapter $route) {}
 
-    public static function createFromRoute(Route $route): static
+    public static function createFromRoute(Route|RouteAdapter|SymfonyRoute $route): static
     {
         static::$cache ??= new WeakMap;
+
+        // Convert Symfony Route to RouteAdapter if needed
+        if ($route instanceof SymfonyRoute) {
+            $route = new RouteAdapter($route);
+        }
 
         return static::$cache[$route] ??= new static($route);
     }
