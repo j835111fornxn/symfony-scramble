@@ -6,7 +6,7 @@ use Dedoc\Scramble\Console\Commands\Components\Code;
 use Dedoc\Scramble\Support\Generator\Types\Type;
 use Dedoc\Scramble\Support\RouteAdapter;
 use Exception;
-use Illuminate\Console\OutputStyle;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
 {
@@ -29,10 +29,10 @@ class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
 
         $originalMessage = $message;
         if ($file) {
-            $message = rtrim($message, '.').'. Got when analyzing an expression in file ['.$file.'] on line '.$line;
+            $message = rtrim($message, '.') . '. Got when analyzing an expression in file [' . $file . '] on line ' . $line;
         }
 
-        $exception = new static($path.': '.$message);
+        $exception = new static($path . ': ' . $message);
 
         $exception->originalMessage = $originalMessage;
         $exception->originFile = $file;
@@ -48,10 +48,10 @@ class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
         $action = $route->getAction('uses');
         $uri = $route->uri();
 
-        return "'$method $uri' ($action): ".$msg;
+        return "'$method $uri' ($action): " . $msg;
     }
 
-    public function renderInConsole(OutputStyle $outputStyle): void
+    public function renderInConsole(SymfonyStyle $outputStyle): void
     {
         $codeSample = null;
         $tableCells = [];

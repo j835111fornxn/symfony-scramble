@@ -2,9 +2,9 @@
 
 namespace Dedoc\Scramble\Exceptions;
 
-use Illuminate\Console\OutputStyle;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 interface ConsoleRenderable
 {
-    public function renderInConsole(OutputStyle $outputStyle): void;
+    public function renderInConsole(SymfonyStyle $outputStyle): void;
 }

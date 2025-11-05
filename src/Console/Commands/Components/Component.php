@@ -2,9 +2,9 @@
 
 namespace Dedoc\Scramble\Console\Commands\Components;
 
-use Illuminate\Console\OutputStyle;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 interface Component
 {
-    public function render(OutputStyle $style): void;
+    public function render(SymfonyStyle $style): void;
 }

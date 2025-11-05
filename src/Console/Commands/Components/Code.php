@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble\Console\Commands\Components;
 
-use Illuminate\Console\OutputStyle;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use NunoMaduro\Collision\Highlighter;
 
 class Code implements Component
@@ -12,7 +12,7 @@ class Code implements Component
         public int $line,
     ) {}
 
-    public function render(OutputStyle $style): void
+    public function render(SymfonyStyle $style): void
     {
         $code = (new Highlighter)->highlight(file_get_contents($this->filePath), $this->line);
 

@@ -11,8 +11,6 @@ use Dedoc\Scramble\Support\IndexBuilders\RequestParametersBuilder;
 use Dedoc\Scramble\Support\IndexBuilders\ScopeCollector;
 use Dedoc\Scramble\Support\OperationExtensions\ParameterExtractor\InferredParameter;
 use Dedoc\Scramble\Support\Type\FunctionType;
-use Illuminate\Routing\Route;
-use Laravel\SerializableClosure\Support\ReflectionClosure;
 use LogicException;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -41,7 +39,7 @@ class RouteInfo
     public readonly Infer\Extensions\IndexBuildingBroker $indexBuildingBroker;
 
     public function __construct(
-        public readonly Route|RouteAdapter $route,
+        public readonly RouteAdapter $route,
         private Infer $infer, // @phpstan-ignore property.onlyWritten
     ) {
         /** @var Bag<array<string, InferredParameter>> $bag */
@@ -159,28 +157,19 @@ class RouteInfo
         return $this->closureNode();
     }
 
-    public function reflectionAction(): ReflectionMethod|ReflectionClosure|null
+    public function reflectionAction(): ?ReflectionMethod
     {
-        return $this->isClassBased() ? $this->reflectionMethod() : $this->reflectionClosure();
+        return $this->isClassBased() ? $this->reflectionMethod() : null;
     }
 
-    public function reflectionClosure(): ?ReflectionClosure
+    /**
+     * @deprecated ReflectionClosure is not available in Symfony context
+     */
+    public function reflectionClosure(): ?object
     {
-        if ($this->isClassBased()) {
-            return null;
-        }
-
-        $uses = $this->route->getAction('uses');
-
-        if (! $uses instanceof Closure) {
-            return null;
-        }
-
-        if (! class_exists(ReflectionClosure::class)) {
-            return null;
-        }
-
-        return new ReflectionClosure($uses);
+        // ReflectionClosure from Laravel SerializableClosure is not available
+        // Closure routes should be handled differently in Symfony
+        return null;
     }
 
     public function reflectionMethod(): ?ReflectionMethod
