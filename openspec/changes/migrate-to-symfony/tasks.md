@@ -103,17 +103,17 @@
 
 ## 8. Validation Integration
 
-- [ ] 8.1 Remove FormRequest-based validation inference
-- [ ] 8.2 Create DoctrineMetadataExtractor service for entity metadata
-- [ ] 8.3 Create ConstraintExtractor service for Symfony Validator constraints
-- [ ] 8.4 Implement constraint-to-schema converters for common constraints:
-  - [ ] NotBlank → required property
-  - [ ] Length → minLength/maxLength
-  - [ ] Range → minimum/maximum
-  - [ ] Email → format: email
-  - [ ] Regex → pattern
-  - [ ] Count → minItems/maxItems
-  - [ ] Choice → enum
+- [x] 8.1 Remove FormRequest-based validation inference
+- [x] 8.2 Create DoctrineMetadataExtractor service for entity metadata
+- [x] 8.3 Create ConstraintExtractor service for Symfony Validator constraints
+- [x] 8.4 Implement constraint-to-schema converters for common constraints:
+  - [x] NotBlank → required property
+  - [x] Length → minLength/maxLength
+  - [x] Range → minimum/maximum
+  - [x] Email → format: email
+  - [x] Regex → pattern
+  - [x] Count → minItems/maxItems
+  - [x] Choice → enum
 - [ ] 8.5 Add support for validation groups
 - [ ] 8.6 Add support for Form types as request body schemas
 - [ ] 8.7 Implement nested form type handling
