@@ -42,7 +42,7 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
         }
 
         // Check for Symfony Response classes
-        return $type->isInstanceOf(SymfonyResponse::class) 
+        return $type->isInstanceOf(SymfonyResponse::class)
             || $type->isInstanceOf(SymfonyJsonResponse::class);
     }
 
@@ -111,9 +111,9 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
 
         $response->code = $responseStatusCode;
         // Check if this is a Laravel ResourceResponse (optional)
-        $isResourceResponse = class_exists(self::LARAVEL_RESOURCE_RESPONSE_CLASS) 
+        $isResourceResponse = class_exists(self::LARAVEL_RESOURCE_RESPONSE_CLASS)
             && $data->isInstanceOf(self::LARAVEL_RESOURCE_RESPONSE_CLASS);
-        
+
         if (! $isResourceResponse) {
             $response->setContent(
                 'application/json',
