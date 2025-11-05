@@ -19,7 +19,7 @@ class SymfonyTestCase extends KernelTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Boot the Symfony kernel
         self::bootKernel();
 
@@ -43,7 +43,7 @@ class SymfonyTestCase extends KernelTestCase
 
         return array_values(array_filter(
             $routes,
-            fn ($r) => !str_starts_with($r->getName() ?? '', '_'),
+            fn($r) => !str_starts_with($r->getName() ?? '', '_'),
         ));
     }
 
@@ -91,12 +91,12 @@ class SymfonyTestCase extends KernelTestCase
 
             public function getCacheDir(): string
             {
-                return sys_get_temp_dir().'/scramble_test_cache';
+                return sys_get_temp_dir() . '/scramble_test_cache';
             }
 
             public function getLogDir(): string
             {
-                return sys_get_temp_dir().'/scramble_test_logs';
+                return sys_get_temp_dir() . '/scramble_test_logs';
             }
         };
     }
