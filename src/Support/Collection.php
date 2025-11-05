@@ -245,6 +245,22 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return new static($result);
     }
 
+    public function flatMap(callable $callback): self
+    {
+        return $this->map($callback)->flatten(1);
+    }
+
+    public function reduce(callable $callback, $initial = null)
+    {
+        $result = $initial;
+
+        foreach ($this->items as $key => $value) {
+            $result = $callback($result, $value, $key);
+        }
+
+        return $result;
+    }
+
     public function values(): self
     {
         return new static(array_values($this->items));
@@ -273,6 +289,58 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     public function union($items): self
     {
         return new static($this->items + $this->getArrayableItems($items));
+    }
+
+    public function contains($key, $operator = null, $value = null): bool
+    {
+        if (func_num_args() === 1 && is_callable($key)) {
+            $placeholder = new \stdClass;
+
+            return $this->first($key, $placeholder) !== $placeholder;
+        }
+
+        if (func_num_args() === 1) {
+            return in_array($key, $this->items, true);
+        }
+
+        return $this->contains(function ($item) use ($key, $operator, $value) {
+            $retrieved = is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null);
+
+            $strings = array_filter([$retrieved, $value], fn($val) => is_string($val) || (is_object($val) && method_exists($val, '__toString')));
+
+            if (count($strings) < 2 && count(array_filter([$retrieved, $value], 'is_object')) === 1) {
+                return in_array($operator, ['!=', '<>', '!=='], true);
+            }
+
+            return match ($operator ?? '=') {
+                '=' => $retrieved == $value,
+                '==' => $retrieved == $value,
+                '===' => $retrieved === $value,
+                '!=' => $retrieved != $value,
+                '!==' => $retrieved !== $value,
+                '>' => $retrieved > $value,
+                '>=' => $retrieved >= $value,
+                '<' => $retrieved < $value,
+                '<=' => $retrieved <= $value,
+                default => false,
+            };
+        });
+    }
+
+    public function reject($callback = true): self
+    {
+        $useAsCallable = $this->useAsCallable($callback);
+
+        return $this->filter(function ($value, $key) use ($callback, $useAsCallable) {
+            return $useAsCallable
+                ? !$callback($value, $key)
+                : $value != $callback;
+        });
+    }
+
+    protected function useAsCallable($value): bool
+    {
+        return !is_string($value) && is_callable($value);
     }
 
     public function count(): int

@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble\Support\Type;
 
-use Illuminate\Support\Arr;
+use Dedoc\Scramble\Support\Arr;
 
 class Union extends AbstractType
 {
@@ -19,7 +19,7 @@ class Union extends AbstractType
     public function isSame(Type $type)
     {
         return $type instanceof static
-            && collect($this->types)->every(fn (Type $t, $i) => $t->isSame($type->types[$i]));
+            && collect($this->types)->every(fn(Type $t, $i) => $t->isSame($type->types[$i]));
     }
 
     public function widen(): Type
@@ -54,9 +54,13 @@ class Union extends AbstractType
      */
     public static function wrap(...$types): Type
     {
-        $types = Arr::wrap(...$types);
+        // Flatten the arguments: if single array passed, use it; otherwise use all args
+        if (count($types) === 1 && is_array($types[0])) {
+            $types = $types[0];
+        }
+
         $types = collect(array_values($types))
-            ->unique(fn (Type $t) => $t->toString())
+            ->unique(fn(Type $t) => $t->toString())
             ->values()
             ->all();
 
@@ -73,6 +77,6 @@ class Union extends AbstractType
 
     public function toString(): string
     {
-        return implode('|', array_map(fn ($t) => $t->toString(), $this->types));
+        return implode('|', array_map(fn($t) => $t->toString(), $this->types));
     }
 }
