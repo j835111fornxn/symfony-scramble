@@ -50,7 +50,7 @@ class DoctrineEntityToSchema extends TypeToSchemaExtension
     public function toResponse(Type $type): Response
     {
         return Response::make(200)
-            ->setDescription('`'.$this->openApiContext->references->schemas->uniqueName($type->name).'`')
+            ->setDescription('`' . $this->openApiContext->references->schemas->uniqueName($type->name) . '`')
             ->setContent(
                 'application/json',
                 Schema::fromType($this->openApiTransformer->transform($type)),
