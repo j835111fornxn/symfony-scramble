@@ -47,8 +47,8 @@ class ConstraintExtractor
         foreach ($metadata->getConstrainedProperties() as $propertyName) {
             $propertyMetadata = $metadata->getPropertyMetadata($propertyName);
 
-            foreach ($propertyMetadata as $metadata) {
-                $propertyConstraints = $metadata->getConstraints();
+            foreach ($propertyMetadata as $propMeta) {
+                $propertyConstraints = $propMeta->getConstraints();
 
                 // Filter constraints by validation groups if specified
                 if ($groups !== null) {
@@ -93,8 +93,8 @@ class ConstraintExtractor
         $propertyMetadata = $metadata->getPropertyMetadata($propertyName);
         $constraints = [];
 
-        foreach ($propertyMetadata as $metadata) {
-            $propertyConstraints = $metadata->getConstraints();
+        foreach ($propertyMetadata as $propMeta) {
+            $propertyConstraints = $propMeta->getConstraints();
 
             // Filter constraints by validation groups if specified
             if ($groups !== null) {

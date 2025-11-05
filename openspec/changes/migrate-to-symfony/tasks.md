@@ -116,10 +116,8 @@
   - [x] Choice → enum
 - [x] 8.5 Add support for validation groups
 - [x] 8.6 Add support for Form types as request body schemas
-- [x] 8.7 Implement nested form type handling
-- [x] 8.8 Update tests for validation inference
-
-## 9. ORM Migration (Eloquent to Doctrine)
+  - [x] 8.7 Implement nested form type handling
+  - [x] 8.8 Update tests for validation inference (ConstraintExtractor tests passing)## 9. ORM Migration (Eloquent to Doctrine)
 
 - [x] 9.1 Remove all Eloquent-specific extensions
 - [x] 9.2 Create DoctrineEntityExtension for entity type inference

@@ -30,7 +30,8 @@ class ConstraintExtractorTest extends TestCase
         $this->assertArrayHasKey('name', $constraints);
         $this->assertArrayHasKey('age', $constraints);
 
-        $this->assertInstanceOf(Assert\Email::class, $constraints['email'][0]);
+        $this->assertInstanceOf(Assert\NotBlank::class, $constraints['email'][0]);
+        $this->assertInstanceOf(Assert\Email::class, $constraints['email'][1]);
         $this->assertInstanceOf(Assert\NotBlank::class, $constraints['name'][0]);
     }
 
@@ -100,8 +101,10 @@ class ConstraintExtractorTest extends TestCase
             groups: ['create']
         );
 
-        $this->assertCount(1, $constraints);
+        // 'name' has NotBlank (only 'create') and Length ('create' and 'update')
+        $this->assertCount(2, $constraints);
         $this->assertInstanceOf(Assert\NotBlank::class, $constraints[0]);
+        $this->assertInstanceOf(Assert\Length::class, $constraints[1]);
 
         // 'updatedAt' is not in 'create' group
         $constraints = $this->extractor->extractFromProperty(
