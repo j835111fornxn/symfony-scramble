@@ -7,17 +7,13 @@ use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\Parameter;
 use Dedoc\Scramble\Support\RouteInfo;
 use Dedoc\Scramble\Support\Type\FunctionType;
-use Dedoc\Scramble\Support\Type\Literal\LiteralBooleanType;
 use Dedoc\Scramble\Support\Type\ObjectType;
-use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Type;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Auth\Middleware\Authorize;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Dedoc\Scramble\Support\Validation\ConstraintExtractor;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 /**
  * This extension is responsible for adding exceptions to the method return type
@@ -25,6 +21,10 @@ use Illuminate\Validation\ValidationException;
  */
 class ErrorResponsesExtension extends OperationExtension
 {
+    public function __construct(
+        private ConstraintExtractor $constraintExtractor,
+    ) {}
+
     public function handle(Operation $operation, RouteInfo $routeInfo)
     {
         if (! $methodType = $routeInfo->getActionType()) {
@@ -34,7 +34,7 @@ class ErrorResponsesExtension extends OperationExtension
         $this->attachNotFoundException($operation, $methodType);
         $this->attachAuthorizationException($routeInfo, $methodType);
         $this->attachAuthenticationException($routeInfo, $methodType);
-        $this->attachCustomRequestExceptions($methodType);
+        $this->attachValidationExceptions($methodType);
     }
 
     private function attachNotFoundException(Operation $operation, FunctionType $methodType)
@@ -93,43 +93,35 @@ class ErrorResponsesExtension extends OperationExtension
         ];
     }
 
-    private function attachCustomRequestExceptions(FunctionType $methodType)
+    private function attachValidationExceptions(FunctionType $methodType)
     {
-        if (! $formRequest = collect($methodType->arguments)->first(fn (Type $arg) => $arg->isInstanceOf(FormRequest::class))) {
-            return;
-        }
+        // Check if any parameter has validation constraints
+        foreach ($methodType->arguments as $arg) {
+            if (!$arg instanceof ObjectType) {
+                continue;
+            }
 
-        $formRequest = $formRequest instanceof ObjectType
-            ? $formRequest
-            : ($formRequest instanceof TemplateType ? $formRequest->is : null);
-
-        if (! $formRequest) {
-            return;
-        }
-
-        $formRequest = $this->infer->analyzeClass($formRequest->name);
-
-        if (
-            $formRequest->hasMethodDefinition('rules')
-            || $formRequest->hasMethodDefinition('after')
-        ) {
-            $methodType->exceptions = [
-                ...$methodType->exceptions,
-                new ObjectType(ValidationException::class),
-            ];
-        }
-
-        if ($formRequest->hasMethodDefinition('authorize')) {
-            $authorizeReturnType = $formRequest->getMethodCallType('authorize');
-            if (
-                (! $authorizeReturnType instanceof LiteralBooleanType)
-                || $authorizeReturnType->value !== true
-            ) {
-                $methodType->exceptions = [
-                    ...$methodType->exceptions,
-                    new ObjectType(AuthorizationException::class),
-                ];
+            if ($this->constraintExtractor->hasConstraints($arg->name)) {
+                // Add validation exception if parameter has constraints
+                if (!$this->hasException($methodType, ValidationFailedException::class)) {
+                    $methodType->exceptions = [
+                        ...$methodType->exceptions,
+                        new ObjectType(ValidationFailedException::class),
+                    ];
+                }
+                break;
             }
         }
+    }
+
+    private function hasException(FunctionType $methodType, string $exceptionClass): bool
+    {
+        foreach ($methodType->exceptions as $exception) {
+            if ($exception instanceof ObjectType && $exception->name === $exceptionClass) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
