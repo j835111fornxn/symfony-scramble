@@ -399,6 +399,21 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return new static(array_merge($this->items, $this->getArrayableItems($items)));
     }
 
+    public function only($keys): self
+    {
+        if (is_null($keys)) {
+            return new static($this->items);
+        }
+
+        if ($keys instanceof self) {
+            $keys = $keys->all();
+        }
+
+        $keys = is_array($keys) ? $keys : func_get_args();
+
+        return new static(array_intersect_key($this->items, array_flip($keys)));
+    }
+
     public function values(): self
     {
         return new static(array_values($this->items));

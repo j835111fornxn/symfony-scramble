@@ -151,3 +151,31 @@ if (!function_exists('url')) {
         return $generator->generate($path, $parameters, $secure ? 1 : 0);
     }
 }
+
+if (!function_exists('tap')) {
+    /**
+     * Call the given Closure with the given value then return the value.
+     *
+     * @param mixed $value
+     * @param callable|null $callback
+     * @return mixed
+     */
+    function tap($value, ?callable $callback = null)
+    {
+        if ($callback === null) {
+            return new class($value) {
+                public function __construct(public $target) {}
+
+                public function __call($method, $parameters)
+                {
+                    $this->target->{$method}(...$parameters);
+                    return $this->target;
+                }
+            };
+        }
+
+        $callback($value);
+
+        return $value;
+    }
+}

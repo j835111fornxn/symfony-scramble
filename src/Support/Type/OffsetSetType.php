@@ -22,10 +22,6 @@ class OffsetSetType extends AbstractType implements LateResolvingType
 
     public function resolve(): Type
     {
-        if (! $this->offset instanceof KeyedArrayType) {
-            return new UnknownType;
-        }
-
         if (! $this->type instanceof KeyedArrayType && ! $this->type instanceof ArrayType) {
             return new UnknownType;
         }
@@ -34,12 +30,18 @@ class OffsetSetType extends AbstractType implements LateResolvingType
             return $this->type; // ??
         }
 
+        if (! $this->offset instanceof KeyedArrayType) {
+            return new UnknownType;
+        }
+
         $path = $this->normalizePath($this->offset);
         if (! $path) {
             return new UnknownType;
         }
 
-        return $this->applyPath($this->type->clone(), $path, $this->value);
+        /** @var KeyedArrayType $clonedType */
+        $clonedType = $this->type->clone();
+        return $this->applyPath($clonedType, $path, $this->value);
     }
 
     public function acceptedBy(Type $otherType): bool

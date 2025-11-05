@@ -60,7 +60,13 @@ class Union extends AbstractType
     }
 
     /**
-     * @param  Type|Type[]  $types
+     * Create a Union type from the given types.
+     * 
+     * @param Type|Type[] ...$types Can be called with:
+     *                              - Multiple Type arguments: wrap($type1, $type2)
+     *                              - Single array: wrap([$type1, $type2])
+     *                              - array_map result: wrap(array_map(...))
+     * @return Type
      */
     public static function wrap(...$types): Type
     {
