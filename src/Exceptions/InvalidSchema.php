@@ -4,9 +4,9 @@ namespace Dedoc\Scramble\Exceptions;
 
 use Dedoc\Scramble\Console\Commands\Components\Code;
 use Dedoc\Scramble\Support\Generator\Types\Type;
+use Dedoc\Scramble\Support\RouteAdapter;
 use Exception;
 use Illuminate\Console\OutputStyle;
-use Illuminate\Routing\Route;
 
 class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
 {
@@ -42,12 +42,13 @@ class InvalidSchema extends Exception implements ConsoleRenderable, RouteAware
         return $exception;
     }
 
-    public function getRouteAwareMessage(Route $route, string $msg): string
+    public function getRouteAwareMessage(RouteAdapter $route, string $msg): string
     {
         $method = $route->methods()[0];
         $action = $route->getAction('uses');
+        $uri = $route->uri();
 
-        return "'$method $route->uri' ($action): ".$msg;
+        return "'$method $uri' ($action): ".$msg;
     }
 
     public function renderInConsole(OutputStyle $outputStyle): void

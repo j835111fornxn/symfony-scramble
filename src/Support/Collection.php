@@ -124,7 +124,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     {
         return $this->first(function ($item) use ($key, $operator, $value) {
             $itemValue = is_array($item) ? ($item[$key] ?? null) : ($item->$key ?? null);
-            
+
             if (func_num_args() === 2) {
                 return $itemValue == $operator;
             }
@@ -167,7 +167,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         $results = [];
 
         foreach ($this->items as $key => $value) {
-            $groupKey = is_callable($groupBy) 
+            $groupKey = is_callable($groupBy)
                 ? $groupBy($value, $key)
                 : (is_array($value) ? ($value[$groupBy] ?? null) : ($value->$groupBy ?? null));
 
@@ -189,8 +189,8 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
     {
         $results = $this->items;
 
-        $callback = is_callable($callback) 
-            ? $callback 
+        $callback = is_callable($callback)
+            ? $callback
             : fn($item) => is_array($item) ? ($item[$callback] ?? null) : ($item->$callback ?? null);
 
         uasort($results, function ($a, $b) use ($callback, $descending) {

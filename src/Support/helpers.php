@@ -23,7 +23,7 @@ if (!function_exists('app')) {
         if ($container === null) {
             // Get container from global state set by ScrambleBundle
             $container = $GLOBALS['__scramble_container'] ?? null;
-            
+
             if ($container === null) {
                 throw new RuntimeException('Service container not initialized. ScrambleBundle may not be loaded.');
             }
@@ -90,8 +90,8 @@ if (!function_exists('config')) {
         // e.g., 'app.name' -> 'kernel.project_dir' or custom parameters
         $parameterName = str_replace('.', '_', $key);
 
-        return $parameterBag->has($parameterName) 
-            ? $parameterBag->get($parameterName) 
+        return $parameterBag->has($parameterName)
+            ? $parameterBag->get($parameterName)
             : $default;
     }
 }
@@ -143,7 +143,7 @@ if (!function_exists('url')) {
             $scheme = $secure === true ? 'https' : ($secure === false ? 'http' : $context->getScheme());
             $host = $context->getHost();
             $baseUrl = $context->getBaseUrl();
-            
+
             return $scheme . '://' . $host . $baseUrl . $path;
         }
 

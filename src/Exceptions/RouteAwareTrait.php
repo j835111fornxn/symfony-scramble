@@ -2,17 +2,17 @@
 
 namespace Dedoc\Scramble\Exceptions;
 
+use Dedoc\Scramble\Support\RouteAdapter;
 use Exception;
-use Illuminate\Routing\Route;
 
 /**
  * @mixin Exception
  */
 trait RouteAwareTrait
 {
-    protected ?Route $route = null;
+    protected ?RouteAdapter $route = null;
 
-    public function setRoute(Route $route): static
+    public function setRoute(RouteAdapter $route): static
     {
         $this->route = $route;
 
@@ -23,7 +23,7 @@ trait RouteAwareTrait
         return $this;
     }
 
-    public function getRoute(): ?Route
+    public function getRoute(): ?RouteAdapter
     {
         return $this->route;
     }

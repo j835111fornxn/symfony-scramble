@@ -20,14 +20,13 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Generator\UniqueNameOptions;
 use Dedoc\Scramble\Support\Generator\UniqueNamesOptionsCollection;
 use Dedoc\Scramble\Support\OperationBuilder;
+use Dedoc\Scramble\Support\Collection;
 use Dedoc\Scramble\Support\RouteAdapter;
 use Dedoc\Scramble\Support\RouteInfo;
 use Dedoc\Scramble\Support\ServerFactory;
 use Dedoc\Scramble\Support\SymfonyRouteManager;
-use Illuminate\Routing\Route;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
@@ -60,7 +59,7 @@ class Generator
         $typeTransformer = $this->buildTypeTransformer($context);
 
         $this->getRoutes($config)
-            ->map(function (Route $route, int $index) use ($openApi, $config, $typeTransformer) {
+            ->map(function ($route, int $index) use ($openApi, $config, $typeTransformer) {
                 try {
                     $operation = $this->routeToOperation($openApi, $route, $config, $typeTransformer);
 
@@ -94,12 +93,12 @@ class Generator
             ->sortBy($this->createOperationsSorter())
             ->each(fn(Operation $operation) => $openApi->addPath(
                 Path::make(
-                    (string) Str::of($operation->path)
-                        ->replaceStart($config->get('api_path', 'api'), '')
-                        ->trim('/')
+                    '/' . ltrim(
+                        preg_replace('/^' . preg_quote($config->get('api_path', 'api'), '/') . '/', '', $operation->path),
+                        '/'
+                    )
                 )->addOperation($operation)
-            ))
-            ->toArray();
+            ));
 
         $this->setUniqueOperationId($openApi);
 
@@ -190,12 +189,11 @@ class Generator
 
     private function buildTypeTransformer(OpenApiContext $context): TypeTransformer
     {
-        return app()->make(TypeTransformer::class, [
-            'context' => $context,
-        ]);
+        // TypeTransformer constructor signature: __construct(Infer $infer, OpenApiContext $context)
+        return new TypeTransformer($this->infer, $context);
     }
 
-    private function routeToOperation(OpenApi $openApi, Route|RouteAdapter $route, GeneratorConfig $config, TypeTransformer $typeTransformer)
+    private function routeToOperation(OpenApi $openApi, RouteAdapter $route, GeneratorConfig $config, TypeTransformer $typeTransformer)
     {
         $routeInfo = new RouteInfo($route, $this->infer);
 
@@ -206,7 +204,7 @@ class Generator
         return $operation;
     }
 
-    private function ensureSchemaTypes(Route|RouteAdapter $route, Operation $operation): void
+    private function ensureSchemaTypes(RouteAdapter $route, Operation $operation): void
     {
         if (! Scramble::getSchemaValidator()->hasRules()) {
             return;
@@ -225,7 +223,7 @@ class Generator
         }
     }
 
-    private function createSchemaEnforceTraverser(Route|RouteAdapter $route)
+    private function createSchemaEnforceTraverser(RouteAdapter $route)
     {
         $traverser = new OpenApiTraverser([$visitor = new SchemaEnforceVisitor($route, $this->throwExceptions, $this->exceptions)]);
 

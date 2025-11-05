@@ -9,7 +9,7 @@ use Dedoc\Scramble\OpenApiTraverser;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\Reference;
 use Dedoc\Scramble\Support\Generator\Types\Type;
-use Illuminate\Routing\Route;
+use Dedoc\Scramble\Support\RouteAdapter;
 
 class SchemaEnforceVisitor extends AbstractOpenApiVisitor
 {
@@ -18,14 +18,14 @@ class SchemaEnforceVisitor extends AbstractOpenApiVisitor
     protected static array $handledReferences = [];
 
     public function __construct(
-        private Route $route,
+        private RouteAdapter $route,
         private bool $throwExceptions = true,
         protected array &$exceptions = [],
     ) {}
 
     public function popReferences()
     {
-        return tap($this->operationReferences, fn () => $this->operationReferences = []);
+        return tap($this->operationReferences, fn() => $this->operationReferences = []);
     }
 
     public function enter($object, array $path = [])

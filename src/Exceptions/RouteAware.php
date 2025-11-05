@@ -2,13 +2,13 @@
 
 namespace Dedoc\Scramble\Exceptions;
 
-use Illuminate\Routing\Route;
+use Dedoc\Scramble\Support\RouteAdapter;
 
 interface RouteAware
 {
-    public function setRoute(Route $route): static;
+    public function setRoute(RouteAdapter $route): static;
 
-    public function getRoute(): ?Route;
+    public function getRoute(): ?RouteAdapter;
 
-    public function getRouteAwareMessage(Route $route, string $msg): string;
+    public function getRouteAwareMessage(RouteAdapter $route, string $msg): string;
 }
