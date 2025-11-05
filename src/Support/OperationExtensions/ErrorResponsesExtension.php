@@ -11,9 +11,9 @@ use Dedoc\Scramble\Support\Type\FunctionType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Validation\ConstraintExtractor;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 /**
@@ -72,13 +72,13 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AccessDeniedException::class))) {
+        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AccessDeniedHttpException::class))) {
             return;
         }
 
         $methodType->exceptions = [
             ...$methodType->exceptions,
-            new ObjectType(AccessDeniedException::class),
+            new ObjectType(AccessDeniedHttpException::class),
         ];
     }
 
@@ -101,13 +101,13 @@ class ErrorResponsesExtension extends OperationExtension
             return;
         }
 
-        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(AuthenticationException::class))) {
+        if (collect($methodType->exceptions)->contains(fn(Type $e) => $e->isInstanceOf(UnauthorizedHttpException::class))) {
             return;
         }
 
         $methodType->exceptions = [
             ...$methodType->exceptions,
-            new ObjectType(AuthenticationException::class),
+            new ObjectType(UnauthorizedHttpException::class),
         ];
     }
 
