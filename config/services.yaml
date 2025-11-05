@@ -106,6 +106,12 @@ services:
             $openApiTransformer: '@Dedoc\Scramble\Support\Generator\TypeTransformer'
         public: false
 
+    # Doctrine Services
+    Dedoc\Scramble\Support\Doctrine\DoctrineMetadataExtractor:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+        public: false
+
     # Built-in Infer Extensions
     Dedoc\Scramble\Support\InferExtensions\ResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']
