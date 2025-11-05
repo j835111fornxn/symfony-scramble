@@ -134,15 +134,15 @@
 
 ## 10. Serialization Integration
 
-- [ ] 10.1 Remove JsonResource-specific extensions
+- [x] 10.1 Remove JsonResource-specific extensions
 - [ ] 10.2 Create SymfonySerializerExtension for response inference
 - [ ] 10.3 Implement serialization group support
 - [ ] 10.4 Handle SerializedName attributes
 - [ ] 10.5 Handle Ignore attributes
 - [ ] 10.6 Support custom normalizers inference where possible
-- [ ] 10.7 Update ResourceResponseTypeToSchema for Symfony responses
-- [ ] 10.8 Update JsonResourceTypeToSchema or replace completely
-- [ ] 10.9 Remove PaginatedResourceResponseTypeToSchema (Laravel-specific)
+- [x] 10.7 Update ResourceResponseTypeToSchema for Symfony responses (removed - Laravel-specific)
+- [x] 10.8 Update JsonResourceTypeToSchema or replace completely (removed)
+- [x] 10.9 Remove PaginatedResourceResponseTypeToSchema (Laravel-specific)
 - [ ] 10.10 Test serialization-based schema generation
 
 ## 11. Exception Handling Migration
