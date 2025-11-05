@@ -77,7 +77,7 @@ class ReflectionRoute
                     });
 
                 if ($mappedParameterReflection) {
-                    $checkingRouteSignatureParameters = array_filter($checkingRouteSignatureParameters, fn ($v) => $v !== $mappedParameterReflection);
+                    $checkingRouteSignatureParameters = array_filter($checkingRouteSignatureParameters, fn($v) => $v !== $mappedParameterReflection);
                 }
 
                 return [
@@ -86,10 +86,10 @@ class ReflectionRoute
             });
 
         $paramsWithRealNames = $paramsToSignatureParametersNameMap
-            ->mapWithKeys(fn (?ReflectionParameter $reflectionParameter, $name) => [$name => $reflectionParameter?->name ?: $name])
+            ->mapWithKeys(fn(?ReflectionParameter $reflectionParameter, $name) => [$name => $reflectionParameter?->name ?: $name])
             ->values();
 
-        return collect($paramNames)->mapWithKeys(fn ($name, $i) => [$name => $paramsWithRealNames[$i]])->all();
+        return collect($paramNames)->mapWithKeys(fn($name, $i) => [$name => $paramsWithRealNames[$i]])->all();
     }
 
     /**
@@ -115,7 +115,7 @@ class ReflectionRoute
 
                 /** @var ReflectionParameter $implicitlyBoundParam */
                 $implicitlyBoundParam = $implicitlyBoundReflectionParams->first(
-                    fn (ReflectionParameter $p) => $p->name === $name || Str::snake($p->name) === $name,
+                    fn(ReflectionParameter $p) => $p->name === $name || Str::snake($p->name) === $name,
                 );
 
                 if ($implicitlyBoundParam) {

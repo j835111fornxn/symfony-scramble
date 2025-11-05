@@ -85,7 +85,7 @@ class RouteAdapter
     {
         $path = $this->route->getPath();
         preg_match_all('/\{(\w+)\}/', $path, $matches);
-        
+
         return $matches[1] ?? [];
     }
 
@@ -99,11 +99,13 @@ class RouteAdapter
 
     /**
      * Get signature parameters (for reflection).
+     * 
+     * @param string|array|null $subClass Filter by subclass or options like ['backedEnum' => true]
      */
-    public function signatureParameters(?string $subClass = null): array
+    public function signatureParameters(string|array|null $subClass = null): array
     {
         $controller = $this->getAction('uses');
-        
+
         if (!$controller) {
             return [];
         }
@@ -123,7 +125,42 @@ class RouteAdapter
                 return [];
             }
 
-            return $reflection->getParameters();
+            $parameters = $reflection->getParameters();
+
+            // Apply filtering if requested
+            if ($subClass === null) {
+                return $parameters;
+            }
+
+            // Handle backedEnum filtering
+            if (is_array($subClass) && isset($subClass['backedEnum']) && $subClass['backedEnum']) {
+                return array_filter($parameters, function ($param) {
+                    $type = $param->getType();
+                    if (!$type instanceof \ReflectionNamedType) {
+                        return false;
+                    }
+                    $typeName = $type->getName();
+                    if (!enum_exists($typeName)) {
+                        return false;
+                    }
+                    $enumReflection = new \ReflectionEnum($typeName);
+                    return $enumReflection->isBacked();
+                });
+            }
+
+            // Handle subclass filtering (e.g., UrlRoutable)
+            if (is_string($subClass)) {
+                return array_filter($parameters, function ($param) use ($subClass) {
+                    $type = $param->getType();
+                    if (!$type instanceof \ReflectionNamedType || $type->isBuiltin()) {
+                        return false;
+                    }
+                    $typeName = $type->getName();
+                    return is_a($typeName, $subClass, true);
+                });
+            }
+
+            return $parameters;
         } catch (\ReflectionException) {
             return [];
         }
@@ -160,7 +197,7 @@ class RouteAdapter
      */
     public function __get(string $name): mixed
     {
-        return match($name) {
+        return match ($name) {
             'uri' => $this->uri(),
             'methods' => $this->methods(),
             default => null,

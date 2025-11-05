@@ -34,6 +34,10 @@ services:
                 api_domain: '%scramble.api_domain%'
         public: true
 
+    # Route Exclusion Checker
+    Dedoc\Scramble\Support\RouteExclusionChecker:
+        public: false
+
     # Parser
     PhpParser\Parser:
         class: PhpParser\Parser\Php7
