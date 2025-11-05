@@ -14,11 +14,12 @@ use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\NullType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
+use Dedoc\Scramble\Support\Type\Union;
 use Dedoc\Scramble\Support\Type\UnknownType;
+use Dedoc\Scramble\Support\Str;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\ResourceResponse;
-use Illuminate\Support\Str;
 use LogicException;
 
 class ResponseTypeToSchema extends TypeToSchemaExtension
