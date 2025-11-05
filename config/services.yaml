@@ -116,11 +116,8 @@ services:
     Dedoc\Scramble\Support\InferExtensions\ResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']
 
-    Dedoc\Scramble\Support\InferExtensions\JsonResourceExtension:
-        tags: ['scramble.infer_extension']
-
-    Dedoc\Scramble\Support\InferExtensions\ResourceResponseMethodReturnTypeExtension:
-        tags: ['scramble.infer_extension']
+    # JsonResourceExtension removed - Laravel-specific
+    # ResourceResponseMethodReturnTypeExtension removed - Laravel-specific
 
     Dedoc\Scramble\Support\InferExtensions\JsonResponseMethodReturnTypeExtension:
         tags: ['scramble.infer_extension']
@@ -134,14 +131,7 @@ services:
     Dedoc\Scramble\Support\InferExtensions\RequestExtension:
         tags: ['scramble.infer_extension']
 
-    Dedoc\Scramble\Support\InferExtensions\AfterJsonResourceDefinitionCreatedExtension:
-        tags: ['scramble.infer_extension']
-
-    Dedoc\Scramble\Support\InferExtensions\AfterResourceCollectionDefinitionCreatedExtension:
-        tags: ['scramble.infer_extension']
-
-    Dedoc\Scramble\Support\InferExtensions\AfterAnonymousResourceCollectionDefinitionCreatedExtension:
-        tags: ['scramble.infer_extension']
+    # JsonResource-related extensions removed - Laravel-specific
 
     Dedoc\Scramble\Support\InferExtensions\PossibleExceptionInfer:
         tags: ['scramble.infer_extension']
@@ -149,14 +139,12 @@ services:
     Dedoc\Scramble\Support\InferExtensions\AbortHelpersExceptionInfer:
         tags: ['scramble.infer_extension']
 
-    Dedoc\Scramble\Support\InferExtensions\PaginateMethodsReturnTypeExtension:
-        tags: ['scramble.infer_extension']
+    # PaginateMethodsReturnTypeExtension removed - Laravel-specific
 
     Dedoc\Scramble\Support\InferExtensions\ValidatorTypeInfer:
         tags: ['scramble.infer_extension']
 
-    Dedoc\Scramble\Support\InferExtensions\ResourceCollectionTypeInfer:
-        tags: ['scramble.infer_extension']
+    # ResourceCollectionTypeInfer removed - Laravel-specific
 
     Dedoc\Scramble\Support\InferExtensions\ResponseFactoryTypeInfer:
         tags: ['scramble.infer_extension']
@@ -171,8 +159,7 @@ services:
     Dedoc\Scramble\Support\TypeToSchemaExtensions\EnumToSchema:
         tags: ['scramble.type_to_schema_extension']
 
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\JsonResourceTypeToSchema:
-        tags: ['scramble.type_to_schema_extension']
+    # JsonResourceTypeToSchema removed - Laravel-specific
 
     Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema:
         tags: ['scramble.type_to_schema_extension']
@@ -181,18 +168,8 @@ services:
         tags: ['scramble.type_to_schema_extension']
 
     # EloquentCollectionToSchema removed - Doctrine collections handled by CollectionToSchema
-
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceCollectionTypeToSchema:
-        tags: ['scramble.type_to_schema_extension']
-
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\CursorPaginatorTypeToSchema:
-        tags: ['scramble.type_to_schema_extension']
-
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatorTypeToSchema:
-        tags: ['scramble.type_to_schema_extension']
-
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\LengthAwarePaginatorTypeToSchema:
-        tags: ['scramble.type_to_schema_extension']
+    # ResourceCollectionTypeToSchema removed - Laravel-specific
+    # Paginator extensions removed - Laravel-specific (CursorPaginator, Paginator, LengthAwarePaginator)
 
     Dedoc\Scramble\Support\TypeToSchemaExtensions\ResponseTypeToSchema:
         tags: ['scramble.type_to_schema_extension']
@@ -229,8 +206,7 @@ services:
         tags: ['scramble.exception_to_response_extension']
 
     # Built-in Index Builders
-    Dedoc\Scramble\Support\IndexBuilders\PaginatorsCandidatesBuilder:
-        tags: ['scramble.index_builder']
+    # PaginatorsCandidatesBuilder removed - Laravel-specific
 
     # Operation Transformers
     Dedoc\Scramble\DocumentTransformers\AddDocumentTags:

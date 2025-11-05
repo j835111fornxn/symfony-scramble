@@ -189,22 +189,20 @@ class Generator
 
     private function buildTypeTransformer(OpenApiContext $context): TypeTransformer
     {
-        // Build extension class lists (matches Laravel ServiceProvider configuration)
+        // Build extension class lists
         $typeToSchemaExtensions = [
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\EnumToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\JsonResourceTypeToSchema::class,
+            // JsonResourceTypeToSchema removed - Laravel-specific
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema::class,
             // EloquentCollectionToSchema removed - Doctrine collections handled by CollectionToSchema
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceCollectionTypeToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\CursorPaginatorTypeToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatorTypeToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\LengthAwarePaginatorTypeToSchema::class,
+            // ResourceCollectionTypeToSchema removed - Laravel-specific
+            // Paginator extensions removed - Laravel-specific
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResponseTypeToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\BinaryFileResponseToSchema::class,
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\StreamedResponseToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceResponseTypeToSchema::class,
-            \Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatedResourceResponseTypeToSchema::class,
+            // ResourceResponseTypeToSchema removed - Laravel-specific
+            // PaginatedResourceResponseTypeToSchema removed - Laravel-specific
             \Dedoc\Scramble\Support\TypeToSchemaExtensions\VoidTypeToSchema::class,
         ];
 

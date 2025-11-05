@@ -40,7 +40,7 @@ class DoctrineEntityExtension implements PropertyTypeExtension
     public function hasProperty(ObjectType $type, string $name): bool
     {
         $fieldNames = $this->metadataExtractor->getFieldNames($type->name);
-        
+
         return in_array($name, $fieldNames, true);
     }
 
@@ -60,13 +60,13 @@ class DoctrineEntityExtension implements PropertyTypeExtension
 
         // Regular field
         $fieldType = $this->metadataExtractor->getFieldType($className, $propertyName);
-        
+
         if (!$fieldType) {
             return new UnknownType("Cannot determine type for field {$propertyName}");
         }
 
         $baseType = $this->mapDoctrineTypeToScrambleType($fieldType);
-        
+
         // Handle nullable
         if ($this->metadataExtractor->isNullable($className, $propertyName)) {
             return Union::wrap($baseType, new NullType);
@@ -83,29 +83,29 @@ class DoctrineEntityExtension implements PropertyTypeExtension
         return match ($doctrineType) {
             // String types
             'string', 'text', 'guid', 'ascii_string' => new StringType,
-            
+
             // Integer types
             'integer', 'smallint', 'bigint' => new IntegerType,
-            
+
             // Float types
             'float', 'decimal' => new FloatType,
-            
+
             // Boolean
             'boolean' => new BooleanType,
-            
+
             // Date/Time types - represented as strings in OpenAPI
-            'date', 'time', 'datetime', 'datetimetz', 'date_immutable', 
+            'date', 'time', 'datetime', 'datetimetz', 'date_immutable',
             'datetime_immutable', 'datetimetz_immutable', 'time_immutable' => new StringType,
-            
+
             // JSON types - could be arrays or objects
             'json', 'json_array' => new UnknownType("JSON field type inference not fully supported"),
-            
+
             // Array types
             'simple_array', 'array' => new UnknownType("Array field type inference not fully supported"),
-            
+
             // Binary types
             'blob', 'binary' => new StringType,
-            
+
             // Other types
             default => new UnknownType("Doctrine type '{$doctrineType}' mapping not defined"),
         };
@@ -117,13 +117,13 @@ class DoctrineEntityExtension implements PropertyTypeExtension
     private function getAssociationType(string $className, string $propertyName): Type
     {
         $mapping = $this->metadataExtractor->getAssociationMapping($className, $propertyName);
-        
+
         if (!$mapping) {
             return new UnknownType("Cannot determine association type for {$propertyName}");
         }
 
         $targetEntity = $mapping['targetEntity'] ?? null;
-        
+
         if (!$targetEntity) {
             return new UnknownType("Association target entity not found");
         }
