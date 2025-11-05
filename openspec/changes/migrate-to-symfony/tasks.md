@@ -121,14 +121,14 @@
 
 ## 9. ORM Migration (Eloquent to Doctrine)
 
-- [ ] 9.1 Remove all Eloquent-specific extensions
-- [ ] 9.2 Create DoctrineEntityExtension for entity type inference
-- [ ] 9.3 Implement field type mapping (Doctrine types → OpenAPI types)
-- [ ] 9.4 Implement association handling (ManyToOne, OneToMany, ManyToMany)
-- [ ] 9.5 Extract field nullability from metadata
+- [x] 9.1 Remove all Eloquent-specific extensions
+- [x] 9.2 Create DoctrineEntityExtension for entity type inference
+- [x] 9.3 Implement field type mapping (Doctrine types → OpenAPI types)
+- [x] 9.4 Implement association handling (ManyToOne, OneToMany, ManyToMany)
+- [x] 9.5 Extract field nullability from metadata
 - [ ] 9.6 Handle custom Doctrine types
-- [ ] 9.7 Update ModelExtension to work with Doctrine entities
-- [ ] 9.8 Remove EloquentBuilderExtension
+- [x] 9.7 Update ModelExtension to work with Doctrine entities (replaced by DoctrineEntityExtension)
+- [x] 9.8 Remove EloquentBuilderExtension
 - [ ] 9.9 Create DoctrineRepositoryExtension if needed
 - [ ] 9.10 Update tests for Doctrine entity inference
 
