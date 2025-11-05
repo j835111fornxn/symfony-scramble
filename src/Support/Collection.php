@@ -255,6 +255,26 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return new static(array_keys($this->items));
     }
 
+    public function keyBy($keyBy): self
+    {
+        $results = [];
+
+        foreach ($this->items as $key => $item) {
+            $resolvedKey = is_callable($keyBy)
+                ? $keyBy($item, $key)
+                : (is_array($item) ? ($item[$keyBy] ?? null) : ($item->$keyBy ?? null));
+
+            $results[$resolvedKey] = $item;
+        }
+
+        return new static($results);
+    }
+
+    public function union($items): self
+    {
+        return new static($this->items + $this->getArrayableItems($items));
+    }
+
     public function count(): int
     {
         return count($this->items);

@@ -3,11 +3,7 @@
 namespace Dedoc\Scramble\Reflection;
 
 use Dedoc\Scramble\Support\RouteAdapter;
-use Illuminate\Contracts\Routing\UrlRoutable;
-use Illuminate\Routing\Route;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Reflector;
-use Illuminate\Support\Str;
+use Dedoc\Scramble\Support\Str;
 use ReflectionException;
 use ReflectionFunction;
 use ReflectionNamedType;
@@ -22,15 +18,15 @@ class ReflectionRoute
 {
     private static WeakMap $cache;
 
-    private function __construct(private Route|RouteAdapter $route) {}
+    private function __construct(private RouteAdapter $route) {}
 
-    public static function createFromRoute(Route|RouteAdapter|SymfonyRoute $route): static
+    public static function createFromRoute(RouteAdapter|SymfonyRoute $route, string $routeName = ''): static
     {
         static::$cache ??= new WeakMap;
 
         // Convert Symfony Route to RouteAdapter if needed
         if ($route instanceof SymfonyRoute) {
-            $route = new RouteAdapter($route);
+            $route = new RouteAdapter($route, $routeName);
         }
 
         return static::$cache[$route] ??= new static($route);
@@ -71,7 +67,7 @@ class ReflectionRoute
                             return true;
                         }
 
-                        $className = Reflector::getParameterClassName($rp);
+                        $className = $type->getName();
 
                         return is_a($boundParamType, $className, true);
                     });
@@ -102,9 +98,9 @@ class ReflectionRoute
     {
         $paramNames = $this->route->parameterNames();
 
-        $implicitlyBoundReflectionParams = collect()
-            ->union($this->route->signatureParameters(UrlRoutable::class))
-            ->union($this->route->signatureParameters(['backedEnum' => true]))
+        // In Symfony, we don't have implicit model binding like Laravel's UrlRoutable
+        // We only check for backed enums
+        $implicitlyBoundReflectionParams = collect($this->route->signatureParameters(['backedEnum' => true]))
             ->keyBy('name');
 
         return collect($paramNames)
@@ -119,7 +115,9 @@ class ReflectionRoute
                 );
 
                 if ($implicitlyBoundParam) {
-                    return [$name => Reflector::getParameterClassName($implicitlyBoundParam)];
+                    $type = $implicitlyBoundParam->getType();
+                    $className = ($type instanceof ReflectionNamedType && !$type->isBuiltin()) ? $type->getName() : null;
+                    return [$name => $className];
                 }
 
                 return [
@@ -131,30 +129,9 @@ class ReflectionRoute
 
     private function getExplicitlyBoundParamType(string $name): ?string
     {
-        if (! $binder = app(Router::class)->getBindingCallback($name)) {
-            return null;
-        }
-
-        try {
-            $reflection = new ReflectionFunction($binder);
-        } catch (ReflectionException) {
-            return null;
-        }
-
-        if ($returnType = $reflection->getReturnType()) {
-            return $returnType instanceof ReflectionNamedType && ! $returnType->isBuiltin()
-                ? $returnType->getName()
-                : null;
-        }
-
-        // in case this is a model binder
-        if (
-            ($modelClass = $reflection->getClosureUsedVariables()['class'] ?? null)
-            && is_string($modelClass)
-        ) {
-            return $modelClass;
-        }
-
+        // In Symfony, parameter binding is handled via ParamConverter or value resolvers
+        // This is not available at route reflection time, so we return null
+        // Type information will be inferred from controller method signatures instead
         return null;
     }
 }
