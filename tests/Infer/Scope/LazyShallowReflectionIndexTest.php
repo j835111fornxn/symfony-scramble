@@ -3,25 +3,33 @@
 namespace Dedoc\Scramble\Tests\Infer\Scope;
 
 use Dedoc\Scramble\Infer\Scope\LazyShallowReflectionIndex;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-it('builds reflection based definition upon request', function () {
-    $index = new LazyShallowReflectionIndex;
+final class LazyShallowReflectionIndexTest extends SymfonyTestCase
+{
+    #[Test]
+    public function buildsReflectionBasedDefinitionUponRequest(): void
+    {
+        $index = new LazyShallowReflectionIndex;
 
-    $definition = $index->getClass(Foo_LazyShallowReflectionIndexTest::class);
+        $definition = $index->getClass(Foo_LazyShallowReflectionIndexTest::class);
 
-    expect($definition->getData()->name)
-        ->toBe(Foo_LazyShallowReflectionIndexTest::class)
-        ->and(count($definition->getData()->methods))
-        ->toBe(0);
-});
-it('builds method definition upon request', function () {
-    $index = new LazyShallowReflectionIndex;
+        $this->assertSame(Foo_LazyShallowReflectionIndexTest::class, $definition->getData()->name);
+        $this->assertCount(0, $definition->getData()->methods);
+    }
 
-    $methodDefinition = $index->getClass(Foo_LazyShallowReflectionIndexTest::class)->getMethod('foo');
+    #[Test]
+    public function buildsMethodDefinitionUponRequest(): void
+    {
+        $index = new LazyShallowReflectionIndex;
 
-    expect($methodDefinition->type->getReturnType()->toString())
-        ->toBe('int');
-});
+        $methodDefinition = $index->getClass(Foo_LazyShallowReflectionIndexTest::class)->getMethod('foo');
+
+        $this->assertSame('int', $methodDefinition->type->getReturnType()->toString());
+    }
+}
+
 class Foo_LazyShallowReflectionIndexTest
 {
     public int $foo = 42;

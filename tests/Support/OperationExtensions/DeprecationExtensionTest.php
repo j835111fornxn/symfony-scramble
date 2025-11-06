@@ -1,16 +1,63 @@
 <?php
 
-use Illuminate\Support\Facades\Route as RouteFacade;
+namespace Dedoc\Scramble\Tests\Support\OperationExtensions;
 
-it('deprecated method sets deprecation key', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [Deprecated_ResponseExtensionTest_Controller::class, 'deprecated']);
-    });
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 
-    expect($openApiDocument['paths']['/test']['get'])
-        ->not()->toHaveKey('description')
-        ->toHaveKey('deprecated', true);
-});
+final class DeprecationExtensionTest extends SymfonyTestCase
+{
+    public function testDeprecatedMethodSetsDeprecationKey(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [Deprecated_ResponseExtensionTest_Controller::class, 'deprecated']);
+        });
+
+        $this->assertArrayNotHasKey('description', $openApiDocument['paths']['/test']['get']);
+        $this->assertArrayHasKey('deprecated', $openApiDocument['paths']['/test']['get']);
+        $this->assertTrue($openApiDocument['paths']['/test']['get']['deprecated']);
+    }
+
+    public function testDeprecatedMethodSetsKeyAndDescription(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [Deprecated_Description_ResponseExtensionTest_Controller::class, 'deprecated']);
+        });
+
+        $this->assertSame('Deprecation description', $openApiDocument['paths']['/test']['get']['description']);
+        $this->assertTrue($openApiDocument['paths']['/test']['get']['deprecated']);
+    }
+
+    public function testDeprecatedClassWithDescriptionSetsKeys(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [Deprecated_Class_Description_ResponseExtensionTest_Controller::class, 'deprecated']);
+        });
+
+        $this->assertSame('Class description'."\n\n".'Deprecation description', $openApiDocument['paths']['/test']['get']['description']);
+        $this->assertTrue($openApiDocument['paths']['/test']['get']['deprecated']);
+    }
+
+    public function testDeprecatedClassWithoutDescriptionSetsKeys(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [Deprecated_Class_ResponseExtensionTest_Controller::class, 'deprecated']);
+        });
+
+        $this->assertArrayNotHasKey('description', $openApiDocument['paths']['/test']['get']);
+        $this->assertTrue($openApiDocument['paths']['/test']['get']['deprecated']);
+    }
+
+    public function testNotDeprecatedIgnoresTheClassDeprecation(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [Not_Deprecated_Class_ResponseExtensionTest_Controller::class, 'notDeprecated']);
+        });
+
+        $this->assertArrayNotHasKey('description', $openApiDocument['paths']['/test']['get']);
+        $this->assertArrayNotHasKey('deprecated', $openApiDocument['paths']['/test']['get']);
+    }
+}
+
 class Deprecated_ResponseExtensionTest_Controller
 {
     /**
@@ -21,16 +68,6 @@ class Deprecated_ResponseExtensionTest_Controller
         return false;
     }
 }
-
-it('deprecated method sets key and description', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [Deprecated_Description_ResponseExtensionTest_Controller::class, 'deprecated']);
-    });
-
-    expect($openApiDocument['paths']['/test']['get'])
-        ->toHaveKey('description', 'Deprecation description')
-        ->toHaveKey('deprecated', true);
-});
 
 class Deprecated_Description_ResponseExtensionTest_Controller
 {
@@ -44,16 +81,6 @@ class Deprecated_Description_ResponseExtensionTest_Controller
         return false;
     }
 }
-
-it('deprecated class with description sets keys', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [Deprecated_Class_Description_ResponseExtensionTest_Controller::class, 'deprecated']);
-    });
-
-    expect($openApiDocument['paths']['/test']['get'])
-        ->toHaveKey('description', 'Class description'."\n\n".'Deprecation description')
-        ->toHaveKey('deprecated', true);
-});
 
 /** @deprecated Class description */
 class Deprecated_Class_Description_ResponseExtensionTest_Controller
@@ -69,16 +96,6 @@ class Deprecated_Class_Description_ResponseExtensionTest_Controller
     }
 }
 
-it('deprecated class without description sets keys', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [Deprecated_Class_ResponseExtensionTest_Controller::class, 'deprecated']);
-    });
-
-    expect($openApiDocument['paths']['/test']['get'])
-        ->not()->toHaveKey('description')
-        ->toHaveKey('deprecated', true);
-});
-
 /** @deprecated */
 class Deprecated_Class_ResponseExtensionTest_Controller
 {
@@ -90,16 +107,6 @@ class Deprecated_Class_ResponseExtensionTest_Controller
         return false;
     }
 }
-
-it('not deprecated ignores the class deprecation', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [Not_Deprecated_Class_ResponseExtensionTest_Controller::class, 'notDeprecated']);
-    });
-
-    expect($openApiDocument['paths']['/test']['get'])
-        ->not()->toHaveKey('description')
-        ->not()->toHaveKey('deprecated');
-});
 
 /** @deprecated */
 class Not_Deprecated_Class_ResponseExtensionTest_Controller

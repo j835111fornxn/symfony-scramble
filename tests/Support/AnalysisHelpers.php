@@ -147,7 +147,13 @@ trait AnalysisHelpers
         return $this->analyzeFile('<?php', $extensions)->getExpressionType($statement);
     }
 
-    protected function generateForRoute($param)
+    /**
+     * Generate OpenAPI documentation for a specific route.
+     *
+     * @param Route|callable $param Either a Route object or a callable that returns a Route
+     * @return array The generated OpenAPI document
+     */
+    protected function generateForRoute($param): array
     {
         // Get container from SymfonyTestCase
         try {
@@ -160,15 +166,17 @@ trait AnalysisHelpers
         if ($param instanceof Route) {
             $route = $param;
         } elseif (is_callable($param)) {
-            $route = $param($container->get('router'));
+            // Call the callable - it should add the route and return it
+            $route = $param();
         } else {
-            throw new \InvalidArgumentException('Parameter must be a Route or callable');
+            throw new \InvalidArgumentException('Parameter must be a Route or callable that returns a Route');
         }
 
-        $config = Scramble::configure()
-            ->useConfig($container->getParameter('scramble.config') ?? [])
-            ->routes(fn (Route $r) => $r->getPath() === $route->getPath());
+        // Configure Scramble to only process this specific route
+        $routePath = $route->getPath();
+        Scramble::routes(fn (Route $r) => $r->getPath() === $routePath);
 
-        return $container->get(\Dedoc\Scramble\Generator::class)($config);
+        // Generate documentation
+        return $container->get(\Dedoc\Scramble\Generator::class)();
     }
 }

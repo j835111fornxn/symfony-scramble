@@ -1,80 +1,235 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Support\Type;
+
 use Dedoc\Scramble\GeneratorConfig;
 use Dedoc\Scramble\OpenApiContext;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Type\Type;
+use Dedoc\Scramble\Tests\Support\TypeInferenceAssertions;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-it('handles array fetch', function () {
-    expect(['a' => 1]['a'])->toHaveType('int(1)');
-});
+final class OffsetSetTest extends SymfonyTestCase
+{
+    use TypeInferenceAssertions;
 
-it('handles array set type', function () {
-    $a = [];
-    $a['foo'] = 42;
+    #[Test]
+    public function handlesArrayFetch(): void
+    {
+        $this->assertHasType('int(1)', function () {
+            expect(['a' => 1]['a']);
+        });
+    }
 
-    expect($a)->toHaveType('array{foo: int(42)}');
-});
+    #[Test]
+    public function handlesArraySetType(): void
+    {
+        $this->assertHasType('array{foo: int(42)}', function () {
+            $a = [];
+            $a['foo'] = 42;
 
-it('handles array push type', function () {
-    $a = [];
-    $a[] = 42;
-    $a[] = 1;
+            expect($a);
+        });
+    }
 
-    expect($a)->toHaveType('list{int(42), int(1)}');
-});
+    #[Test]
+    public function handlesArrayPushType(): void
+    {
+        $this->assertHasType('list{int(42), int(1)}', function () {
+            $a = [];
+            $a[] = 42;
+            $a[] = 1;
 
-it('handles array modify type', function () {
-    $a = ['foo' => 23];
+            expect($a);
+        });
+    }
 
-    $a['foo'] = 42;
+    #[Test]
+    public function handlesArrayModifyType(): void
+    {
+        $this->assertHasType('array{foo: int(42)}', function () {
+            $a = ['foo' => 23];
 
-    expect($a)->toHaveType('array{foo: int(42)}');
-});
+            $a['foo'] = 42;
 
-it('handles array deep set type', function () {
-    $a = [];
-    $a['foo']['bar'] = 42;
+            expect($a);
+        });
+    }
 
-    expect($a)->toHaveType('array{foo: array{bar: int(42)}}');
-});
+    #[Test]
+    public function handlesArrayDeepSetType(): void
+    {
+        $this->assertHasType('array{foo: array{bar: int(42)}}', function () {
+            $a = [];
+            $a['foo']['bar'] = 42;
 
-it('handles array deep modify type', function () {
-    $a = ['foo' => []];
-    $a['foo']['bar'] = 42;
+            expect($a);
+        });
+    }
 
-    expect($a)->toHaveType('array{foo: array{bar: int(42)}}');
-});
+    #[Test]
+    public function handlesArrayDeepModifyType(): void
+    {
+        $this->assertHasType('array{foo: array{bar: int(42)}}', function () {
+            $a = ['foo' => []];
+            $a['foo']['bar'] = 42;
 
-it('handles array deep push type', function () {
-    $a = ['foo' => []];
-    $a['foo']['bar'][] = 42;
-    $a['foo']['bar'][] = 1;
+            expect($a);
+        });
+    }
 
-    expect($a)->toHaveType('array{foo: array{bar: list{int(42), int(1)}}}');
-});
+    #[Test]
+    public function handlesArrayDeepPushType(): void
+    {
+        $this->assertHasType('array{foo: array{bar: list{int(42), int(1)}}}', function () {
+            $a = ['foo' => []];
+            $a['foo']['bar'][] = 42;
+            $a['foo']['bar'][] = 1;
 
-it('allows setting keys on template type', function () {
-    $a = function ($b) {
-        $b['wow'] = 42;
+            expect($a);
+        });
+    }
 
-        return $b;
-    };
+    #[Test]
+    public function allowsSettingKeysOnTemplateType(): void
+    {
+        $this->assertHasType('array{foo: string(bar), wow: int(42)}', function () {
+            $a = function ($b) {
+                $b['wow'] = 42;
 
-    $wow = ['foo' => 'bar'];
-    $wow2 = $a($wow);
+                return $b;
+            };
 
-    expect($wow2)->toHaveType('array{foo: string(bar), wow: int(42)}');
-});
+            $wow = ['foo' => 'bar'];
+            $wow2 = $a($wow);
 
-it('allows setting keys on template type with deep methods logic', function () {
-    $foo = new Foo_ExpressionsTest;
+            expect($wow2);
+        });
+    }
 
-    $result = $foo->setC(['foo' => 'bar']);
+    #[Test]
+    public function allowsSettingKeysOnTemplateTypeWithDeepMethodsLogic(): void
+    {
+        $this->markTestSkipped('figure out test ns');
 
-    expect($result)->toHaveType('array{foo: string(bar), a: int(1), b: int(2), c: int(3)}');
-})->skip('figure out test ns');
+        $this->assertHasType('array{foo: string(bar), a: int(1), b: int(2), c: int(3)}', function () {
+            $foo = new Foo_ExpressionsTest;
+
+            $result = $foo->setC(['foo' => 'bar']);
+
+            expect($result);
+        });
+    }
+
+    #[Test]
+    public function allowsCallingMethodsOnRetrievedTypes(): void
+    {
+        $this->markTestSkipped('figure out test ns');
+
+        $this->assertHasType('int(42)', function () {
+            $arr = [];
+            $foo = new Foo_ExpressionsTest;
+
+            $arr['foo'] = $foo;
+
+            $r = $arr['foo']->get42();
+
+            expect($r);
+        });
+    }
+
+    #[Test]
+    public function allowsCallingMethodsOnDeepRetrievedTypes(): void
+    {
+        $this->markTestSkipped('figure out test ns');
+
+        $this->assertHasType('int(42)', function () {
+            $arr = [
+                'foo' => ['bar' => new Foo_ExpressionsTest],
+            ];
+
+            $r = $arr['foo']['bar']->get42();
+
+            expect($r);
+        });
+    }
+
+    #[Test]
+    public function preservesArrayKeyDescriptionWhenSettingTheOffsetFromOffsetGet(): void
+    {
+        $this->assertHasType(function (Type $t) {
+            $openApiTransformer = self::getContainer()->get(TypeTransformer::class);
+            $openApiTransformer = new TypeTransformer(
+                new OpenApiContext(new OpenApi('3.1.0'), new GeneratorConfig)
+            );
+
+            $this->assertSame([
+                'type' => 'object',
+                'properties' => [
+                    'bar' => [
+                        'type' => 'integer',
+                        'description' => 'Foo description.',
+                        'enum' => [42],
+                    ],
+                ],
+                'required' => ['bar'],
+            ], $openApiTransformer->transform($t)->toArray());
+
+            return true;
+        }, function () {
+            $arr = [
+                /** Foo description. */
+                'foo' => 42,
+            ];
+
+            $newArr = [];
+            $newArr['bar'] = $arr['foo'];
+
+            expect($newArr);
+        });
+    }
+
+    #[Test]
+    public function preservesArrayKeyDescriptionWhenSettingTheKeyFromOffsetGet(): void
+    {
+        $this->assertHasType(function (Type $t) {
+            $openApiTransformer = self::getContainer()->get(TypeTransformer::class);
+            $openApiTransformer = new TypeTransformer(
+                new OpenApiContext(new OpenApi('3.1.0'), new GeneratorConfig)
+            );
+
+            $this->assertSame([
+                'type' => 'object',
+                'properties' => [
+                    'bar' => [
+                        'type' => 'integer',
+                        'description' => 'Foo description.',
+                        'enum' => [42],
+                    ],
+                ],
+                'required' => ['bar'],
+            ], $openApiTransformer->transform($t)->toArray());
+
+            return true;
+        }, function () {
+            $arr = [
+                'bar' => [
+                    /** Foo description. */
+                    'foo' => 42,
+                ],
+            ];
+
+            $newArr = [
+                'bar' => $arr['bar']['foo'],
+            ];
+
+            expect($newArr);
+        });
+    }
+}
+
 class Foo_ExpressionsTest
 {
     public function get42()
@@ -105,87 +260,3 @@ class Foo_ExpressionsTest
         return $data;
     }
 }
-
-it('allows calling methods on retrieved types', function () {
-    $arr = [];
-    $foo = new Foo_ExpressionsTest;
-
-    $arr['foo'] = $foo;
-
-    $r = $arr['foo']->get42();
-
-    expect($r)->toHaveType('int(42)');
-})->skip('figure out test ns');
-
-it('allows calling methods on deep retrieved types', function () {
-    $arr = [
-        'foo' => ['bar' => new Foo_ExpressionsTest],
-    ];
-
-    $r = $arr['foo']['bar']->get42();
-
-    expect($r)->toHaveType('int(42)');
-})->skip('figure out test ns');
-
-it('preserves array key description when setting the offset from offset get', function () {
-    $arr = [
-        /** Foo description. */
-        'foo' => 42,
-    ];
-
-    $newArr = [];
-    $newArr['bar'] = $arr['foo'];
-
-    expect($newArr)->toHaveType(function (Type $t) {
-        $openApiTransformer = app(TypeTransformer::class, [
-            'context' => new OpenApiContext(new OpenApi('3.1.0'), new GeneratorConfig),
-        ]);
-
-        expect($openApiTransformer->transform($t)->toArray())->toBe([
-            'type' => 'object',
-            'properties' => [
-                'bar' => [
-                    'type' => 'integer',
-                    'description' => 'Foo description.',
-                    'enum' => [42],
-                ],
-            ],
-            'required' => ['bar'],
-        ]);
-
-        return true;
-    });
-});
-
-it('preserves array key description when setting the key from offset get', function () {
-    $arr = [
-        'bar' => [
-            /** Foo description. */
-            'foo' => 42,
-        ],
-    ];
-
-    $newArr = [
-        'bar' => $arr['bar']['foo'],
-    ];
-
-    expect($newArr)->toHaveType(function (Type $t) {
-        $openApiTransformer = app(TypeTransformer::class, [
-            'context' => new OpenApiContext(new OpenApi('3.1.0'), new GeneratorConfig),
-        ]);
-
-        expect($openApiTransformer->transform($t)->toArray())->toBe([
-            'type' => 'object',
-            'properties' => [
-                'bar' => [
-                    'type' => 'integer',
-                    'description' => 'Foo description.',
-                    'enum' => [42],
-                ],
-            ],
-            'required' => ['bar'],
-        ]);
-
-        return true;
-    });
-});

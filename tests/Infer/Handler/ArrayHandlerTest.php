@@ -1,31 +1,49 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer\Handler;
+
 use Dedoc\Scramble\Support\Type\KeyedArrayType;
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-it('infers keyed array shape type', function () {
-    expect($type = getStatementType("['foo' => 1, 'bar' => 'foo', 23]"))
-        ->toBeInstanceOf(KeyedArrayType::class)
-        ->and($type->toString())
-        ->toBe('array{foo: int(1), bar: string(foo), 0: int(23)}');
-});
+final class ArrayHandlerTest extends SymfonyTestCase
+{
+    use AnalysisHelpers;
 
-it('infers list type', function () {
-    expect($type = getStatementType("[1, 2, 'foo']"))
-        ->toBeInstanceOf(KeyedArrayType::class)
-        ->and($type->isList)
-        ->toBeTrue()
-        ->and($type->toString())
-        ->toBe('list{int(1), int(2), string(foo)}');
-});
+    #[Test]
+    public function infersKeyedArrayShapeType(): void
+    {
+        $type = $this->getStatementType("['foo' => 1, 'bar' => 'foo', 23]");
 
-it('infers array spread in resulting type', function () {
-    expect(getStatementType("[42, 'b' => 'foo', ...['a' => 1, 'b' => 'wow', 16], 23]")->toString())
-        ->toBe('array{0: int(42), b: string(wow), a: int(1), 1: int(16), 2: int(23)}');
-});
+        $this->assertInstanceOf(KeyedArrayType::class, $type);
+        $this->assertSame('array{foo: int(1), bar: string(foo), 0: int(23)}', $type->toString());
+    }
 
-// @todo: Move test to reference resolving tests group
-it('infers array spread from other methods', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function infersListType(): void
+    {
+        $type = $this->getStatementType("[1, 2, 'foo']");
+
+        $this->assertInstanceOf(KeyedArrayType::class, $type);
+        $this->assertTrue($type->isList);
+        $this->assertSame('list{int(1), int(2), string(foo)}', $type->toString());
+    }
+
+    #[Test]
+    public function infersArraySpreadInResultingType(): void
+    {
+        $this->assertSame(
+            'array{0: int(42), b: string(wow), a: int(1), 1: int(16), 2: int(23)}',
+            $this->getStatementType("[42, 'b' => 'foo', ...['a' => 1, 'b' => 'wow', 16], 23]")->toString()
+        );
+    }
+
+    #[Test]
+    public function infersArraySpreadFromOtherMethods(): void
+    {
+        // @todo: Move test to reference resolving tests group
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -37,6 +55,9 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())
-        ->toBe('(): array{b: string(foo), 0: array{c: string(w), a: int(123)}}');
-});
+        $this->assertSame(
+            '(): array{b: string(foo), 0: array{c: string(w), a: int(123)}}',
+            $type->methods['foo']->type->toString()
+        );
+    }
+}

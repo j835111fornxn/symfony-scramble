@@ -1,16 +1,27 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer\Reflector;
+
 use Dedoc\Scramble\Infer\Reflector\MethodReflector;
 use Dedoc\Scramble\Tests\Infer\Reflector\Files\Foo;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-it('gets method code from parent declaration', function () {
-    $reflector = MethodReflector::make(Foo::class, 'foo');
+final class MethodReflectorTest extends SymfonyTestCase
+{
+    #[Test]
+    public function getsMethodCodeFromParentDeclaration(): void
+    {
+        $reflector = MethodReflector::make(Foo::class, 'foo');
 
-    expect($reflector->getMethodCode())->toContain('return 1;');
-});
+        $this->assertStringContainsString('return 1;', $reflector->getMethodCode());
+    }
 
-it('gets method ast from declaration if line separator is cr', function () {
-    $reflector = MethodReflector::make(Foo::class, 'foo');
+    #[Test]
+    public function getsMethodAstFromDeclarationIfLineSeparatorIsCr(): void
+    {
+        $reflector = MethodReflector::make(Foo::class, 'foo');
 
-    expect($reflector->getAstNode())->not->toBeNull();
-});
+        $this->assertNotNull($reflector->getAstNode());
+    }
+}

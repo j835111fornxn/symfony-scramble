@@ -1,56 +1,108 @@
 <?php
 
-function getStatementTypeForScopeTest(string $statement, array $extensions = [])
+namespace Dedoc\Scramble\Tests\Infer\Scope;
+
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+
+final class ScopeTest extends SymfonyTestCase
 {
-    return analyzeFile('<?php', $extensions)->getExpressionType($statement);
-}
+    use AnalysisHelpers;
 
-it('infers property fetch nodes types', function ($code, $expectedTypeString) {
-    expect(getStatementTypeForScopeTest($code)->toString())->toBe($expectedTypeString);
-})->with([
-    ['$foo->bar', 'unknown'],
-    ['$foo->bar->{"baz"}', 'unknown'],
-]);
+    private function getStatementTypeForScopeTest(string $statement, array $extensions = [])
+    {
+        return $this->analyzeFile('<?php', $extensions)->getExpressionType($statement);
+    }
 
-it('infers ternary expressions nodes types', function ($code, $expectedTypeString) {
-    expect(getStatementTypeForScopeTest($code)->toString())->toBe($expectedTypeString);
-})->with([
-    ['unknown() ? 1 : null', 'int(1)|null'],
-    ['unknown() ? 1 : 1', 'int(1)'],
-    ['unknown() ?: 1', 'unknown|int(1)'],
-    ['(int) unknown() ?: "w"', 'int|string(w)'],
-    ['1 ?: 1', 'int(1)'],
-    ['unknown() ? 1 : unknown()', 'int(1)|unknown'],
-    ['unknown() ? unknown() : unknown()', 'unknown'],
-    ['unknown() ?: unknown()', 'unknown'],
-    ['unknown() ?: true ?: 1', 'unknown|boolean(true)|int(1)'],
-    ['unknown() ?: unknown() ?: unknown()', 'unknown'],
-]);
+    #[Test]
+    #[DataProvider('propertyFetchTypesProvider')]
+    public function infersPropertyFetchNodesTypes(string $code, string $expectedTypeString): void
+    {
+        $this->assertSame($expectedTypeString, $this->getStatementTypeForScopeTest($code)->toString());
+    }
 
-it('infers expressions from a null coalescing operator', function ($code, $expectedTypeString) {
-    expect(getStatementTypeForScopeTest($code)->toString())->toBe($expectedTypeString);
-})->with([
-    ['unknown() ?? 1', 'unknown|int(1)'],
-    ['(int) unknown() ?? "w"', 'int|string(w)'],
-    ['1 ?? 1', 'int(1)'],
-    ['unknown() ?? unknown()', 'unknown'],
-    ['unknown() ?? true ?? 1', 'unknown|boolean(true)|int(1)'],
-    ['unknown() ?? unknown() ?? unknown()', 'unknown'],
-]);
+    public static function propertyFetchTypesProvider(): array
+    {
+        return [
+            ['$foo->bar', 'unknown'],
+            ['$foo->bar->{"baz"}', 'unknown'],
+        ];
+    }
 
-it('infers match node type', function ($code, $expectedTypeString) {
-    expect(getStatementTypeForScopeTest($code)->toString())->toBe($expectedTypeString);
-})->with([
-    [<<<'EOD'
+    #[Test]
+    #[DataProvider('ternaryExpressionsTypesProvider')]
+    public function infersTernaryExpressionsNodesTypes(string $code, string $expectedTypeString): void
+    {
+        $this->assertSame($expectedTypeString, $this->getStatementTypeForScopeTest($code)->toString());
+    }
+
+    public static function ternaryExpressionsTypesProvider(): array
+    {
+        return [
+            ['unknown() ? 1 : null', 'int(1)|null'],
+            ['unknown() ? 1 : 1', 'int(1)'],
+            ['unknown() ?: 1', 'unknown|int(1)'],
+            ['(int) unknown() ?: "w"', 'int|string(w)'],
+            ['1 ?: 1', 'int(1)'],
+            ['unknown() ? 1 : unknown()', 'int(1)|unknown'],
+            ['unknown() ? unknown() : unknown()', 'unknown'],
+            ['unknown() ?: unknown()', 'unknown'],
+            ['unknown() ?: true ?: 1', 'unknown|boolean(true)|int(1)'],
+            ['unknown() ?: unknown() ?: unknown()', 'unknown'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('nullCoalescingExpressionsProvider')]
+    public function infersExpressionsFromANullCoalescingOperator(string $code, string $expectedTypeString): void
+    {
+        $this->assertSame($expectedTypeString, $this->getStatementTypeForScopeTest($code)->toString());
+    }
+
+    public static function nullCoalescingExpressionsProvider(): array
+    {
+        return [
+            ['unknown() ?? 1', 'unknown|int(1)'],
+            ['(int) unknown() ?? "w"', 'int|string(w)'],
+            ['1 ?? 1', 'int(1)'],
+            ['unknown() ?? unknown()', 'unknown'],
+            ['unknown() ?? true ?? 1', 'unknown|boolean(true)|int(1)'],
+            ['unknown() ?? unknown() ?? unknown()', 'unknown'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('matchNodeTypesProvider')]
+    public function infersMatchNodeType(string $code, string $expectedTypeString): void
+    {
+        $this->assertSame($expectedTypeString, $this->getStatementTypeForScopeTest($code)->toString());
+    }
+
+    public static function matchNodeTypesProvider(): array
+    {
+        return [
+            [<<<'EOD'
 match (unknown()) {
     42 => 1,
     default => null,
 }
 EOD, 'int(1)|null'],
-]);
+        ];
+    }
 
-it('infers throw node type', function ($code, $expectedTypeString) {
-    expect(getStatementTypeForScopeTest($code)->toString())->toBe($expectedTypeString);
-})->with([
-    ['throw new Exception("foo")', 'void'],
-]);
+    #[Test]
+    #[DataProvider('throwNodeTypesProvider')]
+    public function infersThrowNodeType(string $code, string $expectedTypeString): void
+    {
+        $this->assertSame($expectedTypeString, $this->getStatementTypeForScopeTest($code)->toString());
+    }
+
+    public static function throwNodeTypesProvider(): array
+    {
+        return [
+            ['throw new Exception("foo")', 'void'],
+        ];
+    }
+}

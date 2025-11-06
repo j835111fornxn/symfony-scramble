@@ -14,46 +14,319 @@ use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\IntegerType;
 use Dedoc\Scramble\Support\Type\Reference\MethodCallReferenceType;
 use Dedoc\Scramble\Support\Type\StringType;
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->index = new Index;
-});
+final class IndexTest extends SymfonyTestCase
+{
+    use AnalysisHelpers;
 
-it('doesnt fail on internal class definition request', function () {
-    $def = $this->index->getClass(\Error::class);
+    private Index $index;
 
-    expect($def)->toBeInstanceOf(ClassDefinition::class);
-});
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->index = new Index;
+    }
 
-it('retrieves function definitions', function () {
-    $def = $this->index->getFunction('is_null');
+    #[Test]
+    public function doesntFailOnInternalClassDefinitionRequest(): void
+    {
+        $def = $this->index->getClass(\Error::class);
 
-    expect($def)->toBeInstanceOf(FunctionLikeDefinition::class);
-});
+        $this->assertInstanceOf(ClassDefinition::class, $def);
+    }
 
+    #[Test]
+    public function retrievesFunctionDefinitions(): void
+    {
+        $def = $this->index->getFunction('is_null');
+
+        $this->assertInstanceOf(FunctionLikeDefinition::class, $def);
+    }
+}
+
+// Test fixture classes for reflection-based tests
 class Bar_IndexTest
 {
     public function foo(): int {}
 }
 
-beforeEach(function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            Bar_IndexTest::class,
-            BarGeneric_IndexTest::class,
+class Foo_IndexTest extends Bar_IndexTest {}
+
+// Additional test class for IndexTest_Reflection
+final class IndexTest_Reflection extends SymfonyTestCase
+{
+    use AnalysisHelpers;
+
+    private Index $index;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                Bar_IndexTest::class,
+                BarGeneric_IndexTest::class,
+            ]);
+
+        $this->index = new Index;
+    }
+
+    #[Test]
+    public function canGetPrimitiveTypeFromNonAstAnalyzableClass(): void
+    {
+        $type = $this->index->getClass(Foo_IndexTest::class)->getMethod('foo')->getReturnType();
+
+        $this->assertSame('int', $type->toString());
+    }
+
+    #[Test]
+    public function canGetTemplateTypeFromNonAstAnalyzableClass(): void
+    {
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                Template_IndexTest::class,
+            ]);
+
+        $type = $this->index->getClass(Template_IndexTest::class)->getMethod('foo')->type->toString();
+
+        $this->assertSame('<T>(T): T', $type);
+    }
+
+    #[Test]
+    public function canGetGenericTypeFromNonAstAnalyzableClass(): void
+    {
+        $type = ReferenceTypeResolver::getInstance()
+            ->resolve(
+                new GlobalScope,
+                new MethodCallReferenceType(
+                    new Generic(BarGeneric_IndexTest::class, [new StringType]),
+                    'foo',
+                    [],
+                ),
+            );
+
+        $this->assertSame('string', $type->toString());
+    }
+
+    #[Test]
+    public function canGetGenericTypeFromExtendedNonAstAnalyzableClass(): void
+    {
+        $type = $this->index->getClass(FooGeneric_IndexTest::class)
+            ->getMethod('foo')
+            ->getReturnType();
+
+        $this->assertSame('string', $type->toString());
+    }
+
+    #[Test]
+    public function buildsClassDefinitionWithMixinWithoutTrait(): void
+    {
+        $type = $this->index->getClass(FooMixin_IndexTest::class)
+            ->getMethod('foo')
+            ->getReturnType();
+
+        $this->assertSame('int', $type->toString());
+    }
+
+    #[Test]
+    public function buildsClassDefinitionWithMixinWithTrait(): void
+    {
+        $type = $this->index->getClass(FooTrait_IndexTest::class)
+            ->getMethod('foo')
+            ->getReturnType();
+
+        $this->assertSame('boolean', $type->toString());
+    }
+
+    #[Test]
+    public function buildsClassDefinitionWithMixinWithGenericTrait(): void
+    {
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                BarTGeneric_IndexTest::class,
+            ]);
+
+        $type = $this->index->getClass(FooTraitGeneric_IndexTest::class)
+            ->getMethod('foo')
+            ->getReturnType();
+
+        $this->assertSame('int(42)', $type->toString());
+    }
+
+    #[Test]
+    public function properlyStoresTemplatesInDefinitions(): void
+    {
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                T_IndexTest::class,
+                TParent_IndexTest::class,
+            ]);
+
+        $definition = $this->index->getClass(T_IndexTest::class);
+
+        $this->assertCount(1, $definition->templateTypes);
+        $this->assertSame('T', $definition->templateTypes[0]->name);
+    }
+
+    #[Test]
+    public function handlesDeepContextWithMixin(): void
+    {
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                BazParent_IndexTest::class,
+                BazTrait_IndexTest::class,
+                Baz_IndexTest::class,
+            ]);
+
+        $definition = $this->index->getClass(Baz_IndexTest::class);
+
+        $this->assertSame('int', $definition->getMethod('foo')->getReturnType()->toString());
+    }
+
+    #[Test]
+    public function handlesDeepContextWithMixedInClass(): void
+    {
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                BazUsesClass_IndexTest::class,
+                BazClass_IndexTest::class,
+            ]);
+
+        $definition = $this->index->getClass(BazUsesClass_IndexTest::class);
+
+        $this->assertSame('int', $definition->getMethod('foo')->getReturnType()->toString());
+    }
+
+    #[Test]
+    public function handlesDeepContextWithUse(): void
+    {
+        Scramble::infer()
+            ->configure()
+            ->buildDefinitionsUsingReflectionFor([
+                BazUseParent_IndexTest::class,
+                BazTrait_IndexTest::class,
+                BazUse_IndexTest::class,
+            ]);
+
+        $definition = $this->index->getClass(BazUse_IndexTest::class);
+
+        $this->assertSame('int', $definition->getMethod('foo')->getReturnType()->toString());
+    }
+
+    #[Test]
+    public function infersComplexTypeFromFlatMap(): void
+    {
+        $collectionType = new Generic(Collection::class, [
+            new IntegerType,
+            new StringType,
+        ]);
+        $type = ReferenceTypeResolver::getInstance()->resolve(
+            new GlobalScope,
+            new MethodCallReferenceType($collectionType, 'flatMap', [
+                new FunctionType('{}', [], new Generic(Collection::class, [
+                    new IntegerType,
+                    new IntegerType,
+                ])),
+            ]),
+        );
+
+        $this->assertSame(Collection::class.'<int, int>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionGetCall(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'())->get(1, fn () => 1)');
+
+        $this->assertSame('unknown|int(1)', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionFirstCall(): void
+    {
+        $type = ReferenceTypeResolver::getInstance()->resolve(
+            new GlobalScope,
+            new MethodCallReferenceType(new Generic(Collection::class, [new IntegerType, new IntegerType]), 'first', [new FunctionType('{}', [], new IntegerType)]),
+        );
+
+        $this->assertSame('int|null', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionMapCall(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'())->map(fn () => 1)');
+
+        $this->assertSame('Illuminate\Support\Collection<int|string, int(1)>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionEmptyConstructCall(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'([]))');
+
+        $this->assertSame('Illuminate\Support\Collection<int|string, unknown>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionConstructCall(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'([42]))');
+
+        $this->assertSame('Illuminate\Support\Collection<int, int(42)>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionMapCallWithUndefinedType(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'([["a" => 42]]))->map(fn ($v) => $v["a"])');
+
+        $this->assertSame('Illuminate\Support\Collection<int, int(42)>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionMapCallWithPrimitiveType(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'([["a" => 42]]))->map(fn (int $v) => $v)');
+
+        $this->assertSame('Illuminate\Support\Collection<int, int>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesCollectionKeysCall(): void
+    {
+        $type = $this->getStatementType('(new '.Collection::class.'(["foo" => "bar"]))');
+
+        $this->assertSame('Illuminate\Support\Collection<string(foo), string(bar)>', $type->toString());
+    }
+
+    #[Test]
+    public function handlesClassDefinitionLogicWhenClassIsAliasAndMixin(): void
+    {
+        Scramble::infer()->configure()->buildDefinitionsUsingReflectionFor([
+            'TheAliasForAliased_IndexTest',
+            Aliased_IndexTest::class,
         ]);
 
-    $this->index = new Index;
-});
+        $def = $this->index
+            ->getClass(Aliased_IndexTest::class)
+            ->getMethod('count');
 
-class Foo_IndexTest extends Bar_IndexTest {}
-it('can get primitive type from non-ast analyzable class', function () {
-    $type = $this->index->getClass(Foo_IndexTest::class)->getMethod('foo')->getReturnType();
+        $this->assertNotNull($def);
+    }
+}
 
-    expect($type->toString())->toBe('int');
-});
-
+// Test fixture classes
 class Template_IndexTest
 {
     /**
@@ -64,17 +337,6 @@ class Template_IndexTest
      */
     public function foo($a) {}
 }
-it('can get template type from non-ast analyzable class', function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            Template_IndexTest::class,
-        ]);
-
-    $type = $this->index->getClass(Template_IndexTest::class)->getMethod('foo')->type->toString();
-
-    expect($type)->toBe('<T>(T): T');
-});
 
 /** @template T */
 class BarGeneric_IndexTest
@@ -82,57 +344,24 @@ class BarGeneric_IndexTest
     /** @return T */
     public function foo() {}
 }
-it('can get generic type from non-ast analyzable class', function () {
-    $type = ReferenceTypeResolver::getInstance()
-        ->resolve(
-            new GlobalScope,
-            new MethodCallReferenceType(
-                new Generic(BarGeneric_IndexTest::class, [new StringType]),
-                'foo',
-                [],
-            ),
-        );
-
-    expect($type->toString())->toBe('string');
-});
 
 /** @extends BarGeneric_IndexTest<string> */
 class FooGeneric_IndexTest extends BarGeneric_IndexTest {}
-it('can get generic type from extended non-ast analyzable class', function () {
-    $type = $this->index->getClass(FooGeneric_IndexTest::class)
-        ->getMethod('foo')
-        ->getReturnType();
-
-    expect($type->toString())->toBe('string');
-});
 
 /**
  * @mixin Bar_IndexTest
  */
 class FooMixin_IndexTest {}
-test('builds class definition with mixin without trait', function () {
-    $type = $this->index->getClass(FooMixin_IndexTest::class)
-        ->getMethod('foo')
-        ->getReturnType();
-
-    expect($type->toString())->toBe('int');
-});
 
 trait BarT_IndexTest
 {
     public function foo(): bool {}
 }
+
 class FooTrait_IndexTest
 {
     use BarT_IndexTest;
 }
-test('builds class definition with mixin with trait', function () {
-    $type = $this->index->getClass(FooTrait_IndexTest::class)
-        ->getMethod('foo')
-        ->getReturnType();
-
-    expect($type->toString())->toBe('boolean');
-});
 
 /** @template T */
 trait BarTGeneric_IndexTest
@@ -140,24 +369,12 @@ trait BarTGeneric_IndexTest
     /** @return T */
     public function foo() {}
 }
+
 class FooTraitGeneric_IndexTest
 {
     /** @use BarTGeneric_IndexTest<42> */
     use BarTGeneric_IndexTest;
 }
-test('builds class definition with mixin with generic trait', function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            BarTGeneric_IndexTest::class,
-        ]);
-
-    $type = $this->index->getClass(FooTraitGeneric_IndexTest::class)
-        ->getMethod('foo')
-        ->getReturnType();
-
-    expect($type->toString())->toBe('int(42)');
-});
 
 /**
  * @template T
@@ -165,65 +382,31 @@ test('builds class definition with mixin with generic trait', function () {
  * @extends TParent_IndexTest<T>
  */
 class T_IndexTest extends TParent_IndexTest {}
+
 /** @template T */
 class TParent_IndexTest {}
-it('properly stores templates in definitions', function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            T_IndexTest::class,
-            TParent_IndexTest::class,
-        ]);
-
-    $definition = $this->index->getClass(T_IndexTest::class);
-
-    expect($definition->templateTypes)->toHaveCount(1)
-        ->and($definition->templateTypes[0]->name)->toBe('T');
-});
 
 /** @mixin BazTrait_IndexTest<int> */
 class BazParent_IndexTest {}
+
 /** @template T */
 trait BazTrait_IndexTest
 {
     /** @return T */
     public function foo() {}
 }
+
 class Baz_IndexTest extends BazParent_IndexTest {}
-it('handles deep context with mixin', function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            BazParent_IndexTest::class,
-            BazTrait_IndexTest::class,
-            Baz_IndexTest::class,
-        ]);
-
-    $definition = $this->index->getClass(Baz_IndexTest::class);
-
-    expect($definition->getMethod('foo')->getReturnType()->toString())->toBe('int');
-});
 
 /** @mixin BazClass_IndexTest<int> */
 class BazUsesClass_IndexTest {}
+
 /** @template T */
 class BazClass_IndexTest
 {
     /** @return T */
     public function foo() {}
 }
-it('handles deep context with mixed in class', function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            BazUsesClass_IndexTest::class,
-            BazClass_IndexTest::class,
-        ]);
-
-    $definition = $this->index->getClass(BazUsesClass_IndexTest::class);
-
-    expect($definition->getMethod('foo')->getReturnType()->toString())->toBe('int');
-});
 
 /** @template T */
 class BazUseParent_IndexTest
@@ -231,103 +414,10 @@ class BazUseParent_IndexTest
     /** @use BazTrait_IndexTest<T> */
     use BazTrait_IndexTest;
 }
+
 /** @extends BazUseParent_IndexTest<int> */
 class BazUse_IndexTest extends BazUseParent_IndexTest {}
-it('handles deep context with use', function () {
-    Scramble::infer()
-        ->configure()
-        ->buildDefinitionsUsingReflectionFor([
-            BazUseParent_IndexTest::class,
-            BazTrait_IndexTest::class,
-            BazUse_IndexTest::class,
-        ]);
 
-    $definition = $this->index->getClass(BazUse_IndexTest::class);
-
-    expect($definition->getMethod('foo')->getReturnType()->toString())->toBe('int');
-});
-
-it('infers complex type from flatMap', function () {
-    $collectionType = new Generic(Collection::class, [
-        new IntegerType,
-        new StringType,
-    ]);
-    $type = ReferenceTypeResolver::getInstance()->resolve(
-        new GlobalScope,
-        new MethodCallReferenceType($collectionType, 'flatMap', [
-            new FunctionType('{}', [], new Generic(Collection::class, [
-                new IntegerType,
-                new IntegerType,
-            ])),
-        ]),
-    );
-
-    expect($type->toString())->toBe(Collection::class.'<int, int>');
-});
-
-it('handles collection get call', function () {
-    $type = getStatementType('(new '.Collection::class.'())->get(1, fn () => 1)');
-
-    expect($type->toString())->toBe('unknown|int(1)');
-});
-
-it('handles collection first call', function () {
-    $type = ReferenceTypeResolver::getInstance()->resolve(
-        new GlobalScope,
-        new MethodCallReferenceType(new Generic(Collection::class, [new IntegerType, new IntegerType]), 'first', [new FunctionType('{}', [], new IntegerType)]),
-    );
-
-    expect($type->toString())->toBe('int|null');
-});
-
-it('handles collection map call', function () {
-    $type = getStatementType('(new '.Collection::class.'())->map(fn () => 1)');
-
-    expect($type->toString())->toBe('Illuminate\Support\Collection<int|string, int(1)>');
-});
-
-it('handles collection empty construct call', function () {
-    $type = getStatementType('(new '.Collection::class.'([]))');
-
-    expect($type->toString())->toBe('Illuminate\Support\Collection<int|string, unknown>');
-});
-
-it('handles collection construct call', function () {
-    $type = getStatementType('(new '.Collection::class.'([42]))');
-
-    expect($type->toString())->toBe('Illuminate\Support\Collection<int, int(42)>');
-});
-
-it('handles collection map call with undefined type', function () {
-    $type = getStatementType('(new '.Collection::class.'([["a" => 42]]))->map(fn ($v) => $v["a"])');
-
-    expect($type->toString())->toBe('Illuminate\Support\Collection<int, int(42)>');
-});
-
-it('handles collection map call with primitive type', function () {
-    $type = getStatementType('(new '.Collection::class.'([["a" => 42]]))->map(fn (int $v) => $v)');
-
-    expect($type->toString())->toBe('Illuminate\Support\Collection<int, int>');
-});
-
-it('handles collection keys call', function () {
-    $type = getStatementType('(new '.Collection::class.'(["foo" => "bar"]))');
-
-    expect($type->toString())->toBe('Illuminate\Support\Collection<string(foo), string(bar)>');
-});
-
-it('handles class definition logic when class is alias and mixin', function () {
-    Scramble::infer()->configure()->buildDefinitionsUsingReflectionFor([
-        'TheAliasForAliased_IndexTest',
-        Aliased_IndexTest::class,
-    ]);
-
-    $def = $this->index
-        ->getClass(Aliased_IndexTest::class)
-        ->getMethod('count');
-
-    expect($def)->not->toBeNull();
-});
 /**
  * @mixin \TheAliasForAliased_IndexTest
  */

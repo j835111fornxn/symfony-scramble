@@ -12,82 +12,103 @@ use Dedoc\Scramble\Support\Type\RecursiveTemplateSolver;
 use Dedoc\Scramble\Support\Type\StringType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Union;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->solver = new RecursiveTemplateSolver;
-});
+final class RecursiveTemplateSolverTest extends SymfonyTestCase
+{
+    private RecursiveTemplateSolver $solver;
 
-it('finds simplest type', function () {
-    $foundType = $this->solver->solve(
-        $t = new TemplateType('T'),
-        new IntegerType,
-        $t,
-    );
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->solver = new RecursiveTemplateSolver;
+    }
 
-    expect($foundType->toString())->toBe('int');
-});
-
-it('finds union type', function () {
-    $foundType = $this->solver->solve(
-        new Union([
+    #[Test]
+    public function findsSimplestType(): void
+    {
+        $foundType = $this->solver->solve(
             $t = new TemplateType('T'),
-            new TemplateType('G'),
-        ]),
-        new Union([
             new IntegerType,
-            new StringType,
-        ]),
-        $t,
-    );
+            $t,
+        );
 
-    expect($foundType->toString())->toBe('int|string');
-});
+        $this->assertSame('int', $foundType->toString());
+    }
 
-it('finds generic type', function () {
-    $foundType = $this->solver->solve(
-        new Union([
-            new Generic('A', [new IntegerType, $t = new TemplateType('T')]),
-            new Generic(Collection::class, [new IntegerType, $t]),
-        ]),
-        new Generic(Collection::class, [new IntegerType, new IntegerType]),
-        $t,
-    );
+    #[Test]
+    public function findsUnionType(): void
+    {
+        $foundType = $this->solver->solve(
+            new Union([
+                $t = new TemplateType('T'),
+                new TemplateType('G'),
+            ]),
+            new Union([
+                new IntegerType,
+                new StringType,
+            ]),
+            $t,
+        );
 
-    expect($foundType->toString())->toBe('int');
-});
+        $this->assertSame('int|string', $foundType->toString());
+    }
 
-it('finds structural matching type with generics', function () {
-    $foundType = $this->solver->solve(
-        new Union([
-            $t = new TemplateType('T'),
-            new Generic(Collection::class, [new IntegerType, $t]),
-        ]),
-        new Generic(Collection::class, [new IntegerType, new IntegerType]),
-        $t,
-    );
+    #[Test]
+    public function findsGenericType(): void
+    {
+        $foundType = $this->solver->solve(
+            new Union([
+                new Generic('A', [new IntegerType, $t = new TemplateType('T')]),
+                new Generic(Collection::class, [new IntegerType, $t]),
+            ]),
+            new Generic(Collection::class, [new IntegerType, new IntegerType]),
+            $t,
+        );
 
-    expect($foundType->toString())->toBe('int');
-});
+        $this->assertSame('int', $foundType->toString());
+    }
 
-it('finds structural matching type with callables', function () {
-    $foundType = $this->solver->solve(
-        new Union([
-            $t = new TemplateType('T'),
-            new FunctionType('{}', [], $t),
-        ]),
-        new FunctionType('{}', [], new IntegerType),
-        $t,
-    );
+    #[Test]
+    public function findsStructuralMatchingTypeWithGenerics(): void
+    {
+        $foundType = $this->solver->solve(
+            new Union([
+                $t = new TemplateType('T'),
+                new Generic(Collection::class, [new IntegerType, $t]),
+            ]),
+            new Generic(Collection::class, [new IntegerType, new IntegerType]),
+            $t,
+        );
 
-    expect($foundType->toString())->toBe('int');
-});
+        $this->assertSame('int', $foundType->toString());
+    }
 
-it('finds structural matching type with arrays and iterables', function () {
-    $foundType = $this->solver->solve(
-        new Generic('iterable', [new IntegerType, $t = new TemplateType('T')]),
-        new ArrayType(new LiteralIntegerType(42)),
-        $t,
-    );
+    #[Test]
+    public function findsStructuralMatchingTypeWithCallables(): void
+    {
+        $foundType = $this->solver->solve(
+            new Union([
+                $t = new TemplateType('T'),
+                new FunctionType('{}', [], $t),
+            ]),
+            new FunctionType('{}', [], new IntegerType),
+            $t,
+        );
 
-    expect($foundType->toString())->toBe('int(42)');
-});
+        $this->assertSame('int', $foundType->toString());
+    }
+
+    #[Test]
+    public function findsStructuralMatchingTypeWithArraysAndIterables(): void
+    {
+        $foundType = $this->solver->solve(
+            new Generic('iterable', [new IntegerType, $t = new TemplateType('T')]),
+            new ArrayType(new LiteralIntegerType(42)),
+            $t,
+        );
+
+        $this->assertSame('int(42)', $foundType->toString());
+    }
+}

@@ -288,6 +288,54 @@ Visit `/docs/api` to verify documentation is generating correctly.
 1. Check security configuration in `config/packages/security.yaml`
 2. Verify you're authenticated if routes are protected
 
+## Testing
+
+### Test Framework Migration
+
+**Laravel:**
+- Used Pest testing framework
+- Functional test syntax with `it()` and `test()` functions
+
+**Symfony:**
+- Uses PHPUnit (native testing framework)
+- Class-based test structure with test methods
+
+**Running Tests:**
+
+```bash
+# Laravel
+vendor/bin/pest
+
+# Symfony
+vendor/bin/phpunit
+```
+
+**Test Structure:**
+
+```php
+// Laravel (Pest)
+it('generates documentation', function () {
+    expect($doc)->toBeArray();
+});
+
+// Symfony (PHPUnit)
+final class DocumentationTest extends SymfonyTestCase
+{
+    public function testGeneratesDocumentation(): void
+    {
+        $this->assertIsArray($doc);
+    }
+}
+```
+
+**Current Status:**
+- ✅ Test infrastructure converted to PHPUnit
+- ✅ Most test files converted (55+ files)
+- ⚠️ Some tests blocked pending Laravel dependency removal
+  - Tests using Laravel routing (`Route::get()`)
+  - Tests using Laravel resources (`JsonResource`)
+  - See `openspec/changes/migrate-tests-to-phpunit/tasks.md` for details
+
 ## Support
 
 If you encounter issues during migration:

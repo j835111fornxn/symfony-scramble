@@ -2,6 +2,18 @@
 
 All notable changes to `scramble` will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- **BREAKING**: Migrated test framework from Pest to PHPUnit
+  - All test files now use PHPUnit class-based structure
+  - Test execution command changed from `vendor/bin/pest` to `vendor/bin/phpunit`
+  - Removed Pest dependencies (`pestphp/pest`)
+  - Using `spatie/phpunit-snapshot-assertions` for snapshot tests
+  - 55+ test files successfully converted
+  - Some tests temporarily blocked pending complete Laravel dependency removal
+
 ## [2.0.0] - 2025-11-05
 
 ### Major Release: Symfony Port

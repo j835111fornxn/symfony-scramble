@@ -1,5 +1,7 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer;
+
 // Tests for which definition is created from class' source
 
 use Dedoc\Scramble\Infer\Analyzer\ClassAnalyzer;
@@ -13,39 +15,252 @@ use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\TypePath;
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\Support\DataProviders;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Database\Eloquent\Builder;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->index = app(Index::class);
+final class ClassDefinitionTest extends SymfonyTestCase
+{
+    use AnalysisHelpers;
 
-    $this->classAnalyzer = new ClassAnalyzer($this->index);
-});
+    private Index $index;
+    private ClassAnalyzer $classAnalyzer;
 
-it('finds type', function () {
-    $type = getStatementType(<<<'EOD'
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->index = self::getContainer()->get(Index::class);
+        $this->classAnalyzer = new ClassAnalyzer($this->index);
+    }
+
+    #[Test]
+    public function findsType(): void
+    {
+        $this->markTestIncomplete('TODO: move to its own test case');
+
+        $type = $this->getStatementType(<<<'EOD'
 ['a' => fn (int $b) => 123]
 EOD);
 
-    $path = TypePath::findFirst(
-        $type,
-        fn ($t) => $t instanceof LiteralIntegerType,
-    );
+        $path = TypePath::findFirst(
+            $type,
+            fn ($t) => $t instanceof LiteralIntegerType,
+        );
 
-    expect($path?->getFrom($type)->toString())->toBe('int(123)');
-})->todo('move to its own test case');
+        $this->assertSame('int(123)', $path?->getFrom($type)->toString());
+    }
 
-it('infers from property default type', function () {
-    Scramble::registerExtension(AfterFoo_ClassDefinitionTest::class);
+    #[Test]
+    public function infersFromPropertyDefaultType(): void
+    {
+        Scramble::registerExtension(AfterFoo_ClassDefinitionTest::class);
 
-    $this->classAnalyzer->analyze(Foo_ClassDefinitionTest::class);
+        $this->classAnalyzer->analyze(Foo_ClassDefinitionTest::class);
 
-    expect(getStatementType('new '.Foo_ClassDefinitionTest::class)->toString())
-        ->toBe('Foo_ClassDefinitionTest<Illuminate\Database\Eloquent\Builder>');
-});
+        $this->assertSame(
+            'Foo_ClassDefinitionTest<Illuminate\Database\Eloquent\Builder>',
+            $this->getStatementType('new '.Foo_ClassDefinitionTest::class)->toString()
+        );
+    }
+
+    #[Test]
+    public function infersFromConstructorArgumentType(): void
+    {
+        Scramble::registerExtension(AfterBar_ClassDefinitionTest::class);
+
+        $this->classAnalyzer->analyze(Bar_ClassDefinitionTest::class);
+
+        $this->assertSame(
+            'Bar_ClassDefinitionTest<Dedoc\Scramble\Support\Generator\Schema>',
+            $this->getStatementType('new '.Bar_ClassDefinitionTest::class.'(prop: '.\Dedoc\Scramble\Support\Generator\Schema::class.'::class)')->toString()
+        );
+    }
+
+    #[Test]
+    public function classGeneratesDefinition(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {}
+EOD)->getClassDefinition('Foo');
+
+        $this->assertSame('Foo', $type->name);
+        $this->assertCount(0, $type->templateTypes);
+        $this->assertCount(0, $type->properties);
+        $this->assertCount(0, $type->methods);
+    }
+
+    #[Test]
+    public function addsPropertiesAndMethodsToClassDefinition(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {
+    public $prop;
+    public function foo () {}
+}
+EOD)->getClassDefinition('Foo');
+
+        $this->assertSame('Foo', $type->name);
+        $this->assertCount(1, $type->properties);
+        $this->assertArrayHasKey('prop', $type->properties);
+        $this->assertCount(1, $type->methods);
+        $this->assertArrayHasKey('foo', $type->methods);
+    }
+
+    #[Test]
+    public function inferPropertiesDefaultTypesFromValues(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {
+    public $prop = 42;
+}
+EOD)->getClassDefinition('Foo');
+
+        $this->assertCount(1, $type->templateTypes);
+        $this->assertSame('TProp', $type->properties['prop']->type->toString());
+        $this->assertSame('int(42)', $type->properties['prop']->defaultType->toString());
+    }
+
+    #[Test]
+    #[DataProvider('extendableTemplateTypesProvider')]
+    public function infersPropertiesTypesFromTypehints(string $paramType, string $expectedParamType, string $expectedTemplateDefinitionType = ''): void
+    {
+        $def = $this->analyzeFile("<?php class Foo { public $paramType \$a; }")->getClassDefinition('Foo');
+
+        $this->assertSame($expectedParamType, $def->properties['a']->type->toString());
+
+        if (! $expectedTemplateDefinitionType) {
+            $this->assertEmpty($def->templateTypes);
+        } else {
+            $this->assertSame($expectedTemplateDefinitionType, $def->templateTypes[0]->toDefinitionString());
+        }
+    }
+
+    #[Test]
+    public function settingAParameterToPropertyInConstructorMakesItTemplateType(): void
+    {
+        $type = $this->analyzeFile(__DIR__.'/files/class_with_simple_constructor_and_property.php')
+            ->getClassDefinition('Foo');
+
+        $this->assertCount(1, $type->templateTypes);
+        $this->assertSame('TProp', $type->templateTypes[0]->toString());
+        $this->assertSame('TProp', $type->properties['prop']->type->toString());
+        $this->assertSame('(TProp): void', $type->methods['__construct']->type->toString());
+    }
+
+    #[Test]
+    public function settingAParameterToPropertyInMethodMakesItLocalMethodTemplateTypeAndDefinesSelfOut(): void
+    {
+        $def = $this->classAnalyzer->analyze(SetPropToMethod_ClassDefinitionTest::class);
+
+        $this->assertCount(1, $def->templateTypes);
+        $this->assertSame('TProp', $def->templateTypes[0]->toString());
+
+        $this->assertSame('TProp', $def->properties['prop']->type->toString());
+
+        $setProp = $def->getMethodDefinition('setProp');
+
+        $this->assertSame('<TA>(TA): void', $setProp->type->toString());
+        $this->assertSame('self<TA>', $setProp->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function understandsSelfType(): void
+    {
+        $type = $this->analyzeFile(__DIR__.'/files/class_with_method_that_returns_self.php')
+            ->getClassDefinition('Foo');
+
+        $this->assertSame('(): self', $type->methods['foo']->type->toString());
+    }
+
+    #[Test]
+    public function understandsMethodCallsType(): void
+    {
+        $type = $this->analyzeFile(__DIR__.'/files/class_with_self_chain_calls_method.php')
+            ->getClassDefinition('Foo');
+
+        $this->assertSame('(): int(1)', $type->methods['bar']->type->toString());
+    }
+
+    #[Test]
+    public function infersTemplatedPropertyFetchType(): void
+    {
+        $type = $this->analyzeFile(__DIR__.'/files/class_with_property_fetch_in_method.php')
+            ->getClassDefinition('Foo');
+
+        $this->assertSame('(): TProp', $type->methods['foo']->type->toString());
+    }
+
+    #[Test]
+    public function generatesTemplateTypesWithoutConflicts(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {
+    public $prop;
+    public function getPropGetter($prop) {
+        return fn ($prop, $q) => [$q, $prop, $this->prop];
+    }
+}
+EOD)->getClassDefinition('Foo');
+
+        $this->assertSame(
+            '<TProp1>(TProp1): <TProp2, TQ>(TProp2, TQ): list{TQ, TProp2, TProp}',
+            $type->methods['getPropGetter']->type->toString()
+        );
+    }
+
+    #[Test]
+    public function generatesDefinitionForInheritance(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo extends Bar {
+}
+class Bar {
+}
+EOD)->getClassDefinition('Foo');
+
+        $this->assertSame('Bar', $type->parentFqn);
+    }
+
+    #[Test]
+    public function generatesDefinitionBasedOnParentWhenAnalyzingInheritance(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo extends Bar {
+    public function foo () {
+        return $this->barProp;
+    }
+}
+class Bar {
+    public $barProp;
+    public function __construct($b) {
+        $this->barProp = $b;
+    }
+}
+EOD)->getClassDefinition('Foo');
+
+        $this->assertSame('Bar', $type->parentFqn);
+    }
+
+    public static function extendableTemplateTypesProvider(): array
+    {
+        return DataProviders::extendableTemplateTypes();
+    }
+}
+
 class Foo_ClassDefinitionTest
 {
     public $prop = Builder::class;
 }
+
 class AfterFoo_ClassDefinitionTest implements AfterClassDefinitionCreatedExtension
 {
     public function shouldHandle(string $name): bool
@@ -65,18 +280,11 @@ class AfterFoo_ClassDefinitionTest implements AfterClassDefinitionCreatedExtensi
     }
 }
 
-it('infers from constructor argument type', function () {
-    Scramble::registerExtension(AfterBar_ClassDefinitionTest::class);
-
-    $this->classAnalyzer->analyze(Bar_ClassDefinitionTest::class);
-
-    expect(getStatementType('new '.Bar_ClassDefinitionTest::class.'(prop: '.\Dedoc\Scramble\Support\Generator\Schema::class.'::class)')->toString())
-        ->toBe('Bar_ClassDefinitionTest<Dedoc\Scramble\Support\Generator\Schema>');
-});
 class Bar_ClassDefinitionTest
 {
     public function __construct(public $prop = Builder::class) {}
 }
+
 class AfterBar_ClassDefinitionTest implements AfterClassDefinitionCreatedExtension
 {
     public function shouldHandle(string $name): bool
@@ -96,80 +304,6 @@ class AfterBar_ClassDefinitionTest implements AfterClassDefinitionCreatedExtensi
     }
 }
 
-it('class generates definition', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {}
-EOD)->getClassDefinition('Foo');
-
-    expect($type->name)->toBe('Foo');
-    expect($type->templateTypes)->toHaveCount(0);
-    expect($type->properties)->toHaveCount(0);
-    expect($type->methods)->toHaveCount(0);
-});
-
-it('adds properties and methods to class definition', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {
-    public $prop;
-    public function foo () {}
-}
-EOD)->getClassDefinition('Foo');
-
-    expect($type->name)->toBe('Foo');
-    expect($type->properties)->toHaveCount(1)->toHaveKey('prop');
-    expect($type->methods)->toHaveCount(1)->toHaveKey('foo');
-});
-
-it('infer properties default types from values', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {
-    public $prop = 42;
-}
-EOD)->getClassDefinition('Foo');
-
-    expect($type->templateTypes)->toHaveCount(1);
-    expect($type->properties['prop']->type->toString())->toBe('TProp');
-    expect($type->properties['prop']->defaultType->toString())->toBe('int(42)');
-});
-
-it('infers properties types from typehints', function ($paramType, $expectedParamType, $expectedTemplateDefinitionType = '') {
-    $def = analyzeFile("<?php class Foo { public $paramType \$a; }")->getClassDefinition('Foo');
-
-    expect($def->properties['a']->type->toString())->toBe($expectedParamType);
-
-    if (! $expectedTemplateDefinitionType) {
-        expect($def->templateTypes)->toBeEmpty();
-    } else {
-        expect($def->templateTypes[0]->toDefinitionString())->toBe($expectedTemplateDefinitionType);
-    }
-})->with('extendableTemplateTypes');
-
-it('setting a parameter to property in constructor makes it template type', function () {
-    $type = analyzeFile(__DIR__.'/files/class_with_simple_constructor_and_property.php')
-        ->getClassDefinition('Foo');
-
-    expect($type->templateTypes)->toHaveCount(1);
-    expect($type->templateTypes[0]->toString())->toBe('TProp');
-    expect($type->properties['prop']->type->toString())->toBe('TProp');
-    expect($type->methods['__construct']->type->toString())->toBe('(TProp): void');
-});
-
-it('setting a parameter to property in method makes it local method template type and defines self out', function () {
-    $def = $this->classAnalyzer->analyze(SetPropToMethod_ClassDefinitionTest::class);
-
-    expect($def->templateTypes)->toHaveCount(1)
-        ->and($def->templateTypes[0]->toString())->toBe('TProp');
-
-    expect($def->properties['prop']->type->toString())->toBe('TProp');
-
-    $setProp = $def->getMethodDefinition('setProp');
-
-    expect($setProp->type->toString())->toBe('<TA>(TA): void')
-        ->and($setProp->getSelfOutType()->toString())->toBe('self<TA>');
-});
 class SetPropToMethod_ClassDefinitionTest
 {
     public $prop;
@@ -179,70 +313,3 @@ class SetPropToMethod_ClassDefinitionTest
         $this->prop = $a;
     }
 }
-
-it('understands self type', function () {
-    $type = analyzeFile(__DIR__.'/files/class_with_method_that_returns_self.php')
-        ->getClassDefinition('Foo');
-
-    expect($type->methods['foo']->type->toString())->toBe('(): self');
-});
-
-it('understands method calls type', function () {
-    $type = analyzeFile(__DIR__.'/files/class_with_self_chain_calls_method.php')
-        ->getClassDefinition('Foo');
-
-    expect($type->methods['bar']->type->toString())->toBe('(): int(1)');
-});
-
-it('infers templated property fetch type', function () {
-    $type = analyzeFile(__DIR__.'/files/class_with_property_fetch_in_method.php')
-        ->getClassDefinition('Foo');
-
-    expect($type->methods['foo']->type->toString())->toBe('(): TProp');
-});
-
-it('generates template types without conflicts', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {
-    public $prop;
-    public function getPropGetter($prop) {
-        return fn ($prop, $q) => [$q, $prop, $this->prop];
-    }
-}
-EOD)->getClassDefinition('Foo');
-
-    expect($type->methods['getPropGetter']->type->toString())
-        ->toBe('<TProp1>(TProp1): <TProp2, TQ>(TProp2, TQ): list{TQ, TProp2, TProp}');
-});
-
-it('generates definition for inheritance', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo extends Bar {
-}
-class Bar {
-}
-EOD)->getClassDefinition('Foo');
-
-    expect($type->parentFqn)->toBe('Bar');
-});
-
-it('generates definition based on parent when analyzing inheritance', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo extends Bar {
-    public function foo () {
-        return $this->barProp;
-    }
-}
-class Bar {
-    public $barProp;
-    public function __construct($b) {
-        $this->barProp = $b;
-    }
-}
-EOD)->getClassDefinition('Foo');
-
-    expect($type->parentFqn)->toBe('Bar');
-});

@@ -1,260 +1,257 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Support\OperationExtensions;
+
 use Dedoc\Scramble\Attributes\Example;
 use Dedoc\Scramble\Attributes\Header;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Route;
 
-it('adds headers to 200 response documentation', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'ok']));
+final class ResponseHeadersTest extends SymfonyTestCase
+{
+    public function testAddsHeadersTo200ResponseDocumentation(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'ok']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses)
-        ->toHaveKey('200')
-        ->and($responses['200'])
-        ->toHaveKey('headers')
-        ->and($responses['200']['headers'])
-        ->toHaveKey('X-Rate-Limit')
-        ->and($responses['200']['headers']['X-Rate-Limit'])
-        ->toHaveKey('description')
-        ->and($responses['200']['headers']['X-Rate-Limit']['description'])
-        ->toBe('Rate limiting information');
-});
+        $this->assertArrayHasKey('200', $responses);
+        $this->assertArrayHasKey('headers', $responses['200']);
+        $this->assertArrayHasKey('X-Rate-Limit', $responses['200']['headers']);
+        $this->assertArrayHasKey('description', $responses['200']['headers']['X-Rate-Limit']);
+        $this->assertSame('Rate limiting information', $responses['200']['headers']['X-Rate-Limit']['description']);
+    }
 
-it('adds headers with examples to 200 response', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'ok']));
+    public function testAddsHeadersWithExamplesTo200Response(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'ok']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses['200']['headers']['X-Correlation-ID'])
-        ->toHaveKey('example')
-        ->and($responses['200']['headers']['X-Correlation-ID']['example'])
-        ->toBe('123e4567-e89b-12d3-a456-426614174000');
-});
+        $this->assertArrayHasKey('example', $responses['200']['headers']['X-Correlation-ID']);
+        $this->assertSame('123e4567-e89b-12d3-a456-426614174000', $responses['200']['headers']['X-Correlation-ID']['example']);
+    }
 
-it('adds headers for 201 status code', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'created']));
+    public function testAddsHeadersFor201StatusCode(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'created']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses)
-        ->toHaveKey('201')
-        ->and($responses['201'])
-        ->toHaveKey('headers')
-        ->and($responses['201']['headers'])
-        ->toHaveKey('X-Created-At')
-        ->and($responses['201']['headers']['X-Created-At']['description'])
-        ->toBe('Creation timestamp');
-});
+        $this->assertArrayHasKey('201', $responses);
+        $this->assertArrayHasKey('headers', $responses['201']);
+        $this->assertArrayHasKey('X-Created-At', $responses['201']['headers']);
+        $this->assertSame('Creation timestamp', $responses['201']['headers']['X-Created-At']['description']);
+    }
 
-it('adds multiple headers for the same status code (200)', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'ok']));
+    public function testAddsMultipleHeadersForTheSameStatusCode200(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'ok']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses['200']['headers'])
-        ->toHaveKey('X-Rate-Limit')
-        ->and($responses['200']['headers'])
-        ->toHaveKey('X-Correlation-ID')
-        ->and($responses['200']['headers'])
-        ->toHaveKey('X-API-Version');
-});
+        $this->assertArrayHasKey('X-Rate-Limit', $responses['200']['headers']);
+        $this->assertArrayHasKey('X-Correlation-ID', $responses['200']['headers']);
+        $this->assertArrayHasKey('X-API-Version', $responses['200']['headers']);
+    }
 
-it('adds headers with multiple examples to 200 response', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'ok']));
+    public function testAddsHeadersWithMultipleExamplesTo200Response(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'ok']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses['200']['headers']['X-API-Version'])
-        ->toHaveKey('examples')
-        ->and($responses['200']['headers']['X-API-Version']['examples'])
-        ->toHaveKey('v1')
-        ->and($responses['200']['headers']['X-API-Version']['examples'])
-        ->toHaveKey('v2');
-});
+        $this->assertArrayHasKey('examples', $responses['200']['headers']['X-API-Version']);
+        $this->assertArrayHasKey('v1', $responses['200']['headers']['X-API-Version']['examples']);
+        $this->assertArrayHasKey('v2', $responses['200']['headers']['X-API-Version']['examples']);
+    }
 
-it('applies wildcard headers to all responses', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withWildcardHeaders']));
+    public function testAppliesWildcardHeadersToAllResponses(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withWildcardHeaders']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses['200']['headers'])
-        ->toHaveKey('X-Request-ID')
-        ->and($responses['200']['headers']['X-Request-ID']['description'])
-        ->toBe('Request ID for tracing');
-});
+        $this->assertArrayHasKey('X-Request-ID', $responses['200']['headers']);
+        $this->assertSame('Request ID for tracing', $responses['200']['headers']['X-Request-ID']['description']);
+    }
 
-it('mixes different header types correctly', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'mixedHeaders']));
+    public function testMixesDifferentHeaderTypesCorrectly(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'mixedHeaders']);
+        });
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-    expect($responses['200']['headers'])
-        ->toHaveKey('X-Request-ID');
+        $this->assertArrayHasKey('X-Request-ID', $responses['200']['headers']);
+        $this->assertArrayHasKey('X-Rate-Limit', $responses['200']['headers']);
+        $this->assertArrayNotHasKey('X-Error-Code', $responses['200']['headers']);
+    }
 
-    expect($responses['200']['headers'])
-        ->toHaveKey('X-Rate-Limit');
+    public function testAppliesWildcardHeadersToAllResponsesWhenMultipleResponsesExist(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'multipleResponses']);
+        });
 
-    expect($responses['200']['headers'])
-        ->not->toHaveKey('X-Error-Code');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('applies wildcard headers to all responses when multiple responses exist', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'multipleResponses']));
+        $this->assertArrayHasKey('200', $responses);
+        $this->assertArrayHasKey('404', $responses);
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+        $this->assertArrayHasKey('X-Request-ID', $responses['200']['headers']);
+        $this->assertArrayHasKey('X-Request-ID', $responses['404']['headers']);
 
-    expect($responses)
-        ->toHaveKey('200')
-        ->and($responses)
-        ->toHaveKey('404');
+        $this->assertArrayHasKey('X-Rate-Limit', $responses['200']['headers']);
+        $this->assertArrayNotHasKey('X-Rate-Limit', $responses['404']['headers']);
 
-    expect($responses['200']['headers'])
-        ->toHaveKey('X-Request-ID')
-        ->and($responses['404']['headers'])
-        ->toHaveKey('X-Request-ID');
+        $this->assertArrayHasKey('X-Error-Code', $responses['404']['headers']);
+        $this->assertArrayNotHasKey('X-Error-Code', $responses['200']['headers']);
+    }
 
-    expect($responses['200']['headers'])
-        ->toHaveKey('X-Rate-Limit')
-        ->and($responses['404']['headers'])
-        ->not->toHaveKey('X-Rate-Limit');
+    public function testRemovesUnusedResponseReferencesWhenDereferenced(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withUnusedReferences']);
+        });
 
-    expect($responses['404']['headers'])
-        ->toHaveKey('X-Error-Code')
-        ->and($responses['200']['headers'])
-        ->not->toHaveKey('X-Error-Code');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('removes unused response references when dereferenced', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withUnusedReferences']));
+        $this->assertArrayHasKey('X-Custom-Header', $responses['404']['headers']);
+        $this->assertArrayNotHasKey('components', $openApiDocument);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithTypeSpecification(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withType']);
+        });
 
-    expect($responses['404']['headers'])
-        ->toHaveKey('X-Custom-Header')
-        ->and($openApiDocument)
-        ->not->toHaveKey('components');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with type specification', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withType']));
+        $this->assertArrayHasKey('schema', $responses['200']['headers']['X-Count']);
+        $this->assertArrayHasKey('type', $responses['200']['headers']['X-Count']['schema']);
+        $this->assertSame('integer', $responses['200']['headers']['X-Count']['schema']['type']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithFormatSpecification(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withFormat']);
+        });
 
-    expect($responses['200']['headers']['X-Count'])
-        ->toHaveKey('schema')
-        ->and($responses['200']['headers']['X-Count']['schema'])
-        ->toHaveKey('type')
-        ->and($responses['200']['headers']['X-Count']['schema']['type'])
-        ->toBe('integer');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with format specification', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withFormat']));
+        $this->assertArrayHasKey('schema', $responses['200']['headers']['X-Date']);
+        $this->assertArrayHasKey('format', $responses['200']['headers']['X-Date']['schema']);
+        $this->assertSame('date', $responses['200']['headers']['X-Date']['schema']['format']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithDefaultValue(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withDefault']);
+        });
 
-    expect($responses['200']['headers']['X-Date'])
-        ->toHaveKey('schema')
-        ->and($responses['200']['headers']['X-Date']['schema'])
-        ->toHaveKey('format')
-        ->and($responses['200']['headers']['X-Date']['schema']['format'])
-        ->toBe('date');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with default value', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withDefault']));
+        $this->assertArrayHasKey('schema', $responses['200']['headers']['X-Language']);
+        $this->assertArrayHasKey('default', $responses['200']['headers']['X-Language']['schema']);
+        $this->assertSame('en', $responses['200']['headers']['X-Language']['schema']['default']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithTypeFormatAndDefaultCombined(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withTypeFormatAndDefault']);
+        });
 
-    expect($responses['200']['headers']['X-Language'])
-        ->toHaveKey('schema')
-        ->and($responses['200']['headers']['X-Language']['schema'])
-        ->toHaveKey('default')
-        ->and($responses['200']['headers']['X-Language']['schema']['default'])
-        ->toBe('en');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with type, format, and default combined', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withTypeFormatAndDefault']));
+        $this->assertArrayHasKey('schema', $responses['200']['headers']['X-Timestamp']);
+        $this->assertArrayHasKey('type', $responses['200']['headers']['X-Timestamp']['schema']);
+        $this->assertSame('string', $responses['200']['headers']['X-Timestamp']['schema']['type']);
+        $this->assertArrayHasKey('format', $responses['200']['headers']['X-Timestamp']['schema']);
+        $this->assertSame('date-time', $responses['200']['headers']['X-Timestamp']['schema']['format']);
+        $this->assertArrayHasKey('default', $responses['200']['headers']['X-Timestamp']['schema']);
+        $this->assertSame('2024-01-01T00:00:00Z', $responses['200']['headers']['X-Timestamp']['schema']['default']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithBooleanType(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withBooleanType']);
+        });
 
-    expect($responses['200']['headers']['X-Timestamp'])
-        ->toHaveKey('schema')
-        ->and($responses['200']['headers']['X-Timestamp']['schema'])
-        ->toHaveKey('type')
-        ->and($responses['200']['headers']['X-Timestamp']['schema']['type'])
-        ->toBe('string')
-        ->and($responses['200']['headers']['X-Timestamp']['schema'])
-        ->toHaveKey('format')
-        ->and($responses['200']['headers']['X-Timestamp']['schema']['format'])
-        ->toBe('date-time')
-        ->and($responses['200']['headers']['X-Timestamp']['schema'])
-        ->toHaveKey('default')
-        ->and($responses['200']['headers']['X-Timestamp']['schema']['default'])
-        ->toBe('2024-01-01T00:00:00Z');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with boolean type', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withBooleanType']));
+        $this->assertArrayHasKey('schema', $responses['200']['headers']['X-Cache-Enabled']);
+        $this->assertArrayHasKey('type', $responses['200']['headers']['X-Cache-Enabled']['schema']);
+        $this->assertSame('boolean', $responses['200']['headers']['X-Cache-Enabled']['schema']['type']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithArrayType(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withArrayType']);
+        });
 
-    expect($responses['200']['headers']['X-Cache-Enabled'])
-        ->toHaveKey('schema')
-        ->and($responses['200']['headers']['X-Cache-Enabled']['schema'])
-        ->toHaveKey('type')
-        ->and($responses['200']['headers']['X-Cache-Enabled']['schema']['type'])
-        ->toBe('boolean');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with array type', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withArrayType']));
+        $this->assertArrayHasKey('schema', $responses['200']['headers']['X-Allowed-Origins']);
+        $this->assertArrayHasKey('type', $responses['200']['headers']['X-Allowed-Origins']['schema']);
+        $this->assertSame('array', $responses['200']['headers']['X-Allowed-Origins']['schema']['type']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithRequiredSpecification(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withRequired']);
+        });
 
-    expect($responses['200']['headers']['X-Allowed-Origins'])
-        ->toHaveKey('schema')
-        ->and($responses['200']['headers']['X-Allowed-Origins']['schema'])
-        ->toHaveKey('type')
-        ->and($responses['200']['headers']['X-Allowed-Origins']['schema']['type'])
-        ->toBe('array');
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with required specification', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withRequired']));
+        $this->assertArrayHasKey('required', $responses['200']['headers']['X-Authorization']);
+        $this->assertTrue($responses['200']['headers']['X-Authorization']['required']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithDeprecatedSpecification(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withDeprecated']);
+        });
 
-    expect($responses['200']['headers']['X-Authorization'])
-        ->toHaveKey('required')
-        ->and($responses['200']['headers']['X-Authorization']['required'])
-        ->toBe(true);
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with deprecated specification', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withDeprecated']));
+        $this->assertArrayHasKey('deprecated', $responses['200']['headers']['X-Legacy-Header']);
+        $this->assertTrue($responses['200']['headers']['X-Legacy-Header']['deprecated']);
+    }
 
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
+    public function testAddsHeaderWithExplodeSpecification(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ResponseHeadersTestController::class, 'withExplode']);
+        });
 
-    expect($responses['200']['headers']['X-Legacy-Header'])
-        ->toHaveKey('deprecated')
-        ->and($responses['200']['headers']['X-Legacy-Header']['deprecated'])
-        ->toBe(true);
-});
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
 
-it('adds header with explode specification', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('api/test', [ResponseHeadersTestController::class, 'withExplode']));
-
-    $responses = $openApiDocument['paths']['/test']['get']['responses'];
-
-    expect($responses['200']['headers']['X-Tags'])
-        ->toHaveKey('explode')
-        ->and($responses['200']['headers']['X-Tags']['explode'])
-        ->toBe(true);
-});
+        $this->assertArrayHasKey('explode', $responses['200']['headers']['X-Tags']);
+        $this->assertTrue($responses['200']['headers']['X-Tags']['explode']);
+    }
+}
 
 class ResponseHeadersTestController
 {

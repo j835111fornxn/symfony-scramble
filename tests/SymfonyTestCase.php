@@ -68,8 +68,89 @@ class SymfonyTestCase extends KernelTestCase
         ));
     }
 
+    /**
+     * Add a route dynamically for testing purposes.
+     *
+     * @param string $path The route path (e.g., '/api/test')
+     * @param string|array $controller Controller class and method [ControllerClass::class, 'method']
+     * @param array $methods HTTP methods (default: ['GET'])
+     * @param array $options Additional route options (defaults, requirements, etc.)
+     * @return \Symfony\Component\Routing\Route
+     */
+    protected function addRoute(
+        string $path,
+        string|array $controller,
+        array $methods = ['GET'],
+        array $options = []
+    ): \Symfony\Component\Routing\Route {
+        $router = static::getContainer()->get('router');
+        $collection = $router->getRouteCollection();
+
+        // Ensure path starts with /
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
+
+        // Create route
+        $route = new \Symfony\Component\Routing\Route($path);
+        $route->setMethods($methods);
+
+        // Set controller
+        if (is_array($controller)) {
+            $route->setDefault('_controller', $controller[0] . '::' . $controller[1]);
+        } else {
+            $route->setDefault('_controller', $controller);
+        }
+
+        // Apply additional options
+        foreach ($options as $key => $value) {
+            switch ($key) {
+                case 'defaults':
+                    foreach ($value as $k => $v) {
+                        $route->setDefault($k, $v);
+                    }
+                    break;
+                case 'requirements':
+                    foreach ($value as $k => $v) {
+                        $route->setRequirement($k, $v);
+                    }
+                    break;
+                case 'middleware':
+                    // Symfony doesn't use middleware in the same way
+                    // Store as route default for processing
+                    $route->setDefault('_middleware', (array)$value);
+                    break;
+            }
+        }
+
+        // Generate unique route name
+        $routeName = 'test_' . md5($path . json_encode($controller) . json_encode($methods));
+        $collection->add($routeName, $route);
+
+        return $route;
+    }
+
+    /**
+     * Clear all dynamically added test routes.
+     */
+    protected function clearTestRoutes(): void
+    {
+        $router = static::getContainer()->get('router');
+        $collection = $router->getRouteCollection();
+
+        // Remove all test routes (routes starting with 'test_')
+        foreach ($collection->all() as $name => $route) {
+            if (str_starts_with($name, 'test_')) {
+                $collection->remove($name);
+            }
+        }
+    }
+
     protected function tearDown(): void
     {
+        // Clear test routes before resetting
+        $this->clearTestRoutes();
+
         Context::reset();
 
         Scramble::$tagResolver = null;

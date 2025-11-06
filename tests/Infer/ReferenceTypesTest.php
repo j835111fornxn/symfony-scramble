@@ -1,15 +1,27 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer;
+
 /*
  * Reference types are the types which are created when there is no available info at the moment
  * of nodes traversal. Later, after the fn or class is traversed, references are resolved.
  */
 
-/*
- * References in own class.
- */
-it('resolves a reference when encountered in self class', function () {
-    $type = analyzeFile(<<<'EOD'
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
+
+final class ReferenceTypesTest extends SymfonyTestCase
+{
+    use AnalysisHelpers;
+
+    /*
+     * References in own class.
+     */
+    #[Test]
+    public function resolvesAReferenceWhenEncounteredInSelfClass(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -21,14 +33,14 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['bar']->type->toString())
-        ->toBe('(): int(2)')
-        ->and($type->methods['foo']->type->toString())
-        ->toBe('(): int(2)');
-});
+        $this->assertSame('(): int(2)', $type->methods['bar']->type->toString());
+        $this->assertSame('(): int(2)', $type->methods['foo']->type->toString());
+    }
 
-it('correctly replaces templates without modifying type', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function correctlyReplacesTemplatesWithoutModifyingType(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo ($a) {
@@ -37,17 +49,18 @@ class Foo {
 }
 EOD);
 
-    /*
-     * Previously this test would fail due to original return type being mutated.
-     */
-    $type->getExpressionType('(new Foo)->foo(123)');
+        /*
+         * Previously this test would fail due to original return type being mutated.
+         */
+        $type->getExpressionType('(new Foo)->foo(123)');
 
-    expect($type->getExpressionType('(new Foo)->foo(42)')->toString())
-        ->toBe('array{a: int(42)}');
-});
+        $this->assertSame('array{a: int(42)}', $type->getExpressionType('(new Foo)->foo(42)')->toString());
+    }
 
-it('resolves a cyclic reference safely', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesACyclicReferenceSafely(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -59,12 +72,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())
-        ->toBe('(): unknown|int(1)');
-});
+        $this->assertSame('(): unknown|int(1)', $type->methods['foo']->type->toString());
+    }
 
-it('resolves an indirect reference', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesAnIndirectReference(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -76,12 +90,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())
-        ->toBe('(): unknown');
-});
+        $this->assertSame('(): unknown', $type->methods['foo']->type->toString());
+    }
 
-it('resolves a cyclic reference introduced by template method call', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesACyclicReferenceIntroducedByTemplateMethodCall(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo($q)
@@ -91,12 +106,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())
-        ->toBe('<TQ>(TQ): unknown');
-});
+        $this->assertSame('<TQ>(TQ): unknown', $type->methods['foo']->type->toString());
+    }
 
-it('resolves a cyclic reference introduced by template property fetch', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesACyclicReferenceIntroducedByTemplatePropertyFetch(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo ()
@@ -106,12 +122,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())
-        ->toBe('(): <TQ>(TQ): unknown');
-});
+        $this->assertSame('(): <TQ>(TQ): unknown', $type->methods['foo']->type->toString());
+    }
 
-it('resolves references in non-reference return types', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesReferencesInNonReferenceReturnTypes(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -123,11 +140,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())->toBe('(): list{int(2), int(2)}');
-});
+        $this->assertSame('(): list{int(2), int(2)}', $type->methods['foo']->type->toString());
+    }
 
-it('resolves unknown references to unknowns in non-reference return types', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesUnknownReferencesToUnknownsInNonReferenceReturnTypes(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -139,11 +158,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())->toBe('(): list{int(2), unknown}');
-});
+        $this->assertSame('(): list{int(2), unknown}', $type->methods['foo']->type->toString());
+    }
 
-it('resolves a deep reference when encountered in self class', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesADeepReferenceWhenEncounteredInSelfClass(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo () {
@@ -158,11 +179,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())->toBe('(): int(2)');
-});
+        $this->assertSame('(): int(2)', $type->methods['foo']->type->toString());
+    }
 
-it('resolves a reference from function', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesAReferenceFromFunction(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 function foo () {
     return bar();
@@ -172,11 +195,13 @@ function bar () {
 }
 EOD)->getFunctionDefinition('foo');
 
-    expect($type->type->toString())->toBe('(): int(2)');
-});
+        $this->assertSame('(): int(2)', $type->type->toString());
+    }
 
-it('resolves references in unknowns after traversal', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesReferencesInUnknownsAfterTraversal(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class PendingUnknownWithSelfReference
 {
@@ -192,14 +217,14 @@ class PendingUnknownWithSelfReference
 }
 EOD)->getClassDefinition('PendingUnknownWithSelfReference');
 
-    expect($type->methods['returnSomeCall']->type->toString())
-        ->toBe('(): unknown')
-        ->and($type->methods['returnThis']->type->toString())
-        ->toBe('(): self');
-});
+        $this->assertSame('(): unknown', $type->methods['returnSomeCall']->type->toString());
+        $this->assertSame('(): self', $type->methods['returnThis']->type->toString());
+    }
 
-it('resolves deep references in unknowns after traversal', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function resolvesDeepReferencesInUnknownsAfterTraversal(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo
 {
@@ -213,12 +238,13 @@ class Foo
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['returnSomeCall']->type->toString())
-        ->toBe('(): unknown');
-});
+        $this->assertSame('(): unknown', $type->methods['returnSomeCall']->type->toString());
+    }
 
-it('handles usage of type annotation when resolved inferred type is unknown', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function handlesUsageOfTypeAnnotationWhenResolvedInferredTypeIsUnknown(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo
 {
@@ -233,6 +259,6 @@ class Foo
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['returnSomeCall']->type->toString())
-        ->toBe('(): SomeClass');
-});
+        $this->assertSame('(): SomeClass', $type->methods['returnSomeCall']->type->toString());
+    }
+}

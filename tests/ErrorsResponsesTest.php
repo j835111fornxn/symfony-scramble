@@ -1,14 +1,16 @@
 <?php
 
+namespace Dedoc\Scramble\Tests;
+
 use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
-use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Route as RouteFacade;
+use Spatie\Snapshots\MatchesSnapshots;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -25,152 +27,201 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 
-use function Spatie\Snapshots\assertMatchesSnapshot;
+final class ErrorsResponsesTest extends SymfonyTestCase
+{
+    use MatchesSnapshots;
 
-it('adds validation error response', function () {
-    RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'adds_validation_error_response']);
+    public function testAddsValidationErrorResponse(): void
+    {
+        $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'adds_validation_error_response']);
 
-    Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
-    $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
+        Scramble::routes(fn (\Symfony\Component\Routing\Route $r) => $r->getPath() === '/api/test');
+        $openApiDocument = $this->get(\Dedoc\Scramble\Generator::class)();
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds validation error response with facade made validators', function () {
-    RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'adds_validation_error_response_with_facade_made_validators']);
+    public function testAddsValidationErrorResponseWithFacadeMadeValidators(): void
+    {
+        $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'adds_validation_error_response_with_facade_made_validators']);
 
-    Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
-    $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
+        Scramble::routes(fn (\Symfony\Component\Routing\Route $r) => $r->getPath() === '/api/test');
+        $openApiDocument = $this->get(\Dedoc\Scramble\Generator::class)();
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds errors responses with custom requests', function () {
-    RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'adds_errors_with_custom_request']);
+    public function testAddsErrorsResponsesWithCustomRequests(): void
+    {
+        $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'adds_errors_with_custom_request']);
 
-    Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
-    $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
+        Scramble::routes(fn (\Symfony\Component\Routing\Route $r) => $r->getPath() === '/api/test');
+        $openApiDocument = $this->get(\Dedoc\Scramble\Generator::class)();
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('doesnt add errors with custom request when errors producing methods are not defined', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'doesnt_add_errors_with_custom_request_when_errors_producing_methods_not_defined']);
-    });
+    public function testDoesntAddErrorsWithCustomRequestWhenErrorsProducingMethodsAreNotDefined(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'doesnt_add_errors_with_custom_request_when_errors_producing_methods_not_defined']);
+        });
 
-    expect($openApiDocument['paths']['/test']['get']['responses'])
-        ->toHaveKeys([200])
-        ->toHaveCount(1);
-});
+        $this->assertArrayHasKey(200, $openApiDocument['paths']['/test']['get']['responses']);
+        $this->assertCount(1, $openApiDocument['paths']['/test']['get']['responses']);
+    }
 
-it('adds authorization error response', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'adds_authorization_error_response']);
-    });
+    public function testAddsAuthorizationErrorResponse(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'adds_authorization_error_response']);
+        });
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds authorization error response for gate authorize', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'adds_authorization_error_response_gate']);
-    });
+    public function testAddsAuthorizationErrorResponseForGateAuthorize(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'adds_authorization_error_response_gate']);
+        });
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds authentication error response', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'adds_authorization_error_response'])
-            ->middleware('auth');
-    });
+    public function testAddsAuthenticationErrorResponse(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'adds_authorization_error_response'], ['GET'], [
+                'middleware' => ['auth'],
+            ]);
+        });
 
-    expect($openApiDocument)
-        ->toHaveKey('components.responses.AuthenticationException')
-        ->and($openApiDocument['paths']['/test']['get']['responses'][401])
-        ->toBe([
+        $this->assertArrayHasKey('components', $openApiDocument);
+        $this->assertArrayHasKey('responses', $openApiDocument['components']);
+        $this->assertArrayHasKey('AuthenticationException', $openApiDocument['components']['responses']);
+        $this->assertEquals([
             '$ref' => '#/components/responses/AuthenticationException',
-        ]);
-});
+        ], $openApiDocument['paths']['/test']['get']['responses'][401]);
+    }
 
-it('adds not found error response with can directive', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test/{user}', [ErrorsResponsesTest_Controller::class, 'adds_not_found_error_response'])
-            ->middleware('can:update,post');
-    });
+    public function testAddsNotFoundErrorResponseWithCanDirective(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test/{user}', [ErrorsResponsesTest_Controller::class, 'adds_not_found_error_response'], ['GET'], [
+                'middleware' => ['can:update,post'],
+            ]);
+        });
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds not found error response with Authorize::using', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test/{user}', [ErrorsResponsesTest_Controller::class, 'adds_not_found_error_response'])
-            ->middleware(Authorize::using('update', 'post'));
-    });
+    public function testAddsNotFoundErrorResponseWithAuthorizeUsing(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return $this->addRoute('/api/test/{user}', [ErrorsResponsesTest_Controller::class, 'adds_not_found_error_response'], ['GET'], [
+                'middleware' => [Authorize::using('update', 'post')],
+            ]);
+        });
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds validation error response when documented in phpdoc', function () {
-    RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'phpdoc_exception_response']);
+    public function testAddsValidationErrorResponseWhenDocumentedInPhpdoc(): void
+    {
+        $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'phpdoc_exception_response']);
 
-    Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
-    $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
+        Scramble::routes(fn (\Symfony\Component\Routing\Route $r) => $r->getPath() === '/api/test');
+        $openApiDocument = $this->get(\Dedoc\Scramble\Generator::class)();
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
 
-it('adds http error response exception extending HTTP exception is thrown', function () {
-    $openApiDocument = generateForRoute(fn () => RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'custom_exception_response']));
+    public function testAddsHttpErrorResponseExceptionExtendingHTTPExceptionIsThrown(): void
+    {
+        $openApiDocument = $this->generateForRoute(fn () => $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'custom_exception_response']));
 
-    expect($openApiDocument['paths']['/test']['get']['responses'][409])->toHaveKey('content.application/json.schema.type', 'object');
-});
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][409]);
+        $this->assertArrayHasKey('application/json', $openApiDocument['paths']['/test']['get']['responses'][409]['content']);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][409]['content']['application/json']['schema']['type']);
+    }
 
-it('adds http error response exception extending sympony HTTP exception is thrown', function () {
-    $openApiDocument = generateForRoute(fn () => RouteFacade::get('api/test', [ErrorsResponsesTest_Controller::class, 'symfony_http_exception_response']));
+    public function testAddsHttpErrorResponseExceptionExtendingSymphonyHTTPExceptionIsThrown(): void
+    {
+        $openApiDocument = $this->generateForRoute(fn () => $this->addRoute('/api/test', [ErrorsResponsesTest_Controller::class, 'symfony_http_exception_response']));
 
-    // AccessDeniedHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][403])->toHaveKey('content.application/json.schema.type', 'object');
-    // BadRequestHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][400])->toHaveKey('content.application/json.schema.type', 'object');
-    // ConflictHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][409])->toHaveKey('content.application/json.schema.type', 'object');
-    // GoneHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][410])->toHaveKey('content.application/json.schema.type', 'object');
-    // LengthRequiredHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][411])->toHaveKey('content.application/json.schema.type', 'object');
-    // LockedHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][423])->toHaveKey('content.application/json.schema.type', 'object');
-    // MethodNotAllowedHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][405])->toHaveKey('content.application/json.schema.type', 'object');
-    // NotAcceptableHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][406])->toHaveKey('content.application/json.schema.type', 'object');
-    // PreconditionFailedHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][412])->toHaveKey('content.application/json.schema.type', 'object');
-    // PreconditionRequiredHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][428])->toHaveKey('content.application/json.schema.type', 'object');
-    // ServiceUnavailableHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][503])->toHaveKey('content.application/json.schema.type', 'object');
-    // TooManyRequestsHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][429])->toHaveKey('content.application/json.schema.type', 'object');
-    // UnauthorizedHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][401])->toHaveKey('content.application/json.schema.type', 'object');
-    // UnprocessableEntityHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][422])->toHaveKey('content.application/json.schema.type', 'object');
-    // UnsupportedMediaTypeHttpException
-    expect($openApiDocument['paths']['/test']['get']['responses'][415])->toHaveKey('content.application/json.schema.type', 'object');
-});
+        // AccessDeniedHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][403]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][403]['content']['application/json']['schema']['type']);
+
+        // BadRequestHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][400]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][400]['content']['application/json']['schema']['type']);
+
+        // ConflictHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][409]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][409]['content']['application/json']['schema']['type']);
+
+        // GoneHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][410]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][410]['content']['application/json']['schema']['type']);
+
+        // LengthRequiredHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][411]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][411]['content']['application/json']['schema']['type']);
+
+        // LockedHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][423]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][423]['content']['application/json']['schema']['type']);
+
+        // MethodNotAllowedHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][405]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][405]['content']['application/json']['schema']['type']);
+
+        // NotAcceptableHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][406]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][406]['content']['application/json']['schema']['type']);
+
+        // PreconditionFailedHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][412]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][412]['content']['application/json']['schema']['type']);
+
+        // PreconditionRequiredHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][428]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][428]['content']['application/json']['schema']['type']);
+
+        // ServiceUnavailableHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][503]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][503]['content']['application/json']['schema']['type']);
+
+        // TooManyRequestsHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][429]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][429]['content']['application/json']['schema']['type']);
+
+        // UnauthorizedHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][401]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][401]['content']['application/json']['schema']['type']);
+
+        // UnprocessableEntityHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][422]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][422]['content']['application/json']['schema']['type']);
+
+        // UnsupportedMediaTypeHttpException
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][415]);
+        $this->assertEquals('object', $openApiDocument['paths']['/test']['get']['responses'][415]['content']['application/json']['schema']['type']);
+    }
+}
+
 class ErrorsResponsesTest_Controller extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function adds_validation_error_response(Illuminate\Http\Request $request)
+    public function adds_validation_error_response(\Illuminate\Http\Request $request)
     {
         $request->validate(['foo' => 'required']);
     }
 
-    public function adds_validation_error_response_with_facade_made_validators(Illuminate\Http\Request $request)
+    public function adds_validation_error_response_with_facade_made_validators(\Illuminate\Http\Request $request)
     {
         \Illuminate\Support\Facades\Validator::make($request->all(), ['foo' => 'required'])
             ->validate();
@@ -180,7 +231,7 @@ class ErrorsResponsesTest_Controller extends Controller
 
     public function doesnt_add_errors_with_custom_request_when_errors_producing_methods_not_defined(ErrorsResponsesTest_Controller_CustomRequestWithoutErrorCreatingMethods $request) {}
 
-    public function adds_authorization_error_response(Illuminate\Http\Request $request)
+    public function adds_authorization_error_response(\Illuminate\Http\Request $request)
     {
         $this->authorize('read');
     }
@@ -190,16 +241,16 @@ class ErrorsResponsesTest_Controller extends Controller
         Gate::authorize('read');
     }
 
-    public function adds_authentication_error_response(Illuminate\Http\Request $request) {}
+    public function adds_authentication_error_response(\Illuminate\Http\Request $request) {}
 
-    public function adds_not_found_error_response(Illuminate\Http\Request $request, UserModel_ErrorsResponsesTest $user) {}
+    public function adds_not_found_error_response(\Illuminate\Http\Request $request, UserModel_ErrorsResponsesTest $user) {}
 
     /**
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function phpdoc_exception_response(Illuminate\Http\Request $request) {}
+    public function phpdoc_exception_response(\Illuminate\Http\Request $request) {}
 
-    public function custom_exception_response(Illuminate\Http\Request $request)
+    public function custom_exception_response(\Illuminate\Http\Request $request)
     {
         throw new BusinessException('The business error');
     }
@@ -207,7 +258,7 @@ class ErrorsResponsesTest_Controller extends Controller
     /**
      * @throws AccessDeniedHttpException|BadRequestHttpException|ConflictHttpException|GoneHttpException|LengthRequiredHttpException|LockedHttpException|MethodNotAllowedHttpException|NotAcceptableHttpException|PreconditionFailedHttpException|PreconditionRequiredHttpException|ServiceUnavailableHttpException|TooManyRequestsHttpException|UnauthorizedHttpException|UnprocessableEntityHttpException|UnsupportedMediaTypeHttpException
      */
-    public function symfony_http_exception_response(Illuminate\Http\Request $request) {}
+    public function symfony_http_exception_response(\Illuminate\Http\Request $request) {}
 }
 
 class BusinessException extends \Symfony\Component\HttpKernel\Exception\HttpException

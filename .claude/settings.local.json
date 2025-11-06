@@ -7,7 +7,11 @@
       "Bash(php vendor/bin/phpunit:*)",
       "Bash(php -l:*)",
       "Bash(./vendor/bin/phpunit:*)",
-      "Bash(php ./vendor/bin/phpunit:*)"
+      "Bash(php ./vendor/bin/phpunit:*)",
+      "Bash(composer install:*)",
+      "Bash(find:*)",
+      "Bash(php:*)",
+      "Bash(openspec show:*)"
     ],
     "deny": [],
     "ask": []
