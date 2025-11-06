@@ -13,16 +13,20 @@ use Dedoc\Scramble\Infer\TypeInferer;
 use Dedoc\Scramble\Infer\Visitors\PhpDocResolver;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Type\Type;
-use Dedoc\Scramble\Tests\TestCase;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Dedoc\Scramble\Tests\Utils\AnalysisResult;
-use Illuminate\Routing\Route;
-use Illuminate\Routing\Router;
+use Symfony\Component\Routing\Route;
 use PhpParser\ErrorHandler\Throwing;
 use PhpParser\NameContext;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 
-uses(TestCase::class)->in(__DIR__);
+// Load Laravel stub classes for backward compatibility during migration
+if (!class_exists('JsonResource')) {
+    require_once __DIR__ . '/Stubs/JsonResource.php';
+}
+
+uses(SymfonyTestCase::class)->in(__DIR__);
 
 expect()->extend('toBeSameJson', function (mixed $expectedData) {
     expect(json_encode($this->value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))->toBe(json_encode($expectedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -42,13 +46,16 @@ function getTestSourceCode()
 
     $db = debug_backtrace();
 
-    $entry = \Illuminate\Support\Arr::first(
-        $db,
-        fn ($item) => in_array(
+    $entry = null;
+    foreach ($db as $item) {
+        if (in_array(
             \Pest\Concerns\Testable::class,
             class_uses_recursive($item['object'] ?? (object) []),
-        ),
-    );
+        )) {
+            $entry = $item;
+            break;
+        }
+    }
 
     /** @var \Pest\Concerns\Testable $object */
     $object = $entry['object'];
@@ -67,9 +74,15 @@ function getTestSourceCode()
 }
 
 expect()->extend('toHaveType', function (string|callable $expectedType) {
-    $code = '<?php'."\n\n".getTestSourceCode();
+    $code = '<?php' . "\n\n" . getTestSourceCode();
 
-    $index = app(Index::class); // new Index;
+    // Try to get container from SymfonyTestCase if available
+    try {
+        $container = \Dedoc\Scramble\Tests\SymfonyTestCase::getTestContainer();
+        $index = $container->has(Index::class) ? $container->get(Index::class) : new Index;
+    } catch (\Throwable $e) {
+        $index = new Index;
+    }
 
     $traverser = new NodeTraverser;
     $traverser->addVisitor($nameResolver = new NameResolver);
@@ -87,7 +100,7 @@ expect()->extend('toHaveType', function (string|callable $expectedType) {
     );
 
     /** @var \PhpParser\Node\Expr\FuncCall $node */
-    $node = (new \PhpParser\NodeFinder)->findFirst($fileAst, fn ($n) => $n instanceof \PhpParser\Node\Expr\FuncCall && $n->name instanceof \PhpParser\Node\Name && $n->name->toString() === 'expect');
+    $node = (new \PhpParser\NodeFinder)->findFirst($fileAst, fn($n) => $n instanceof \PhpParser\Node\Expr\FuncCall && $n->name instanceof \PhpParser\Node\Name && $n->name->toString() === 'expect');
 
     $actualType = ReferenceTypeResolver::getInstance()->resolve(
         $scope,
@@ -121,7 +134,13 @@ function analyzeFile(
         );
     }
 
-    $index = app(Index::class); // new Index;
+    // Try to get container from SymfonyTestCase if available
+    try {
+        $container = \Dedoc\Scramble\Tests\SymfonyTestCase::getTestContainer();
+        $index = $container->has(Index::class) ? $container->get(Index::class) : new Index;
+    } catch (\Throwable $e) {
+        $index = new Index;
+    }
 
     $traverser = new NodeTraverser;
     $traverser->addVisitor($nameResolver = new NameResolver);
@@ -139,10 +158,10 @@ function analyzeFile(
     );
 
     $classLikeNames = array_map(
-        fn (\PhpParser\Node\Stmt\ClassLike $cl) => $cl->name?->name,
+        fn(\PhpParser\Node\Stmt\ClassLike $cl) => $cl->name?->name,
         (new \PhpParser\NodeFinder)->find(
             $fileAst,
-            fn ($n) => $n instanceof \PhpParser\Node\Stmt\ClassLike,
+            fn($n) => $n instanceof \PhpParser\Node\Stmt\ClassLike,
         ),
     );
 
@@ -153,7 +172,7 @@ function analyzeFile(
         foreach ($classDefinition->methods as $name => $methodDefinition) {
             $node = (new \PhpParser\NodeFinder)->findFirst(
                 $fileAst,
-                fn ($n) => $n instanceof \PhpParser\Node\Stmt\ClassMethod && $n->name->name === $name,
+                fn($n) => $n instanceof \PhpParser\Node\Stmt\ClassMethod && $n->name->name === $name,
             );
 
             if (! $node) {
@@ -181,7 +200,13 @@ function analyzeClass(string $className, array $extensions = []): AnalysisResult
     Infer\Context::configure(
         new Infer\Extensions\ExtensionsBroker($extensions),
     );
-    $infer = app(Infer::class);
+    // Try to get container from SymfonyTestCase if available
+    try {
+        $container = \Dedoc\Scramble\Tests\SymfonyTestCase::getTestContainer();
+        $infer = $container->has(Infer::class) ? $container->get(Infer::class) : new Infer(new Index, new \Dedoc\Scramble\Configuration\InferConfig);
+    } catch (\Throwable $e) {
+        $infer = new Infer(new Index, new \Dedoc\Scramble\Configuration\InferConfig);
+    }
 
     $infer->analyzeClass($className);
 
@@ -230,11 +255,25 @@ dataset('extendableTemplateTypes', [
 
 function generateForRoute($param)
 {
-    $route = $param instanceof Route ? $param : $param(app(Router::class));
+    // Get container from SymfonyTestCase
+    try {
+        $container = \Dedoc\Scramble\Tests\SymfonyTestCase::getTestContainer();
+    } catch (\Throwable $e) {
+        throw new \RuntimeException('Container not available for route generation: ' . $e->getMessage());
+    }
+
+    // For Symfony: route should be passed directly or created via callback
+    if ($param instanceof Route) {
+        $route = $param;
+    } elseif (is_callable($param)) {
+        $route = $param($container->get('router'));
+    } else {
+        throw new \InvalidArgumentException('Parameter must be a Route or callable');
+    }
 
     $config = Scramble::configure()
-        ->useConfig(config('scramble'))
-        ->routes(fn (Route $r) => $r->uri === $route->uri);
+        ->useConfig($container->getParameter('scramble.config') ?? [])
+        ->routes(fn(Route $r) => $r->getPath() === $route->getPath());
 
-    return app()->make(\Dedoc\Scramble\Generator::class)($config);
+    return $container->get(\Dedoc\Scramble\Generator::class)($config);
 }

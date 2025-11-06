@@ -28,10 +28,18 @@ class TestUtils
 
     public static function buildAstFunctionDefinition(MethodReflector $reflector, ?ClassDefinition $classDefinition = null): FunctionLikeAstDefinition
     {
+        // Get container from SymfonyTestCase
+        try {
+            $container = \Dedoc\Scramble\Tests\SymfonyTestCase::getTestContainer();
+            $index = $container->has(Index::class) ? $container->get(Index::class) : new Index;
+        } catch (\Throwable $e) {
+            $index = new Index;
+        }
+
         $definition = (new FunctionLikeAstDefinitionBuilder(
             $reflector->name,
             $reflector->getAstNode(),
-            app(Index::class),
+            $index,
             new FileNameResolver($reflector->getClassReflector()->getNameContext()),
             $classDefinition ?: new ClassDefinition($reflector->getClassReflector()->getReflection()->name)
         ))->build();

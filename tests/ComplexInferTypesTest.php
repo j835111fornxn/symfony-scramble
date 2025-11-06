@@ -1,44 +1,55 @@
 <?php
 
-it('infers param type', function () {
-    $code = <<<'EOD'
+namespace Dedoc\Scramble\Tests;
+
+final class ComplexInferTypesTest extends SymfonyTestCase
+{
+    public function testInfersParamType(): void
+    {
+        $code = <<<'EOD'
 <?php
 function foo (int $a = 4) {
     return $a;
 }
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getFunctionDefinition('foo')->type->getReturnType()->toString())->toBe('TA');
-});
+        $this->assertSame('TA', $result->getFunctionDefinition('foo')->type->getReturnType()->toString());
+    }
 
-it('infers type from assignment', function () {
-    $code = <<<'EOD'
+    public function testInfersTypeFromAssignment(): void
+    {
+        $this->markTestSkipped('implement var type testing way');
+        $code = <<<'EOD'
 <?php
 $a = 2;
 $a = 5;
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getVarType('a')->toString())->toBe('int(5)');
-})->skip('implement var type testing way');
+        $this->assertSame('int(5)', $result->getVarType('a')->toString());
+    }
 
-it('assignment works with closure scopes', function () {
-    $code = <<<'EOD'
+    public function testAssignmentWorksWithClosureScopes(): void
+    {
+        $this->markTestSkipped('implement var type testing way');
+        $code = <<<'EOD'
 <?php
 $a = 2;
 $b = fn () => $a;
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getVarType('b')->toString())->toBe('(): int(2)');
-})->skip('implement var type testing way');
+        $this->assertSame('(): int(2)', $result->getVarType('b')->toString());
+    }
 
-it('assignment works with fn scope', function () {
-    $code = <<<'EOD'
+    public function testAssignmentWorksWithFnScope(): void
+    {
+        $this->markTestSkipped('implement var type testing way');
+        $code = <<<'EOD'
 <?php
 $a = 2;
 $b = function () use ($a) {
@@ -46,13 +57,14 @@ $b = function () use ($a) {
 };
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getVarType('b')->toString())->toBe('(): int(2)');
-})->skip('implement var type testing way');
+        $this->assertSame('(): int(2)', $result->getVarType('b')->toString());
+    }
 
-it('array type is analyzed with details', function () {
-    $code = <<<'EOD'
+    public function testArrayTypeIsAnalyzedWithDetails(): void
+    {
+        $code = <<<'EOD'
 <?php
 class Foo {
     public function toArray(): array
@@ -62,19 +74,22 @@ class Foo {
 }
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getClassDefinition('Foo')->getMethodCallType('toArray')->toString())
-        ->toBe('array{foo: string(bar)}');
-});
+        $this->assertSame(
+            'array{foo: string(bar)}',
+            $result->getClassDefinition('Foo')->getMethodCallType('toArray')->toString()
+        );
+    }
 
-/*
- * When int, float, bool, return type annotated, there is no point in using types from return
- * as there is no more useful information about the function can be extracted.
- * Sure we could've extracted some literals, but for now there is no point (?).
- */
-it('uses function return annotation type when int, float, bool, used', function () {
-    $code = <<<'EOD'
+    /**
+     * When int, float, bool, return type annotated, there is no point in using types from return
+     * as there is no more useful information about the function can be extracted.
+     * Sure we could've extracted some literals, but for now there is no point (?).
+     */
+    public function testUsesFunctionReturnAnnotationTypeWhenIntFloatBoolUsed(): void
+    {
+        $code = <<<'EOD'
 <?php
 class Foo {
     public function bar(): int
@@ -84,27 +99,28 @@ class Foo {
 }
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getClassDefinition('Foo')->getMethodCallType('bar')->toString())
-        ->toBe('int');
-});
+        $this->assertSame('int', $result->getClassDefinition('Foo')->getMethodCallType('bar')->toString());
+    }
 
-it('infers class fetch type (#917)', function () {
-    $code = <<<'EOD'
+    public function testInfersClassFetchType917(): void
+    {
+        $code = <<<'EOD'
 <?php
 function foo (string $class) {
     return (new $class)::class;
 }
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getFunctionDefinition('foo')->type->getReturnType()->toString())->toBe('string');
-});
+        $this->assertSame('string', $result->getFunctionDefinition('foo')->type->getReturnType()->toString());
+    }
 
-it('infers class fetch type (#912)', function () {
-    $code = <<<'EOD'
+    public function testInfersClassFetchType912(): void
+    {
+        $code = <<<'EOD'
 <?php
 function bar (): mixed {
     return unknown();
@@ -114,7 +130,8 @@ function foo () {
 }
 EOD;
 
-    $result = analyzeFile($code);
+        $result = $this->analyzeFile($code);
 
-    expect($result->getFunctionDefinition('foo')->type->getReturnType()->toString())->toBe('unknown');
-});
+        $this->assertSame('unknown', $result->getFunctionDefinition('foo')->type->getReturnType()->toString());
+    }
+}

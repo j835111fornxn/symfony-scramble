@@ -6,6 +6,8 @@ use Dedoc\Scramble\Infer\Context;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\ScrambleBundle;
 use Dedoc\Scramble\Support\OperationExtensions\RulesExtractor\RulesToParameters;
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\Support\TypeInferenceAssertions;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
@@ -21,6 +23,8 @@ use Symfony\Component\HttpKernel\Kernel;
  */
 class SymfonyTestCase extends KernelTestCase
 {
+    use AnalysisHelpers;
+    use TypeInferenceAssertions;
     /**
      * Track if kernel has been booted to avoid redundant boots.
      */
@@ -57,7 +61,7 @@ class SymfonyTestCase extends KernelTestCase
 
         return array_values(array_filter(
             $routes,
-            fn ($r) => ! str_starts_with($r->getName() ?? '', '_'),
+            fn($r) => ! str_starts_with($r->getName() ?? '', '_'),
         ));
     }
 
@@ -129,12 +133,12 @@ class SymfonyTestCase extends KernelTestCase
             {
                 // Use in-memory filesystem for cache to avoid disk I/O
                 // Each test class gets its own cache namespace
-                return sys_get_temp_dir().'/scramble_test_cache/'.substr(md5(self::class), 0, 8);
+                return sys_get_temp_dir() . '/scramble_test_cache/' . substr(md5(self::class), 0, 8);
             }
 
             public function getLogDir(): string
             {
-                return sys_get_temp_dir().'/scramble_test_logs';
+                return sys_get_temp_dir() . '/scramble_test_logs';
             }
         };
     }
@@ -145,5 +149,13 @@ class SymfonyTestCase extends KernelTestCase
     protected function get(string $id)
     {
         return static::getContainer()->get($id);
+    }
+
+    /**
+     * Get the container (public static method for helper functions).
+     */
+    public static function getTestContainer()
+    {
+        return static::getContainer();
     }
 }

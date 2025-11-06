@@ -1,5 +1,7 @@
 <?php
 
+namespace Dedoc\Scramble\Tests;
+
 use Dedoc\Scramble\GeneratorConfig;
 use Dedoc\Scramble\Infer;
 use Dedoc\Scramble\OpenApiContext;
@@ -12,63 +14,78 @@ use Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema;
 use Dedoc\Scramble\Tests\Files\SamplePostModel;
 use Dedoc\Scramble\Tests\Files\SamplePostModelWithToArray;
 use Dedoc\Scramble\Tests\Files\SampleUserModel;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Spatie\Snapshots\MatchesSnapshots;
 
-use function Spatie\Snapshots\assertMatchesSnapshot;
-use function Spatie\Snapshots\assertMatchesTextSnapshot;
+final class InferTypesTest extends SymfonyTestCase
+{
+    use MatchesSnapshots;
 
-uses(RefreshDatabase::class);
+    private Infer $infer;
+    private Components $components;
+    private OpenApiContext $context;
 
-beforeEach(function () {
-    $this->infer = app(Infer::class);
-    $this->components = new Components;
-    $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
-});
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-it('gets json resource type', function () {
-    $def = $this->infer->analyzeClass(InferTypesTest_SampleJsonResource::class);
+        $container = static::getContainer();
+        $this->infer = $container->get(Infer::class);
+        $this->components = new Components;
+        $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
+    }
 
-    $returnType = $def->getMethodDefinition('toArray')->type->getReturnType();
+    public function testGetsJsonResourceType(): void
+    {
+        $def = $this->infer->analyzeClass(InferTypesTest_SampleJsonResource::class);
 
-    assertMatchesTextSnapshot($returnType->toString());
-});
+        $returnType = $def->getMethodDefinition('toArray')->type->getReturnType();
 
-it('gets json resource type with enum', function () {
-    $def = $this->infer->analyzeClass(InferTypesTest_SampleTwoPostJsonResource::class);
+        $this->assertMatchesTextSnapshot($returnType->toString());
+    }
 
-    $returnType = $def->getMethodDefinition('toArray')->type->getReturnType();
+    public function testGetsJsonResourceTypeWithEnum(): void
+    {
+        $def = $this->infer->analyzeClass(InferTypesTest_SampleTwoPostJsonResource::class);
 
-    assertMatchesTextSnapshot($returnType->toString());
-});
+        $returnType = $def->getMethodDefinition('toArray')->type->getReturnType();
 
-it('infers model type', function () {
-    $transformer = new TypeTransformer($this->infer, $this->context, [
-        ModelToSchema::class,
-        CollectionToSchema::class,
-    ]);
-    $extension = new ModelToSchema($this->infer, $transformer, $this->components, $this->context);
+        $this->assertMatchesTextSnapshot($returnType->toString());
+    }
 
-    $type = new ObjectType(SamplePostModel::class);
-    $openApiType = $extension->toSchema($type);
+    public function testInfersModelType(): void
+    {
+        $transformer = new TypeTransformer($this->infer, $this->context, [
+            ModelToSchema::class,
+            CollectionToSchema::class,
+        ]);
+        $extension = new ModelToSchema($this->infer, $transformer, $this->components, $this->context);
 
-    expect($this->components->schemas)->toHaveLength(2)->toHaveKeys(['SamplePostModel', 'SampleUserModel']);
-    assertMatchesSnapshot($openApiType->toArray());
-});
+        $type = new ObjectType(SamplePostModel::class);
+        $openApiType = $extension->toSchema($type);
 
-it('infers model type when toArray is implemented', function () {
-    $transformer = new TypeTransformer($infer = $this->infer, $this->context, [
-        ModelToSchema::class,
-        CollectionToSchema::class,
-    ]);
-    $extension = new ModelToSchema($infer, $transformer, $this->components, $this->context);
+        $this->assertCount(2, $this->components->schemas);
+        $this->assertArrayHasKey('SamplePostModel', $this->components->schemas);
+        $this->assertArrayHasKey('SampleUserModel', $this->components->schemas);
+        $this->assertMatchesSnapshot($openApiType->toArray());
+    }
 
-    $type = new ObjectType(SamplePostModelWithToArray::class);
-    $openApiType = $extension->toSchema($type);
+    public function testInfersModelTypeWhenToArrayIsImplemented(): void
+    {
+        $transformer = new TypeTransformer($this->infer, $this->context, [
+            ModelToSchema::class,
+            CollectionToSchema::class,
+        ]);
+        $extension = new ModelToSchema($this->infer, $transformer, $this->components, $this->context);
 
-    expect($this->components->schemas)->toHaveLength(2)->toHaveKeys(['SamplePostModelWithToArray', 'SampleUserModel']);
-    assertMatchesSnapshot($openApiType->toArray());
-});
+        $type = new ObjectType(SamplePostModelWithToArray::class);
+        $openApiType = $extension->toSchema($type);
+
+        $this->assertCount(2, $this->components->schemas);
+        $this->assertArrayHasKey('SamplePostModelWithToArray', $this->components->schemas);
+        $this->assertArrayHasKey('SampleUserModel', $this->components->schemas);
+        $this->assertMatchesSnapshot($openApiType->toArray());
+    }
+}
 
 /**
  * @property SampleUserModel $resource
@@ -78,16 +95,16 @@ class InferTypesTest_SampleJsonResource extends JsonResource
     public function toArray($request)
     {
         return [
-            $this->merge(fn () => ['foo' => 'bar']),
-            $this->mergeWhen(true, fn () => ['foo' => 'bar', 'id_inside' => $this->resource->id]),
+            $this->merge(fn() => ['foo' => 'bar']),
+            $this->mergeWhen(true, fn() => ['foo' => 'bar', 'id_inside' => $this->resource->id]),
             'when' => $this->when(true, ['wiw']),
             'item' => new InferTypesTest_SampleTwoJsonResource($this->resource),
             'item_make' => InferTypesTest_SampleTwoJsonResource::make($this->resource),
             'items' => InferTypesTest_SampleTwoJsonResource::collection($this->resource),
-            'optional_when_new' => $this->when(true, fn () => new InferTypesTest_SampleTwoJsonResource($this->resource)),
-            $this->mergeWhen(true, fn () => [
+            'optional_when_new' => $this->when(true, fn() => new InferTypesTest_SampleTwoJsonResource($this->resource)),
+            $this->mergeWhen(true, fn() => [
                 'threads' => [
-                    $this->mergeWhen(true, fn () => [
+                    $this->mergeWhen(true, fn() => [
                         'brand' => new InferTypesTest_SampleTwoJsonResource(null),
                     ]),
                 ],
