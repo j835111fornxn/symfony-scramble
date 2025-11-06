@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Exception\ValidationFailedException;
 /**
  * Handles exceptions thrown during API request processing and converts them to appropriate JSON responses.
  * This provides a consistent error response format for API endpoints.
- * 
+ *
  * Note: This is separate from ExceptionToResponseExtensions which are used for static analysis
  * to generate OpenAPI documentation.
  */

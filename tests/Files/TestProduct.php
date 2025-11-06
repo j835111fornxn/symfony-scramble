@@ -44,8 +44,8 @@ class TestProduct
 
     public function __construct()
     {
-        $this->tags = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->createdAt = new \DateTime();
+        $this->tags = new \Doctrine\Common\Collections\ArrayCollection;
+        $this->createdAt = new \DateTime;
     }
 
     public function getId(): ?int

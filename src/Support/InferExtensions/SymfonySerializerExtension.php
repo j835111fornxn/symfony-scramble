@@ -7,7 +7,6 @@ use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\Union;
 use ReflectionClass;
-use ReflectionMethod;
 use ReflectionProperty;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
@@ -119,7 +118,7 @@ class SymfonySerializerExtension
                     if ($typeName === 'array') {
                         // For now, return a generic array type
                         // More sophisticated analysis could inspect the method body
-                        return new \Dedoc\Scramble\Support\Type\ArrayType();
+                        return new \Dedoc\Scramble\Support\Type\ArrayType;
                     }
 
                     // If it returns a specific class, use that

@@ -1,7 +1,6 @@
 <?php
 
 use Dedoc\Scramble\Support\InferExtensions\DoctrineEntityExtension;
-use Dedoc\Scramble\Support\Type\StringType;
 
 /**
  * Doctrine Entity Extension Tests
@@ -13,7 +12,6 @@ use Dedoc\Scramble\Support\Type\StringType;
  * - The extension has the correct API methods
  * - Custom type mappings can be registered
  */
-
 it('can register custom type mappings', function () {
     // Skip this test as it requires Doctrine EntityManager
     // This test documents that the API exists

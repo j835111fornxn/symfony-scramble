@@ -2,7 +2,6 @@
 
 namespace Dedoc\Scramble\Console\Commands\Components;
 
-use Dedoc\Scramble\Support\Str;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Terminal;
 
@@ -28,7 +27,7 @@ class TermsOfContentItem implements Component
 
         $dotsCount = max($width - $rightWidth - $leftWidth - 2, 0);
 
-        $style->writeln("{$this->right}<fg=gray> " . str_repeat('.', $dotsCount) . " </>{$this->left}");
+        $style->writeln("{$this->right}<fg=gray> ".str_repeat('.', $dotsCount)." </>{$this->left}");
     }
 
     private function getLineWidth(string $string)

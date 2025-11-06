@@ -12,15 +12,12 @@ use Dedoc\Scramble\Support\Type\ArrayType;
 use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
-use Dedoc\Scramble\Support\Type\NullType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\TypeHelper;
 use PhpParser\Node\Expr;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedJsonResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ResponseFactoryTypeInfer implements ExpressionTypeInferExtension, FunctionReturnTypeExtension, MethodReturnTypeExtension
 {

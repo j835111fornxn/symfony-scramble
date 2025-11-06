@@ -62,10 +62,10 @@ trait AnalysisHelpers
         );
 
         $classLikeNames = array_map(
-            fn(\PhpParser\Node\Stmt\ClassLike $cl) => $cl->name?->name,
+            fn (\PhpParser\Node\Stmt\ClassLike $cl) => $cl->name?->name,
             (new \PhpParser\NodeFinder)->find(
                 $fileAst,
-                fn($n) => $n instanceof \PhpParser\Node\Stmt\ClassLike,
+                fn ($n) => $n instanceof \PhpParser\Node\Stmt\ClassLike,
             ),
         );
 
@@ -76,7 +76,7 @@ trait AnalysisHelpers
             foreach ($classDefinition->methods as $name => $methodDefinition) {
                 $node = (new \PhpParser\NodeFinder)->findFirst(
                     $fileAst,
-                    fn($n) => $n instanceof \PhpParser\Node\Stmt\ClassMethod && $n->name->name === $name,
+                    fn ($n) => $n instanceof \PhpParser\Node\Stmt\ClassMethod && $n->name->name === $name,
                 );
 
                 if (! $node) {
@@ -153,7 +153,7 @@ trait AnalysisHelpers
         try {
             $container = \Dedoc\Scramble\Tests\SymfonyTestCase::getTestContainer();
         } catch (\Throwable $e) {
-            throw new \RuntimeException('Container not available for route generation: ' . $e->getMessage());
+            throw new \RuntimeException('Container not available for route generation: '.$e->getMessage());
         }
 
         // For Symfony: route should be passed directly or created via callback
@@ -167,7 +167,7 @@ trait AnalysisHelpers
 
         $config = Scramble::configure()
             ->useConfig($container->getParameter('scramble.config') ?? [])
-            ->routes(fn(Route $r) => $r->getPath() === $route->getPath());
+            ->routes(fn (Route $r) => $r->getPath() === $route->getPath());
 
         return $container->get(\Dedoc\Scramble\Generator::class)($config);
     }

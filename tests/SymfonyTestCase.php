@@ -25,6 +25,7 @@ class SymfonyTestCase extends KernelTestCase
 {
     use AnalysisHelpers;
     use TypeInferenceAssertions;
+
     /**
      * Track if kernel has been booted to avoid redundant boots.
      */
@@ -61,7 +62,7 @@ class SymfonyTestCase extends KernelTestCase
 
         return array_values(array_filter(
             $routes,
-            fn($r) => ! str_starts_with($r->getName() ?? '', '_'),
+            fn ($r) => ! str_starts_with($r->getName() ?? '', '_'),
         ));
     }
 
@@ -133,12 +134,12 @@ class SymfonyTestCase extends KernelTestCase
             {
                 // Use in-memory filesystem for cache to avoid disk I/O
                 // Each test class gets its own cache namespace
-                return sys_get_temp_dir() . '/scramble_test_cache/' . substr(md5(self::class), 0, 8);
+                return sys_get_temp_dir().'/scramble_test_cache/'.substr(md5(self::class), 0, 8);
             }
 
             public function getLogDir(): string
             {
-                return sys_get_temp_dir() . '/scramble_test_logs';
+                return sys_get_temp_dir().'/scramble_test_logs';
             }
         };
     }

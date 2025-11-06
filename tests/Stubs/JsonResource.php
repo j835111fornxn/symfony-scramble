@@ -3,7 +3,7 @@
 /**
  * Stub class for Laravel's JsonResource to allow tests to load.
  * Tests using this class should be skipped or migrated to Symfony equivalents.
- * 
+ *
  * This is a temporary compatibility layer during the Laravel to Symfony migration.
  */
 abstract class JsonResource
@@ -22,7 +22,7 @@ abstract class JsonResource
 
     public static function collection($resource)
     {
-        return collect($resource)->map(fn($item) => new static($item));
+        return collect($resource)->map(fn ($item) => new static($item));
     }
 
     public function __get($name)

@@ -41,7 +41,7 @@ class ExportDocumentation extends Command
         $specification = json_encode($this->generator->__invoke($config), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         /** @var string $filename */
-        $filename = $path ?: $config->get('export_path') ?? 'api' . ($api === 'default' ? '' : "-$api") . '.json';
+        $filename = $path ?: $config->get('export_path') ?? 'api'.($api === 'default' ? '' : "-$api").'.json';
 
         file_put_contents($filename, $specification);
 

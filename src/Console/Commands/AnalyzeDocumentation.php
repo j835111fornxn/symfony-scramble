@@ -48,7 +48,7 @@ class AnalyzeDocumentation extends Command
         });
 
         if (count($this->generator->exceptions)) {
-            $io->error('[ERROR] Found ' . count($this->generator->exceptions) . ' errors.');
+            $io->error('[ERROR] Found '.count($this->generator->exceptions).' errors.');
 
             return Command::FAILURE;
         }
@@ -64,7 +64,7 @@ class AnalyzeDocumentation extends Command
     private function groupExceptions(array $exceptions): Collection
     {
         return collect($exceptions)
-            ->groupBy(fn($e) => $e instanceof RouteAware ? $this->getRouteKey($e->getRoute()) : '');
+            ->groupBy(fn ($e) => $e instanceof RouteAware ? $this->getRouteKey($e->getRoute()) : '');
     }
 
     /**
@@ -108,10 +108,10 @@ class AnalyzeDocumentation extends Command
         $methods = $route->getMethods();
         $method = $methods[0] ?? 'GET';
         $count = $exceptions->count();
-        $errorsMessage = $count . ' ' . ($count === 1 ? 'error' : 'errors');
+        $errorsMessage = $count.' '.($count === 1 ? 'error' : 'errors');
 
         $tocComponent = new TermsOfContentItem(
-            right: '<options=bold;fg=' . $this->getHttpMethodColor($method) . '>' . $method . "</> " . $route->getPath() . " <fg=red>$errorsMessage</>",
+            right: '<options=bold;fg='.$this->getHttpMethodColor($method).'>'.$method.'</> '.$route->getPath()." <fg=red>$errorsMessage</>",
             left: $this->getRouteAction($route),
         );
 

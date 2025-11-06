@@ -4,7 +4,7 @@ namespace Dedoc\Scramble\Tests;
 
 final class ComplexInferTypesTest extends SymfonyTestCase
 {
-    public function testInfersParamType(): void
+    public function test_infers_param_type(): void
     {
         $code = <<<'EOD'
 <?php
@@ -18,7 +18,7 @@ EOD;
         $this->assertSame('TA', $result->getFunctionDefinition('foo')->type->getReturnType()->toString());
     }
 
-    public function testInfersTypeFromAssignment(): void
+    public function test_infers_type_from_assignment(): void
     {
         $this->markTestSkipped('implement var type testing way');
         $code = <<<'EOD'
@@ -32,7 +32,7 @@ EOD;
         $this->assertSame('int(5)', $result->getVarType('a')->toString());
     }
 
-    public function testAssignmentWorksWithClosureScopes(): void
+    public function test_assignment_works_with_closure_scopes(): void
     {
         $this->markTestSkipped('implement var type testing way');
         $code = <<<'EOD'
@@ -46,7 +46,7 @@ EOD;
         $this->assertSame('(): int(2)', $result->getVarType('b')->toString());
     }
 
-    public function testAssignmentWorksWithFnScope(): void
+    public function test_assignment_works_with_fn_scope(): void
     {
         $this->markTestSkipped('implement var type testing way');
         $code = <<<'EOD'
@@ -62,7 +62,7 @@ EOD;
         $this->assertSame('(): int(2)', $result->getVarType('b')->toString());
     }
 
-    public function testArrayTypeIsAnalyzedWithDetails(): void
+    public function test_array_type_is_analyzed_with_details(): void
     {
         $code = <<<'EOD'
 <?php
@@ -87,7 +87,7 @@ EOD;
      * as there is no more useful information about the function can be extracted.
      * Sure we could've extracted some literals, but for now there is no point (?).
      */
-    public function testUsesFunctionReturnAnnotationTypeWhenIntFloatBoolUsed(): void
+    public function test_uses_function_return_annotation_type_when_int_float_bool_used(): void
     {
         $code = <<<'EOD'
 <?php
@@ -104,7 +104,7 @@ EOD;
         $this->assertSame('int', $result->getClassDefinition('Foo')->getMethodCallType('bar')->toString());
     }
 
-    public function testInfersClassFetchType917(): void
+    public function test_infers_class_fetch_type917(): void
     {
         $code = <<<'EOD'
 <?php
@@ -118,7 +118,7 @@ EOD;
         $this->assertSame('string', $result->getFunctionDefinition('foo')->type->getReturnType()->toString());
     }
 
-    public function testInfersClassFetchType912(): void
+    public function test_infers_class_fetch_type912(): void
     {
         $code = <<<'EOD'
 <?php

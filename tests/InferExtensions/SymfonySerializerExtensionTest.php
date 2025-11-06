@@ -74,7 +74,7 @@ class SymfonySerializerExtensionTest extends TestCase
     /** @test */
     public function it_can_register_custom_normalizers(): void
     {
-        $normalizer = new TestCustomNormalizer();
+        $normalizer = new TestCustomNormalizer;
 
         $this->extension->registerNormalizer($normalizer);
 
@@ -90,7 +90,9 @@ class SymfonySerializerExtensionTest extends TestCase
 class TestSerializableClass
 {
     public string $name;
+
     public int $age;
+
     public ?string $email;
 }
 

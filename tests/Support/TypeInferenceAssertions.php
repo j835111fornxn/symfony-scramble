@@ -3,7 +3,6 @@
 namespace Dedoc\Scramble\Tests\Support;
 
 use Dedoc\Scramble\Infer;
-use Dedoc\Scramble\Infer\DefinitionBuilders\FunctionLikeAstDefinitionBuilder;
 use Dedoc\Scramble\Infer\Scope\Index;
 use Dedoc\Scramble\Infer\Scope\NodeTypesResolver;
 use Dedoc\Scramble\Infer\Scope\Scope;
@@ -14,8 +13,6 @@ use Dedoc\Scramble\Infer\Services\ReferenceTypeResolver;
 use Dedoc\Scramble\Infer\TypeInferer;
 use Dedoc\Scramble\Infer\Visitors\PhpDocResolver;
 use Dedoc\Scramble\Support\Type\Type;
-use PhpParser\ErrorHandler\Throwing;
-use PhpParser\NameContext;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PHPUnit\Framework\Assert;
@@ -63,7 +60,7 @@ trait TypeInferenceAssertions
         );
 
         /** @var \PhpParser\Node\Expr\FuncCall $node */
-        $node = (new \PhpParser\NodeFinder)->findFirst($fileAst, fn($n) => $n instanceof \PhpParser\Node\Expr\FuncCall && $n->name instanceof \PhpParser\Node\Name && $n->name->toString() === 'expect');
+        $node = (new \PhpParser\NodeFinder)->findFirst($fileAst, fn ($n) => $n instanceof \PhpParser\Node\Expr\FuncCall && $n->name instanceof \PhpParser\Node\Name && $n->name->toString() === 'expect');
 
         $actualType = ReferenceTypeResolver::getInstance()->resolve(
             $scope,
@@ -91,6 +88,6 @@ trait TypeInferenceAssertions
         $code = array_slice($lines, $startLine - 1, $endLine - $startLine + 1);
         $codeString = implode("\n", $code);
 
-        return '<?php' . "\n\n" . $codeString;
+        return '<?php'."\n\n".$codeString;
     }
 }

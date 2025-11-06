@@ -21,20 +21,22 @@ final class InferTypesTest extends SymfonyTestCase
     use MatchesSnapshots;
 
     private Infer $infer;
+
     private Components $components;
+
     private OpenApiContext $context;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $container = static::getContainer();
+        $container = self::getContainer();
         $this->infer = $container->get(Infer::class);
         $this->components = new Components;
         $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
     }
 
-    public function testGetsJsonResourceType(): void
+    public function test_gets_json_resource_type(): void
     {
         $def = $this->infer->analyzeClass(InferTypesTest_SampleJsonResource::class);
 
@@ -43,7 +45,7 @@ final class InferTypesTest extends SymfonyTestCase
         $this->assertMatchesTextSnapshot($returnType->toString());
     }
 
-    public function testGetsJsonResourceTypeWithEnum(): void
+    public function test_gets_json_resource_type_with_enum(): void
     {
         $def = $this->infer->analyzeClass(InferTypesTest_SampleTwoPostJsonResource::class);
 
@@ -52,7 +54,7 @@ final class InferTypesTest extends SymfonyTestCase
         $this->assertMatchesTextSnapshot($returnType->toString());
     }
 
-    public function testInfersModelType(): void
+    public function test_infers_model_type(): void
     {
         $transformer = new TypeTransformer($this->infer, $this->context, [
             ModelToSchema::class,
@@ -69,7 +71,7 @@ final class InferTypesTest extends SymfonyTestCase
         $this->assertMatchesSnapshot($openApiType->toArray());
     }
 
-    public function testInfersModelTypeWhenToArrayIsImplemented(): void
+    public function test_infers_model_type_when_to_array_is_implemented(): void
     {
         $transformer = new TypeTransformer($this->infer, $this->context, [
             ModelToSchema::class,
@@ -95,16 +97,16 @@ class InferTypesTest_SampleJsonResource extends JsonResource
     public function toArray($request)
     {
         return [
-            $this->merge(fn() => ['foo' => 'bar']),
-            $this->mergeWhen(true, fn() => ['foo' => 'bar', 'id_inside' => $this->resource->id]),
+            $this->merge(fn () => ['foo' => 'bar']),
+            $this->mergeWhen(true, fn () => ['foo' => 'bar', 'id_inside' => $this->resource->id]),
             'when' => $this->when(true, ['wiw']),
             'item' => new InferTypesTest_SampleTwoJsonResource($this->resource),
             'item_make' => InferTypesTest_SampleTwoJsonResource::make($this->resource),
             'items' => InferTypesTest_SampleTwoJsonResource::collection($this->resource),
-            'optional_when_new' => $this->when(true, fn() => new InferTypesTest_SampleTwoJsonResource($this->resource)),
-            $this->mergeWhen(true, fn() => [
+            'optional_when_new' => $this->when(true, fn () => new InferTypesTest_SampleTwoJsonResource($this->resource)),
+            $this->mergeWhen(true, fn () => [
                 'threads' => [
-                    $this->mergeWhen(true, fn() => [
+                    $this->mergeWhen(true, fn () => [
                         'brand' => new InferTypesTest_SampleTwoJsonResource(null),
                     ]),
                 ],

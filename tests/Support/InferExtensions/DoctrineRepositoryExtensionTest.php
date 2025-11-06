@@ -12,7 +12,6 @@ use Dedoc\Scramble\Support\InferExtensions\DoctrineRepositoryExtension;
  * - The extension has the correct API methods
  * - Repository method return type inference is available
  */
-
 it('documents that DoctrineRepositoryExtension exists and has correct methods', function () {
     // This test verifies the class structure exists
     $reflection = new ReflectionClass(DoctrineRepositoryExtension::class);

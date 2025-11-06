@@ -21,7 +21,7 @@ class TestTag
 
     public function __construct()
     {
-        $this->products = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->products = new \Doctrine\Common\Collections\ArrayCollection;
     }
 
     public function getId(): ?int
