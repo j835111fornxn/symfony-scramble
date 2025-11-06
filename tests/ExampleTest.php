@@ -1,5 +1,15 @@
 <?php
 
-it('can test', function () {
-    expect(true)->toBeTrue();
-});
+namespace Dedoc\Scramble\Tests;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+final class ExampleTest extends TestCase
+{
+    #[Test]
+    public function canTest(): void
+    {
+        $this->assertTrue(true);
+    }
+}

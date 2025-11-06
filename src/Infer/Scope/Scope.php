@@ -54,6 +54,7 @@ class Scope
         public ScopeContext $context,
         public FileNameResolver $nameResolver,
         public ?Scope $parentScope = null,
+        public ?ExtensionsBroker $extensionsBroker = null,
     ) {}
 
     public function getType(Node $node): Type
@@ -89,7 +90,7 @@ class Scope
         }
 
         if ($node instanceof Node\Expr\Match_) {
-            return Union::wrap(array_map(fn (Node\MatchArm $arm) => $this->getType($arm->body), $node->arms));
+            return Union::wrap(array_map(fn(Node\MatchArm $arm) => $this->getType($arm->body), $node->arms));
         }
 
         if ($node instanceof Node\Expr\ClassConstFetch) {
@@ -157,7 +158,7 @@ class Scope
                 ? new MethodCallEvent($calleeType, $node->name->name, $this, new UnresolvableArgumentTypeBag($this->getArgsTypes($node->args)), $calleeType->name)
                 : null;
 
-            $exceptions = $event ? app(ExtensionsBroker::class)->getMethodCallExceptions($event) : [];
+            $exceptions = ($event && $this->extensionsBroker) ? $this->extensionsBroker->getMethodCallExceptions($event) : [];
 
             if ($this->functionDefinition()) {
                 $this->functionDefinition()->type->exceptions = array_merge(
@@ -231,7 +232,7 @@ class Scope
     public function getArgsTypes(array $args)
     {
         return collect($args)
-            ->filter(fn ($arg) => $arg instanceof Node\Arg)
+            ->filter(fn($arg) => $arg instanceof Node\Arg)
             ->mapWithKeys(function (Node\Arg $arg, $index) {
                 $type = $this->getType($arg->value);
                 if ($parsedPhpDoc = $arg->getAttribute('parsedPhpDoc')) {
@@ -255,7 +256,7 @@ class Scope
                 }
 
                 return collect($type->items)
-                    ->mapWithKeys(fn (ArrayItemType_ $item, $i) => [
+                    ->mapWithKeys(fn(ArrayItemType_ $item, $i) => [
                         $item->key ?: $index + $i => $item->value,
                     ])
                     ->all();
@@ -278,6 +279,7 @@ class Scope
             $context ?: $this->context,
             $this->nameResolver,
             $this,
+            $this->extensionsBroker,
         );
     }
 
@@ -297,10 +299,10 @@ class Scope
             ->pluck('name')
             ->unique()
             ->values()
-            ->filter(fn ($n) => preg_match('/^'.$name.'(\d*)?$/m', $n) === 1) // @phpstan-ignore argument.type
+            ->filter(fn($n) => preg_match('/^' . $name . '(\d*)?$/m', $n) === 1) // @phpstan-ignore argument.type
             ->all();
 
-        return $name.($scopeDuplicateTemplates ? count($scopeDuplicateTemplates) : '');
+        return $name . ($scopeDuplicateTemplates ? count($scopeDuplicateTemplates) : '');
     }
 
     public function isInClass()

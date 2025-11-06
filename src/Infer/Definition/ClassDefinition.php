@@ -95,7 +95,7 @@ class ClassDefinition implements ClassDefinitionContract
 
         /** @var \ReflectionMethod|null $reflectionMethod */
         $reflectionMethod = rescue(
-            fn () => (new \ReflectionClass($this->name))->getMethod($name), // @phpstan-ignore argument.type
+            fn() => (new \ReflectionClass($this->name))->getMethod($name), // @phpstan-ignore argument.type
             report: false,
         );
 
@@ -163,7 +163,7 @@ class ClassDefinition implements ClassDefinitionContract
             return false;
         }
         /** @var \ReflectionClass<object>|null $classReflection */
-        $classReflection = rescue(fn () => new \ReflectionClass($this->name), report: false); // @phpstan-ignore argument.type
+        $classReflection = rescue(fn() => new \ReflectionClass($this->name), report: false); // @phpstan-ignore argument.type
 
         if (! $classReflection) {
             return false;
@@ -175,7 +175,7 @@ class ClassDefinition implements ClassDefinitionContract
 
         foreach (class_uses_recursive($classReflection->name) as $traitName) {
             $traitReflection = rescue(
-                fn () => new \ReflectionClass($traitName), // @phpstan-ignore argument.type
+                fn() => new \ReflectionClass($traitName), // @phpstan-ignore argument.type
                 report: false,
             );
 
@@ -219,9 +219,9 @@ class ClassDefinition implements ClassDefinitionContract
     private function findReflectionMethod(string $name): ?\ReflectionMethod
     {
         /** @var \ReflectionClass<object>|null $classReflection */
-        $classReflection = rescue(fn () => new \ReflectionClass($this->name), report: false); // @phpstan-ignore argument.type
+        $classReflection = rescue(fn() => new \ReflectionClass($this->name), report: false); // @phpstan-ignore argument.type
         /** @var \ReflectionMethod|null $methodReflection */
-        $methodReflection = rescue(fn () => $classReflection?->getMethod($name), report: false);
+        $methodReflection = rescue(fn() => $classReflection?->getMethod($name), report: false);
 
         // The case when method is defined in the class or its parents.
         if ($methodReflection && $this->isDeclaredIn($methodReflection, $methodReflection->getDeclaringClass())) {
@@ -230,9 +230,9 @@ class ClassDefinition implements ClassDefinitionContract
 
         foreach ($this->getClassContexts()->keys() as $class) {
             /** @var \ReflectionClass<object>|null $classReflection */
-            $classReflection = rescue(fn () => new \ReflectionClass($class), report: false); // @phpstan-ignore argument.type
+            $classReflection = rescue(fn() => new \ReflectionClass($class), report: false); // @phpstan-ignore argument.type
             /** @var \ReflectionMethod|null $traitMethodReflection */
-            $traitMethodReflection = rescue(fn () => $classReflection?->getMethod($name), report: false);
+            $traitMethodReflection = rescue(fn() => $classReflection?->getMethod($name), report: false);
 
             if ($traitMethodReflection) {
                 return $traitMethodReflection;
@@ -276,6 +276,7 @@ class ClassDefinition implements ClassDefinitionContract
             $this->methods[$name] = (new MethodAnalyzer(
                 $scope->index,
                 $this,
+                \Dedoc\Scramble\Infer\Context::getInstance()->shallowIndex,
             ))->analyze($methodDefinition, $indexBuilders, $withSideEffects);
         }
 
@@ -291,7 +292,7 @@ class ClassDefinition implements ClassDefinitionContract
                 new FileNameResolver(
                     class_exists($this->name)
                         ? ClassReflector::make($this->name)->getNameContext()
-                        : tap(new NameContext(new Throwing), fn (NameContext $nc) => $nc->startNamespace()),
+                        : tap(new NameContext(new Throwing), fn(NameContext $nc) => $nc->startNamespace()),
                 ),
             );
 
@@ -331,13 +332,13 @@ class ClassDefinition implements ClassDefinitionContract
 
         $reflector = ClassReflector::make($this->name);
 
-        $docComment = rescue(fn () => $reflector->getReflection()->getDocComment(), report: false) ?: '';
+        $docComment = rescue(fn() => $reflector->getReflection()->getDocComment(), report: false) ?: '';
 
-        $classSource = $docComment."\n".rescue($reflector->getSource(...), '', report: false);
+        $classSource = $docComment . "\n" . rescue($reflector->getSource(...), '', report: false);
 
         /** @var Collection<int, string> $tagsDoc */
         $tagsDoc = Str::matchAll('/@(?:use|extends|mixin)\s+[^\r\n*]+/', $classSource);
-        $contextPhpDoc = $tagsDoc->map(fn ($s) => " * $s")->prepend('/**')->push('*/')->join("\n");
+        $contextPhpDoc = $tagsDoc->map(fn($s) => " * $s")->prepend('/**')->push('*/')->join("\n");
 
         $nameContext = rescue($reflector->getNameContext(...), report: false);
 
@@ -356,8 +357,8 @@ class ClassDefinition implements ClassDefinitionContract
         $classTemplatesByName = collect($this->templateTypes)->keyBy->name;
 
         $types = collect($tags)
-            ->map(fn ($tag) => PhpDocTypeHelper::toType($tag->type))
-            ->filter(fn ($type) => $type instanceof ObjectType);
+            ->map(fn($tag) => PhpDocTypeHelper::toType($tag->type))
+            ->filter(fn($type) => $type instanceof ObjectType);
 
         if ($this->parentFqn && ! $types->firstWhere('name', $this->parentFqn)) {
             $types->push(new ObjectType($this->parentFqn));
@@ -373,7 +374,7 @@ class ClassDefinition implements ClassDefinitionContract
                 foreach ($definition->templateTypes as $i => $templateType) {
                     $concreteType = (new TypeWalker)->map(
                         $type->templateTypes[$i] ?? $templateType->default ?? new UnknownType,
-                        fn ($t) => $t instanceof ObjectType ? $classTemplatesByName->get($t->name, $t) : $t,
+                        fn($t) => $t instanceof ObjectType ? $classTemplatesByName->get($t->name, $t) : $t,
                     );
 
                     $classContext->offsetSet($templateType->name, $concreteType);
@@ -397,7 +398,7 @@ class ClassDefinition implements ClassDefinitionContract
             $localizedClassContext = $classContext->map->map(function ($type) use ($localContext) {
                 return (new TypeWalker)->map(
                     $type,
-                    fn ($t) => $type instanceof TemplateType
+                    fn($t) => $type instanceof TemplateType
                         ? $localContext->get($type->name, new UnknownType)
                         : $type,
                 );
@@ -416,12 +417,12 @@ class ClassDefinition implements ClassDefinitionContract
      */
     private function dumpContext(ClassDefinition $def, Collection $classContexts): void // @phpstan-ignore method.unused
     {
-        $className = $def->name.($def->templateTypes ? '<'.implode(',', array_map($this->dumpTemplateName(...), $def->templateTypes)).'>' : '');
+        $className = $def->name . ($def->templateTypes ? '<' . implode(',', array_map($this->dumpTemplateName(...), $def->templateTypes)) . '>' : '');
 
         $contextNames = $classContexts->map(function ($contexts, $name) {
-            $templates = $contexts->map(fn ($t) => $t instanceof TemplateType ? $this->dumpTemplateName($t) : $t->toString());
+            $templates = $contexts->map(fn($t) => $t instanceof TemplateType ? $this->dumpTemplateName($t) : $t->toString());
 
-            return $name.($templates->count() ? '<'.$templates->join(',').'>' : '');
+            return $name . ($templates->count() ? '<' . $templates->join(',') . '>' : '');
         })->values()->toArray();
 
         dump([
@@ -431,7 +432,7 @@ class ClassDefinition implements ClassDefinitionContract
 
     private function dumpTemplateName(TemplateType $tt): string
     {
-        return $tt->name.'#'.spl_object_id($tt);
+        return $tt->name . '#' . spl_object_id($tt);
     }
 
     public function setIndex(Index $index): void

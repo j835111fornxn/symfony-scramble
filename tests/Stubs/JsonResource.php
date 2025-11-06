@@ -1,5 +1,7 @@
 <?php
 
+namespace Illuminate\Http\Resources\Json;
+
 /**
  * Stub class for Laravel's JsonResource to allow tests to load.
  * Tests using this class should be skipped or migrated to Symfony equivalents.
@@ -33,6 +35,11 @@ abstract class JsonResource
     protected function when($condition, $value)
     {
         return $condition ? $value : null;
+    }
+
+    protected function whenNotNull($value)
+    {
+        return $value !== null ? $value : null;
     }
 
     protected function whenLoaded($relationship, $value = null)

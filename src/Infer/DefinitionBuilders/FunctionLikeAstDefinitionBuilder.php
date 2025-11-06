@@ -46,8 +46,6 @@ use ReflectionMethod;
 
 class FunctionLikeAstDefinitionBuilder implements FunctionLikeDefinitionBuilder
 {
-    private LazyShallowReflectionIndex $shallowIndex;
-
     /**
      * @param  IndexBuilder<array<string, mixed>>[]  $indexBuilders
      */
@@ -56,12 +54,11 @@ class FunctionLikeAstDefinitionBuilder implements FunctionLikeDefinitionBuilder
         public FunctionLike $functionLike,
         public Index $index,
         public FileNameResolver $fileNameResolver,
+        public LazyShallowReflectionIndex $shallowIndex,
         public ?ClassDefinition $classDefinition = null,
         public array $indexBuilders = [],
         public bool $withSideEffects = false,
-    ) {
-        $this->shallowIndex = app(LazyShallowReflectionIndex::class);
-    }
+    ) {}
 
     public function build(): FunctionLikeAstDefinition
     {
@@ -96,11 +93,13 @@ class FunctionLikeAstDefinitionBuilder implements FunctionLikeDefinitionBuilder
     {
         $traverser = new NodeTraverser;
 
+        $extensionsBroker = Context::getInstance()->extensionsBroker;
+
         $traverser->addVisitor($inferrer = new TypeInferer(
             $this->index,
             $this->fileNameResolver,
-            new Scope($this->index, new NodeTypesResolver, new ScopeContext($this->classDefinition), $this->fileNameResolver),
-            Context::getInstance()->extensionsBroker->extensions,
+            new Scope($this->index, new NodeTypesResolver, new ScopeContext($this->classDefinition), $this->fileNameResolver, null, $extensionsBroker),
+            $extensionsBroker->extensions,
             [new IndexBuildingHandler($this->indexBuilders)],
         ));
 
@@ -291,7 +290,7 @@ class FunctionLikeAstDefinitionBuilder implements FunctionLikeDefinitionBuilder
         /** @var ReturnTagValueNode $scrambleReturn */
         $type = PhpDocTypeHelper::toType($scrambleReturn->type);
         foreach (($this->classDefinition?->templateTypes ?: []) as $template) {
-            $type = (new TypeWalker)->map($type, fn ($t) => $t instanceof ObjectType && $t->name === $template->name ? $template : $t);
+            $type = (new TypeWalker)->map($type, fn($t) => $t instanceof ObjectType && $t->name === $template->name ? $template : $t);
         }
 
         $type->setAttribute('fromScrambleReturn', true);

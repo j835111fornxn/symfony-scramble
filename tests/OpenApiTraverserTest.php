@@ -1,18 +1,24 @@
 <?php
 
+namespace Dedoc\Scramble\Tests;
+
 use Dedoc\Scramble\AbstractOpenApiVisitor;
 use Dedoc\Scramble\Support\Generator\InfoObject;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\Path;
+use PHPUnit\Framework\Attributes\Test;
 
-it('traverses open api document', function () {
-    $document = new OpenApi(version: '3.1.0');
-    $document->setInfo(new InfoObject(title: 'app'));
-    $document->addPath($path = new Path('/test'));
-    $path->addOperation(new Operation('GET'));
+final class OpenApiTraverserTest extends SymfonyTestCase
+{
+    #[Test]
+    public function traversesOpenApiDocument(): void
+    {
+        $document = new OpenApi(version: '3.1.0');
+        $document->setInfo(new InfoObject(title: 'app'));
+        $document->addPath($path = new Path('/test'));
+        $path->addOperation(new Operation('GET'));
 
-    $traverser = new \Dedoc\Scramble\OpenApiTraverser([
         $visitor = new class extends AbstractOpenApiVisitor
         {
             public array $paths = [];
@@ -21,16 +27,18 @@ it('traverses open api document', function () {
             {
                 $this->paths[] = implode('.', $path);
             }
-        },
-    ]);
+        };
 
-    $traverser->traverse($document);
+        $traverser = new \Dedoc\Scramble\OpenApiTraverser([$visitor]);
 
-    expect($visitor->paths)->toBe([
-        '',
-        'info',
-        'components',
-        'paths.0',
-        'paths.0.operations.GET',
-    ]);
-});
+        $traverser->traverse($document);
+
+        $this->assertSame([
+            '',
+            'info',
+            'components',
+            'paths.0',
+            'paths.0.operations.GET',
+        ], $visitor->paths);
+    }
+}

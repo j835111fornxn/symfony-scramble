@@ -3,22 +3,69 @@
 namespace Dedoc\Scramble\Tests\Attributes;
 
 use Dedoc\Scramble\Attributes\Response;
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-it('generates response for basic case', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('test', AController_ResponseTest::class));
+final class ResponseTest extends TestCase
+{
+    use AnalysisHelpers;
 
-    expect($responses = $openApiDocument['paths']['/test']['get']['responses'])
-        ->toHaveCount(1)
-        ->and($responses[200]['description'])
-        ->toBe('Nice response')
-        ->and($responses[200]['content']['application/json']['schema'])
-        ->toBe([
+    #[Test]
+    public function generatesResponseForBasicCase(): void
+    {
+        $openApiDocument = $this->generateForRoute(fn () => Route::get('test', AController_ResponseTest::class));
+
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
+
+        $this->assertCount(1, $responses);
+        $this->assertSame('Nice response', $responses[200]['description']);
+        $this->assertSame([
             'type' => 'object',
             'properties' => ['foo' => ['type' => 'string']],
             'required' => ['foo'],
-        ]);
-});
+        ], $responses[200]['content']['application/json']['schema']);
+    }
+
+    #[Test]
+    public function allowsAddingAdditionalMediaTypesResponseWithoutOverridingTheOriginalType(): void
+    {
+        $openApiDocument = $this->generateForRoute(fn () => Route::get('test', MultipleTypeController_ResponseTest::class));
+
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
+
+        $this->assertCount(1, $responses);
+        $this->assertSame('When `download` set to `false`, returns the JSON response; when `true`, returns the excel', $responses[200]['description']);
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => ['foo' => ['type' => 'string']],
+            'required' => ['foo'],
+        ], $responses[200]['content']['application/json']['schema']);
+        $this->assertSame([
+            'type' => 'string',
+            'format' => 'binary',
+        ], $responses[200]['content']['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']['schema']);
+    }
+
+    #[Test]
+    public function allowsAddingNewResponse(): void
+    {
+        $openApiDocument = $this->generateForRoute(fn () => Route::get('test', NewResponseController_ResponseTest::class));
+
+        $responses = $openApiDocument['paths']['/test']['get']['responses'];
+
+        $this->assertCount(2, $responses);
+        $this->assertArrayHasKey(200, $responses);
+        $this->assertArrayHasKey(201, $responses);
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => ['foo' => ['type' => 'string']],
+            'required' => ['foo'],
+        ], $responses[201]['content']['application/json']['schema']);
+    }
+}
+
 class AController_ResponseTest
 {
     #[Response(200, 'Nice response', type: 'array{"foo": string}')]
@@ -28,25 +75,6 @@ class AController_ResponseTest
     }
 }
 
-it('allows adding additional media types response without overriding the original type', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('test', MultipleTypeController_ResponseTest::class));
-
-    expect($responses = $openApiDocument['paths']['/test']['get']['responses'])
-        ->toHaveCount(1)
-        ->and($responses[200]['description'])
-        ->toBe('When `download` set to `false`, returns the JSON response; when `true`, returns the excel')
-        ->and($responses[200]['content']['application/json']['schema'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => ['foo' => ['type' => 'string']],
-            'required' => ['foo'],
-        ])
-        ->and($responses[200]['content']['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']['schema'])
-        ->toBe([
-            'type' => 'string',
-            'format' => 'binary',
-        ]);
-});
 class MultipleTypeController_ResponseTest
 {
     #[Response(200, 'When `download` set to `false`, returns the JSON response; when `true`, returns the excel')]
@@ -60,20 +88,6 @@ class MultipleTypeController_ResponseTest
     }
 }
 
-it('allows adding new response', function () {
-    $openApiDocument = generateForRoute(fn () => Route::get('test', NewResponseController_ResponseTest::class));
-
-    expect($responses = $openApiDocument['paths']['/test']['get']['responses'])
-        ->toHaveCount(2)
-        ->and($responses)
-        ->toHaveKeys([200, 201])
-        ->and($responses[201]['content']['application/json']['schema'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => ['foo' => ['type' => 'string']],
-            'required' => ['foo'],
-        ]);
-});
 class NewResponseController_ResponseTest
 {
     #[Response(201, type: 'array{foo: string}')]

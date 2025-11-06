@@ -17,9 +17,10 @@ use Symfony\Component\HttpKernel\Kernel;
  * Replaces Laravel's Orchestra TestCase with Symfony's KernelTestCase.
  *
  * Performance optimizations:
- * - Kernel is booted once and reused across tests
+ * - Container is built once and reused across tests
  * - Debug mode is disabled in tests
  * - Uses in-memory cache to avoid disk I/O
+ * - Skips bundle boot() to avoid initialization overhead
  */
 class SymfonyTestCase extends KernelTestCase
 {
@@ -27,19 +28,20 @@ class SymfonyTestCase extends KernelTestCase
     use TypeInferenceAssertions;
 
     /**
-     * Track if kernel has been booted to avoid redundant boots.
+     * Track if container has been initialized to avoid redundant initialization.
      */
-    private static bool $kernelBooted = false;
+    private static bool $containerInitialized = false;
 
     protected function setUp(): void
     {
-        // Skip parent::setUp() which would reset kernel
-        // parent::setUp();
+        // Call parent setUp first to properly initialize PHPUnit internals
+        parent::setUp();
 
-        // Only boot kernel once for all tests to improve performance
-        if (! self::$kernelBooted) {
+        // Only initialize container once for all tests to improve performance
+        if (! self::$containerInitialized) {
+            // Boot kernel - custom boot() skips bundle initialization
             self::bootKernel();
-            self::$kernelBooted = true;
+            self::$containerInitialized = true;
         }
 
         Scramble::throwOnError();
@@ -75,8 +77,9 @@ class SymfonyTestCase extends KernelTestCase
         Scramble::$defaultRoutesIgnored = false;
         Scramble::$extensions = [];
 
-        // Don't shutdown kernel - reuse it for next test
-        // parent::tearDown() would shut it down
+        // Call parent tearDown but kernel will remain booted for reuse
+        // Note: parent::tearDown() in KernelTestCase only shuts down if ensureKernelShutdown() is called
+        parent::tearDown();
     }
 
     /**
@@ -84,9 +87,9 @@ class SymfonyTestCase extends KernelTestCase
      */
     public static function tearDownAfterClass(): void
     {
-        if (self::$kernelBooted) {
+        if (self::$containerInitialized) {
             static::ensureKernelShutdown();
-            self::$kernelBooted = false;
+            self::$containerInitialized = false;
         }
 
         parent::tearDownAfterClass();
@@ -96,15 +99,17 @@ class SymfonyTestCase extends KernelTestCase
      * Create a test kernel class for Symfony testing.
      *
      * Performance: debug mode disabled, uses fast in-memory cache.
+     * Note: This kernel skips bundle boot() to avoid initialization overhead in tests.
      */
     protected static function createKernel(array $options = []): Kernel
     {
-        return new class($options['environment'] ?? 'test', $options['debug'] ?? false) extends Kernel
+        return new class($options['environment'] ?? 'test', true) extends Kernel // Always use debug=true to skip container compilation
         {
             public function registerBundles(): iterable
             {
                 return [
                     new \Symfony\Bundle\FrameworkBundle\FrameworkBundle,
+                    new \Symfony\Bundle\TwigBundle\TwigBundle,
                     new ScrambleBundle,
                 ];
             }
@@ -116,11 +121,17 @@ class SymfonyTestCase extends KernelTestCase
                         'test' => true,
                         'router' => [
                             'utf8' => true,
-                            'resource' => '%kernel.project_dir%/routes',
+                            // Don't load routes automatically - tests will define their own if needed
+                            'resource' => null,
                         ],
                         'secret' => 'test-secret',
                         // Disable profiler and other debug features for faster tests
                         'profiler' => ['enabled' => false],
+                    ]);
+
+                    $container->loadFromExtension('twig', [
+                        'default_path' => '%kernel.project_dir%/templates',
+                        'strict_variables' => true,
                     ]);
 
                     $container->loadFromExtension('scramble', [

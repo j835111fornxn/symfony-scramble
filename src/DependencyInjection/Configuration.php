@@ -76,7 +76,7 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->end()
             ->arrayNode('servers')
-            ->defaultNull()
+            ->defaultValue([])
             ->useAttributeAsKey('name')
             ->prototype('scalar')->end()
             ->info('The list of servers of the API.')

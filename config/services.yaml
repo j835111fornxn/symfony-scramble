@@ -13,6 +13,9 @@ services:
             - '../src/Attributes/'
             - '../src/Contracts/'
             - '../src/Support/Generator/Types/'
+            - '../src/Support/helpers.php'
+            - '../src/Infer/Scope/Scope.php'
+            - '../src/Infer/Scope/ScopeContext.php'
 
     # Core services (from ScrambleServiceProvider singletons)
     Dedoc\Scramble\Infer:
@@ -191,12 +194,6 @@ services:
         tags: ['scramble.type_to_schema_extension']
 
     Dedoc\Scramble\Support\TypeToSchemaExtensions\StreamedResponseToSchema:
-        tags: ['scramble.type_to_schema_extension']
-
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\ResourceResponseTypeToSchema:
-        tags: ['scramble.type_to_schema_extension']
-
-    Dedoc\Scramble\Support\TypeToSchemaExtensions\PaginatedResourceResponseTypeToSchema:
         tags: ['scramble.type_to_schema_extension']
 
     Dedoc\Scramble\Support\TypeToSchemaExtensions\VoidTypeToSchema:

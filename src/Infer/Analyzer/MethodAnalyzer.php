@@ -7,6 +7,7 @@ use Dedoc\Scramble\Infer\Definition\FunctionLikeDefinition;
 use Dedoc\Scramble\Infer\DefinitionBuilders\FunctionLikeAstDefinitionBuilder;
 use Dedoc\Scramble\Infer\Reflector\ClassReflector;
 use Dedoc\Scramble\Infer\Scope\Index;
+use Dedoc\Scramble\Infer\Scope\LazyShallowReflectionIndex;
 use Dedoc\Scramble\Infer\Services\FileNameResolver;
 
 class MethodAnalyzer
@@ -14,6 +15,7 @@ class MethodAnalyzer
     public function __construct(
         private Index $index,
         private ClassDefinition $classDefinition,
+        private LazyShallowReflectionIndex $shallowIndex,
     ) {}
 
     public function analyze(FunctionLikeDefinition $methodDefinition, array $indexBuilders = [], bool $withSideEffects = false)
@@ -33,6 +35,7 @@ class MethodAnalyzer
             $node,
             $this->index,
             new FileNameResolver($this->getClassReflector()->getNameContext()),
+            $this->shallowIndex,
             $this->classDefinition,
             $indexBuilders,
             $withSideEffects

@@ -33,34 +33,11 @@ final class TypeToSchemaTransformerTest extends SymfonyTestCase
     use MatchesSnapshots;
 
     private OpenApiContext $context;
-    private array $config = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->config = [];
         $this->context = new OpenApiContext(new OpenApi('3.1.0'), new GeneratorConfig);
-    }
-
-    /**
-     * Set a configuration value for the current test.
-     */
-    private function setConfig(string $key, mixed $value): void
-    {
-        $this->config[$key] = $value;
-        // Update the context with new config
-        $this->context = new OpenApiContext(
-            new OpenApi('3.1.0'),
-            (new GeneratorConfig)->useConfig($this->config)
-        );
-    }
-
-    /**
-     * Get a configuration value.
-     */
-    private function getConfig(string $key, mixed $default = null): mixed
-    {
-        return $this->config[$key] ?? $default;
     }
 
     #[Test]
@@ -141,7 +118,7 @@ final class TypeToSchemaTransformerTest extends SymfonyTestCase
     #[Test]
     public function getsEnumWithValuesTypeAndDescription(): void
     {
-        $this->setConfig('enum_cases_description_strategy', 'description');
+        config()->set('scramble.enum_cases_description_strategy', 'description');
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -161,7 +138,7 @@ EOF, $extension->toSchema($type)->toArray()['description']);
     #[Test]
     public function getsEnumWithItsDescriptionAndCasesDescription(): void
     {
-        $this->setConfig('enum_cases_description_strategy', 'description');
+        config()->set('scramble.enum_cases_description_strategy', 'description');
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -180,7 +157,7 @@ EOF, $extension->toSchema($type)->toArray()['description']);
     #[Test]
     public function preservesEnumCasesDescriptionButOverridesTheEnumSchemaDescriptionWhenUsedInObject(): void
     {
-        $this->setConfig('enum_cases_description_strategy', 'description');
+        config()->set('scramble.enum_cases_description_strategy', 'description');
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -206,7 +183,7 @@ EOF, $transformer->transform($type)->toArray()['properties']['a']['description']
     #[Test]
     public function getsEnumWithValuesTypeAndDescriptionWithExtensions(): void
     {
-        $this->setConfig('enum_cases_description_strategy', 'extension');
+        config()->set('scramble.enum_cases_description_strategy', 'extension');
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -224,7 +201,7 @@ EOF, $transformer->transform($type)->toArray()['properties']['a']['description']
     #[Test]
     public function getsEnumWithValuesTypeAndNamesAsVarnamesWithExtensions(): void
     {
-        $this->setConfig('enum_cases_names_strategy', 'varnames');
+        config()->set('scramble.enum_cases_names_strategy', 'varnames');
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -242,7 +219,7 @@ EOF, $transformer->transform($type)->toArray()['properties']['a']['description']
     #[Test]
     public function getsEnumWithValuesTypeWithoutNamesWithExtensions(): void
     {
-        $this->setConfig('enum_cases_names_strategy', false);
+        config()->set('scramble.enum_cases_names_strategy', false);
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -258,7 +235,7 @@ EOF, $transformer->transform($type)->toArray()['properties']['a']['description']
     #[Test]
     public function getsEnumWithValuesTypeAndNamesAsEnumNamesWithExtensions(): void
     {
-        $this->setConfig('enum_cases_names_strategy', 'names');
+        config()->set('scramble.enum_cases_names_strategy', 'names');
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -276,7 +253,7 @@ EOF, $transformer->transform($type)->toArray()['properties']['a']['description']
     #[Test]
     public function getsEnumWithValuesTypeAndDescriptionWithoutCases(): void
     {
-        $this->setConfig('enum_cases_description_strategy', false);
+        config()->set('scramble.enum_cases_description_strategy', false);
 
         $infer = $this->getContainer()->get(Infer::class);
         $transformer = new TypeTransformer($infer, $this->context, [EnumToSchema::class]);
@@ -465,7 +442,7 @@ EOF, $transformer->transform($type)->toArray()['properties']['a']['description']
             'format' => 'date-time',
             'description' => 'The date of the current moment.',
         ], $this->context->openApi->components->getSchema(ApiResourceTest_ResourceWithSimpleDescription::class)->toArray()['properties']['now']);
-
+        
         $this->assertEquals([
             'type' => 'string',
             'format' => 'date-time',
@@ -627,8 +604,8 @@ class ComplexTypeHandlersWithWhen_SampleType extends JsonResource
     public function toArray($request)
     {
         return [
-            'foo' => $this->when(true, fn() => 1),
-            'bar' => $this->when(true, fn() => 'b', null),
+            'foo' => $this->when(true, fn () => 1),
+            'bar' => $this->when(true, fn () => 'b', null),
         ];
     }
 }
@@ -644,8 +621,8 @@ class ComplexTypeHandlersWithWhenLoaded_SampleType extends JsonResource
             'foo_new' => new ComplexTypeHandlersWithWhen_SampleType($this->foo),
             'foo_make' => ComplexTypeHandlersWithWhen_SampleType::make($this->foo),
             'foo_collection' => ComplexTypeHandlersWithWhen_SampleType::collection($this->foo),
-            'bar' => $this->whenLoaded('bar', fn() => 1),
-            'bar_nullable' => $this->whenLoaded('bar', fn() => 's', null),
+            'bar' => $this->whenLoaded('bar', fn () => 1),
+            'bar_nullable' => $this->whenLoaded('bar', fn () => 's', null),
         ];
     }
 }
@@ -657,12 +634,12 @@ class ComplexTypeHandlersWithWhenCounted_SampleType extends JsonResource
         return [
             'bar_single' => $this->whenCounted('bar'),
             'bar_fake_count' => $this->whenCounted('bar', 1),
-            'bar_different_literal_types' => $this->whenCounted('bar', fn() => 1, 5),
-            'bar_identical_literal_types' => $this->whenCounted('bar', fn() => 1, 1),
-            'bar_string' => $this->whenCounted('bar', fn() => '2'),
-            'bar_int' => $this->whenCounted('bar', fn() => 1),
+            'bar_different_literal_types' => $this->whenCounted('bar', fn () => 1, 5),
+            'bar_identical_literal_types' => $this->whenCounted('bar', fn () => 1, 1),
+            'bar_string' => $this->whenCounted('bar', fn () => '2'),
+            'bar_int' => $this->whenCounted('bar', fn () => 1),
             'bar_useless' => $this->whenCounted('bar', null),
-            'bar_nullable' => $this->whenCounted('bar', fn() => 3, null),
+            'bar_nullable' => $this->whenCounted('bar', fn () => 3, null),
         ];
     }
 }
@@ -784,15 +761,15 @@ enum StatusTwo: string
 
 enum StatusThree: string
 {
-/**
+    /**
      * Drafts are the posts that are not visible by visitors.
      */
     case DRAFT = 'draft';
-/**
+    /**
      * Published posts are visible to visitors.
      */
     case PUBLISHED = 'published';
-/**
+    /**
      * Archived posts are not visible to visitors.
      */
     case ARCHIVED = 'archived';
@@ -803,7 +780,7 @@ enum StatusThree: string
  */
 enum StatusFour: string
 {
-/**
+    /**
      * Drafts are the posts that are not visible by visitors.
      */
     case DRAFT = 'draft';

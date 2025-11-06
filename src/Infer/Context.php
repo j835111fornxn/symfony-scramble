@@ -3,6 +3,7 @@
 namespace Dedoc\Scramble\Infer;
 
 use Dedoc\Scramble\Infer\Extensions\ExtensionsBroker;
+use Dedoc\Scramble\Infer\Scope\LazyShallowReflectionIndex;
 
 class Context
 {
@@ -10,22 +11,23 @@ class Context
 
     public function __construct(
         public readonly ExtensionsBroker $extensionsBroker,
+        public readonly LazyShallowReflectionIndex $shallowIndex,
     ) {}
 
     public static function configure(
         ExtensionsBroker $extensionsBroker,
+        LazyShallowReflectionIndex $shallowIndex,
     ) {
         static::$instance = new static(
             $extensionsBroker,
+            $shallowIndex,
         );
     }
 
     public static function getInstance(): static
     {
         if (! static::$instance) {
-            static::$instance = new static(
-                app(ExtensionsBroker::class),
-            );
+            throw new \RuntimeException('Context not configured. Call Context::configure() first.');
         }
 
         return static::$instance;

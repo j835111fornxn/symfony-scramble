@@ -61,7 +61,10 @@
     "autoload-dev": {
         "psr-4": {
             "Dedoc\\Scramble\\Tests\\": "tests"
-        }
+        },
+        "classmap": [
+            "tests/Stubs"
+        ]
     },
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",

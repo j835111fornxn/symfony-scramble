@@ -28,11 +28,25 @@ class ScrambleBundle extends Bundle
         // This allows legacy code to access the service container
         $GLOBALS['__scramble_container'] = $this->container;
 
+        // Initialize Infer Context with required dependencies
+        $this->configureInferContext();
+
         // Initialize Scramble configuration
         $this->configureScramble();
 
         // Register documentation routes dynamically
         $this->registerDocumentationRoutes();
+    }
+
+    /**
+     * Configure Infer Context with dependencies from container.
+     */
+    private function configureInferContext(): void
+    {
+        $extensionsBroker = $this->container->get(Infer\Extensions\ExtensionsBroker::class);
+        $shallowIndex = $this->container->get(Infer\Scope\LazyShallowReflectionIndex::class);
+
+        Infer\Context::configure($extensionsBroker, $shallowIndex);
     }
 
     /**

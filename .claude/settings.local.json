@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec list:*)",
+      "Bash(test:*)",
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(php vendor/bin/phpunit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

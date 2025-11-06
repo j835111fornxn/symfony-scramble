@@ -51,7 +51,7 @@ class MethodQuery
             return $this;
         }
 
-        (new MethodAnalyzer($this->infer->index, $classDefinition))
+        (new MethodAnalyzer($this->infer->index, $classDefinition, \Dedoc\Scramble\Infer\Context::getInstance()->shallowIndex))
             ->analyze($methodDefinition, [
                 new class($bag, $this->argumentsOverrides) implements IndexBuilder
                 {

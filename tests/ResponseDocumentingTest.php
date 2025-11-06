@@ -1,17 +1,144 @@
 <?php
 
+namespace Dedoc\Scramble\Tests;
+
 use Illuminate\Routing\Route;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Spatie\Snapshots\MatchesSnapshots;
 
-use function Spatie\Snapshots\assertMatchesSnapshot;
+final class ResponseDocumentingTest extends TestCase
+{
+    use MatchesSnapshots;
 
-test('response()->noContent() call support', function () {
-    \Illuminate\Support\Facades\Route::get('api/test', [Foo_Test::class, 'index']);
+    #[Test]
+    public function responseNoContentCallSupport(): void
+    {
+        \Illuminate\Support\Facades\Route::get('api/test', [Foo_Test::class, 'index']);
 
-    \Dedoc\Scramble\Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
-    $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
+        \Dedoc\Scramble\Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
+        $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
 
-    assertMatchesSnapshot($openApiDocument);
-});
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
+
+    #[Test]
+    public function responseJsonCallSupportWithPhpdocHelp(): void
+    {
+        \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestTwo::class, 'index']);
+
+        \Dedoc\Scramble\Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
+        $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
+
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
+
+    #[Test]
+    public function multipleResponsesSupport(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestThree::class, 'index']));
+
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
+
+    #[Test]
+    public function manuallyAnnotatedResponsesSupport(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestFour::class, 'index']));
+
+        $this->assertMatchesSnapshot($openApiDocument);
+    }
+
+    #[Test]
+    public function manuallyAnnotatedResponsesResourcesSupport(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestFive::class, 'index']));
+
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => [
+                'data' => ['$ref' => '#/components/schemas/Foo_TestFiveResource'],
+            ],
+            'required' => ['data'],
+        ], $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']);
+    }
+
+    #[Test]
+    public function automatedResponseStatusCodeInferenceWhenUsingResponseSetStatusCodeMethod(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestSix::class, 'single']));
+
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => [
+                'data' => [
+                    '$ref' => '#/components/schemas/Foo_TestFiveResource',
+                ],
+            ],
+            'required' => ['data'],
+        ], $openApiDocument['paths']['/test']['get']['responses'][201]['content']['application/json']['schema']);
+    }
+
+    #[Test]
+    public function automatedResponseStatusCodeInferenceWhenUsingCollectionResponseSetStatusCodeMethod(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestSix::class, 'collection']));
+
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => [
+                'data' => [
+                    'type' => 'array',
+                    'items' => ['$ref' => '#/components/schemas/Foo_TestFiveResource'],
+                ],
+            ],
+            'required' => [
+                0 => 'data',
+            ],
+        ], $openApiDocument['paths']['/test']['get']['responses'][201]['content']['application/json']['schema']);
+    }
+
+    #[Test]
+    public function doesNotWrapResourcesWhenResourceIsWrapped(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestSeven::class, 'index']));
+
+        $this->assertSame(
+            ['$ref' => '#/components/schemas/Foo_TestSevenResource'],
+            $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']
+        );
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => [
+                'data' => [
+                    'type' => 'object',
+                    'properties' => ['foo' => ['type' => 'string']],
+                    'required' => ['foo'],
+                ],
+            ],
+            'required' => ['data'],
+            'title' => 'Foo_TestSevenResource',
+        ], $openApiDocument['components']['schemas']['Foo_TestSevenResource']);
+    }
+
+    #[Test]
+    public function doesNotWrapResourcesWhenResourceIsPassedToJsonResponseExplicitly(): void
+    {
+        $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', Foo_TestEight::class));
+
+        $this->assertSame(
+            ['$ref' => '#/components/schemas/Foo_TestEightResource'],
+            $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']
+        );
+        $this->assertSame([
+            'type' => 'object',
+            'properties' => ['foo' => ['type' => 'string']],
+            'required' => ['foo'],
+            'title' => 'Foo_TestEightResource',
+        ], $openApiDocument['components']['schemas']['Foo_TestEightResource']);
+    }
+}
+
 class Foo_Test
 {
     public function index()
@@ -20,14 +147,6 @@ class Foo_Test
     }
 }
 
-test('response()->json() call support with phpdoc help', function () {
-    \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestTwo::class, 'index']);
-
-    \Dedoc\Scramble\Scramble::routes(fn (Route $r) => $r->uri === 'api/test');
-    $openApiDocument = app()->make(\Dedoc\Scramble\Generator::class)();
-
-    assertMatchesSnapshot($openApiDocument);
-});
 class Foo_TestTwo
 {
     public function index()
@@ -39,11 +158,6 @@ class Foo_TestTwo
     }
 }
 
-test('multiple responses support', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestThree::class, 'index']));
-
-    assertMatchesSnapshot($openApiDocument);
-});
 class Foo_TestThree
 {
     public function index()
@@ -64,11 +178,6 @@ class Foo_TestThree
     }
 }
 
-test('manually annotated responses support', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestFour::class, 'index']));
-
-    assertMatchesSnapshot($openApiDocument);
-});
 class Foo_TestFour
 {
     public function index()
@@ -91,18 +200,6 @@ class Foo_TestFour
     }
 }
 
-test('manually annotated responses resources support', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestFive::class, 'index']));
-
-    expect($openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => [
-                'data' => ['$ref' => '#/components/schemas/Foo_TestFiveResource'],
-            ],
-            'required' => ['data'],
-        ]);
-});
 class Foo_TestFive
 {
     public function index()
@@ -113,6 +210,7 @@ class Foo_TestFive
         return response()->json(['foo' => 'bar']);
     }
 }
+
 class Foo_TestFiveResource extends \Illuminate\Http\Resources\Json\JsonResource
 {
     public static $wrap = 'data';
@@ -125,38 +223,6 @@ class Foo_TestFiveResource extends \Illuminate\Http\Resources\Json\JsonResource
     }
 }
 
-test('automated response status code inference when using ->response->setStatusCode method', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestSix::class, 'single']));
-
-    expect($openApiDocument['paths']['/test']['get']['responses'][201]['content']['application/json']['schema'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => [
-                'data' => [
-                    '$ref' => '#/components/schemas/Foo_TestFiveResource',
-                ],
-            ],
-            'required' => ['data'],
-        ]);
-});
-
-test('automated response status code inference when using collection ->response->setStatusCode method', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestSix::class, 'collection']));
-
-    expect($openApiDocument['paths']['/test']['get']['responses'][201]['content']['application/json']['schema'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => [
-                'data' => [
-                    'type' => 'array',
-                    'items' => ['$ref' => '#/components/schemas/Foo_TestFiveResource'],
-                ],
-            ],
-            'required' => [
-                0 => 'data',
-            ],
-        ]);
-});
 class Foo_TestSix
 {
     public function single()
@@ -170,25 +236,6 @@ class Foo_TestSix
     }
 }
 
-test('does not wrap resources when resource is wrapped', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', [Foo_TestSeven::class, 'index']));
-
-    expect($openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema'])
-        ->toBe(['$ref' => '#/components/schemas/Foo_TestSevenResource']);
-    expect($openApiDocument['components']['schemas']['Foo_TestSevenResource'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => [
-                'data' => [
-                    'type' => 'object',
-                    'properties' => ['foo' => ['type' => 'string']],
-                    'required' => ['foo'],
-                ],
-            ],
-            'required' => ['data'],
-            'title' => 'Foo_TestSevenResource',
-        ]);
-});
 class Foo_TestSevenResource extends \Illuminate\Http\Resources\Json\JsonResource
 {
     public static $wrap = 'data';
@@ -202,6 +249,7 @@ class Foo_TestSevenResource extends \Illuminate\Http\Resources\Json\JsonResource
         ];
     }
 }
+
 class Foo_TestSeven
 {
     public function index()
@@ -209,20 +257,6 @@ class Foo_TestSeven
         return new Foo_TestSevenResource(unknown());
     }
 }
-
-test('does not wrap resources when resource is passed to json response explicitly', function () {
-    $openApiDocument = generateForRoute(fn () => \Illuminate\Support\Facades\Route::get('api/test', Foo_TestEight::class));
-
-    expect($openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema'])
-        ->toBe(['$ref' => '#/components/schemas/Foo_TestEightResource']);
-    expect($openApiDocument['components']['schemas']['Foo_TestEightResource'])
-        ->toBe([
-            'type' => 'object',
-            'properties' => ['foo' => ['type' => 'string']],
-            'required' => ['foo'],
-            'title' => 'Foo_TestEightResource',
-        ]);
-});
 
 class Foo_TestEightResource extends \Illuminate\Http\Resources\Json\JsonResource
 {
@@ -235,6 +269,7 @@ class Foo_TestEightResource extends \Illuminate\Http\Resources\Json\JsonResource
         ];
     }
 }
+
 class Foo_TestEight
 {
     public function __invoke()
