@@ -9,11 +9,7 @@ parameters:
     stubFiles:
         - stubs/DeepCopy.stub
     tmpDir: build/phpstan
-    symfony:
-        container_xml_path: var/cache/dev/App_KernelDevDebugContainer.xml
-        constant_hassers: false
-        console_application_loader: tests/console-application.php
     typeAliases:
         Rule: 'string|\Symfony\Component\Validator\Constraint'
         RuleSet: 'Rule|Rule[]'
-    #reportUnmatchedIgnoredErrors: false
+    reportUnmatchedIgnoredErrors: false

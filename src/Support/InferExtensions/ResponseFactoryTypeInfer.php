@@ -16,10 +16,9 @@ use Dedoc\Scramble\Support\Type\NullType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Support\Type\TypeHelper;
-use Illuminate\Contracts\Routing\ResponseFactory;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use PhpParser\Node\Expr;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedJsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -27,86 +26,26 @@ class ResponseFactoryTypeInfer implements ExpressionTypeInferExtension, Function
 {
     public function shouldHandle(ObjectType|string $callee): bool
     {
-        if (is_string($callee)) {
-            return $callee === 'response';
-        }
-
-        return $callee->isInstanceOf(ResponseFactory::class);
+        // This extension is kept for backward compatibility but mainly disabled
+        // In Symfony, responses are typically created directly via constructors
+        return false;
     }
 
     public function getFunctionReturnType(FunctionCallEvent $event): ?Type
     {
-        if (count($event->arguments)) {
-            return new Generic(Response::class, [
-                $event->getArg('content', 0, new LiteralStringType('')),
-                $event->getArg('status', 1, new LiteralIntegerType(200)),
-                $event->getArg('headers', 2, new ArrayType),
-            ]);
-        }
-
-        return new ObjectType(ResponseFactory::class);
+        // No longer used in Symfony - responses are created directly
+        return null;
     }
 
     public function getMethodReturnType(MethodCallEvent $event): ?Type
     {
-        return match ($event->name) {
-            'noContent' => new Generic(Response::class, [
-                new LiteralStringType(''),
-                $event->getArg('status', 0, new LiteralIntegerType(204)),
-                $event->getArg('headers', 1, new ArrayType),
-            ]),
-            'json' => new Generic(JsonResponse::class, [
-                $event->getArg('data', 0, new ArrayType),
-                $event->getArg('status', 1, new LiteralIntegerType(200)),
-                $event->getArg('headers', 2, new ArrayType),
-            ]),
-            'make' => new Generic(Response::class, [
-                $event->getArg('content', 0, new LiteralStringType('')),
-                $event->getArg('status', 1, new LiteralIntegerType(200)),
-                $event->getArg('headers', 2, new ArrayType),
-            ]),
-            'download' => (new BinaryFileResponseTypeFactory(
-                file: $event->getArg('file', 0),
-                name: $event->getArg('name', 1, new NullType),
-                headers: $event->getArg('headers', 2, new ArrayType),
-                disposition: $event->getArg('disposition', 3, new LiteralStringType('attachment')),
-            ))->build(),
-            'file' => (new BinaryFileResponseTypeFactory(
-                file: $event->getArg('file', 0),
-                headers: $event->getArg('headers', 1, new ArrayType),
-            ))->build(),
-            'stream' => new Generic(StreamedResponse::class, [
-                $event->getArg('callbackOrChunks', 0),
-                $event->getArg('status', 1, new LiteralIntegerType(200)),
-                $event->getArg('headers', 2, new ArrayType),
-            ]),
-            'streamJson' => new Generic(StreamedJsonResponse::class, [
-                $event->getArg('data', 0),
-                $event->getArg('status', 1, new LiteralIntegerType(200)),
-                $event->getArg('headers', 2, new ArrayType),
-            ]),
-            'streamDownload' => new Generic(StreamedResponse::class, [
-                $event->getArg('callback', 0),
-                new LiteralIntegerType(200),
-                $event->getArg('headers', 2, new ArrayType),
-            ]),
-            'eventStream' => (new Generic(StreamedResponse::class, [
-                $event->getArg('callback', 0),
-                new LiteralIntegerType(200),
-                $event->getArg('headers', 1, new ArrayType),
-            ]))->mergeAttributes([
-                'mimeType' => 'text/event-stream',
-                'endStreamWith' => ($endStreamWithType = $event->getArg('endStreamWith', 2, new LiteralStringType('</stream>'))) instanceof LiteralStringType
-                    ? $endStreamWithType->value
-                    : null,
-            ]),
-            default => null,
-        };
+        // No longer used in Symfony - responses are created directly
+        return null;
     }
 
     public function getType(Expr $node, Scope $scope): ?Type
     {
-        // call Response and JsonResponse constructors
+        // Handle Symfony Response and JsonResponse constructors
         if (
             $node instanceof Expr\New_
             && (

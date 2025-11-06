@@ -3,7 +3,7 @@
 namespace Dedoc\Scramble\Console\Commands\Components;
 
 use Dedoc\Scramble\Support\Str;
-use Illuminate\Console\OutputStyle;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Terminal;
 
 class TermsOfContentItem implements Component
@@ -13,7 +13,7 @@ class TermsOfContentItem implements Component
         public ?string $left = null,
     ) {}
 
-    public function render(OutputStyle $style): void
+    public function render(SymfonyStyle $style): void
     {
         $width = (new Terminal)->getWidth();
 
@@ -28,7 +28,7 @@ class TermsOfContentItem implements Component
 
         $dotsCount = max($width - $rightWidth - $leftWidth - 2, 0);
 
-        $style->writeln("{$this->right}<fg=gray> ".Str::repeat('.', $dotsCount)." </>{$this->left}");
+        $style->writeln("{$this->right}<fg=gray> " . str_repeat('.', $dotsCount) . " </>{$this->left}");
     }
 
     private function getLineWidth(string $string)

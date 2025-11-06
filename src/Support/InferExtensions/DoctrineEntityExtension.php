@@ -24,6 +24,11 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 class DoctrineEntityExtension implements PropertyTypeExtension
 {
+    /**
+     * @var array<string, callable(string): Type>
+     */
+    private array $customTypeMappings = [];
+
     public function __construct(
         private DoctrineMetadataExtractor $metadataExtractor,
     ) {}
@@ -76,10 +81,28 @@ class DoctrineEntityExtension implements PropertyTypeExtension
     }
 
     /**
+     * Register a custom type mapping for Doctrine types.
+     *
+     * This allows extending the type mapper to support custom Doctrine types
+     * that are registered in the application.
+     *
+     * @param  callable(string): Type  $mapper
+     */
+    public function registerCustomTypeMapping(string $doctrineType, callable $mapper): void
+    {
+        $this->customTypeMappings[$doctrineType] = $mapper;
+    }
+
+    /**
      * Map Doctrine field types to Scramble types.
      */
     private function mapDoctrineTypeToScrambleType(string $doctrineType): Type
     {
+        // Check custom mappings first
+        if (isset($this->customTypeMappings[$doctrineType])) {
+            return ($this->customTypeMappings[$doctrineType])($doctrineType);
+        }
+
         return match ($doctrineType) {
             // String types
             'string', 'text', 'guid', 'ascii_string' => new StringType,
@@ -105,6 +128,9 @@ class DoctrineEntityExtension implements PropertyTypeExtension
 
             // Binary types
             'blob', 'binary' => new StringType,
+
+            // UUID types (if uuid-doctrine is installed)
+            'uuid', 'uuid_binary', 'uuid_binary_ordered_time' => new StringType,
 
             // Other types
             default => new UnknownType("Doctrine type '{$doctrineType}' mapping not defined"),

@@ -10,10 +10,10 @@ use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\TypeHelper;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Name;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AbortHelpersExceptionInfer implements ExpressionExceptionExtension
 {
@@ -39,8 +39,9 @@ class AbortHelpersExceptionInfer implements ExpressionExceptionExtension
 
         $codeType = TypeHelper::getArgType($scope, $node->args, ['code', 0 + $paramsShift]);
 
+        // For 404 status codes, return NotFoundHttpException
         if ($codeType instanceof LiteralIntegerType && $codeType->value === 404) {
-            return [new ObjectType(ModelNotFoundException::class)];
+            return [new ObjectType(NotFoundHttpException::class)];
         }
 
         $messageType = TypeHelper::getArgType($scope, $node->args, ['message', 1 + $paramsShift], new LiteralStringType(''));

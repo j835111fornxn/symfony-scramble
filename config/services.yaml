@@ -228,6 +228,17 @@ services:
     Dedoc\Scramble\DocumentTransformers\CleanupUnusedResponseReferencesTransformer:
         tags: ['scramble.document_transformer']
 
+    # Console Commands
+    Dedoc\Scramble\Console\Commands\ExportDocumentation:
+        arguments:
+            $generator: '@Dedoc\Scramble\Generator'
+        tags: ['console.command']
+
+    Dedoc\Scramble\Console\Commands\AnalyzeDocumentation:
+        arguments:
+            $generator: '@Dedoc\Scramble\Generator'
+        tags: ['console.command']
+
     # Auto-tag extensions (for user-defined extensions)
     _instanceof:
         Dedoc\Scramble\Infer\Extensions\InferExtension:

@@ -13,34 +13,16 @@ use Dedoc\Scramble\Support\Type\KeyedArrayType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\NullType;
-use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
-use Dedoc\Scramble\Support\Type\UnknownType;
-use LogicException;
 use Symfony\Component\HttpFoundation\JsonResponse as SymfonyJsonResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ResponseTypeToSchema extends TypeToSchemaExtension
 {
-    private const LARAVEL_RESPONSE_CLASS = 'Illuminate\\Http\\Response';
-
-    private const LARAVEL_JSON_RESPONSE_CLASS = 'Illuminate\\Http\\JsonResponse';
-
-    private const LARAVEL_RESPONSABLE_CLASS = 'Illuminate\\Contracts\\Support\\Responsable';
-
-    private const LARAVEL_RESOURCE_RESPONSE_CLASS = 'Illuminate\\Http\\Resources\\Json\\ResourceResponse';
-
     public function shouldHandle(Type $type)
     {
         if (! $type instanceof Generic || count($type->templateTypes) < 2) {
             return false;
-        }
-
-        // Check for Laravel Response classes (if available)
-        if (class_exists(self::LARAVEL_RESPONSE_CLASS) || class_exists(self::LARAVEL_JSON_RESPONSE_CLASS)) {
-            if ($type->isInstanceOf(self::LARAVEL_RESPONSE_CLASS) || $type->isInstanceOf(self::LARAVEL_JSON_RESPONSE_CLASS)) {
-                return true;
-            }
         }
 
         // Check for Symfony Response classes
@@ -53,10 +35,6 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
      */
     public function toResponse(Type $type)
     {
-        if ($this->isResponsable($type) && $responsableResponse = $this->handleResponsableResponse($type)) {
-            return $responsableResponse;
-        }
-
         $statusCodeType = $type->templateTypes[1];
         if (! $statusCodeType instanceof LiteralIntegerType) {
             return null;
@@ -77,53 +55,6 @@ class ResponseTypeToSchema extends TypeToSchemaExtension
         }
 
         $this->addHeaders($response, $type);
-
-        return $response;
-    }
-
-    private function isResponsable(Generic $type): bool
-    {
-        $data = $type->templateTypes[0];
-
-        // Check if Laravel Responsable interface exists
-        if (! interface_exists(self::LARAVEL_RESPONSABLE_CLASS)) {
-            return false;
-        }
-
-        return $data instanceof ObjectType && $data->isInstanceOf(self::LARAVEL_RESPONSABLE_CLASS);
-    }
-
-    private function handleResponsableResponse(Generic $jsonResponseType): ?Response
-    {
-        $data = $jsonResponseType->templateTypes[0];
-        $statusCode = $jsonResponseType->templateTypes[1];
-
-        $response = $this->openApiTransformer->toResponse($data);
-        if (! $response instanceof Response) {
-            throw new LogicException("{$data->toString()} is expected to produce Response instance when casted to response.");
-        }
-
-        $responseStatusCode = $statusCode instanceof UnknownType
-            ? $response->code
-            : ($statusCode->value ?? null);
-
-        if (! $responseStatusCode) {
-            return null;
-        }
-
-        $response->code = $responseStatusCode;
-        // Check if this is a Laravel ResourceResponse (optional)
-        $isResourceResponse = class_exists(self::LARAVEL_RESOURCE_RESPONSE_CLASS)
-            && $data->isInstanceOf(self::LARAVEL_RESOURCE_RESPONSE_CLASS);
-
-        if (! $isResourceResponse) {
-            $response->setContent(
-                'application/json',
-                Schema::fromType($this->openApiTransformer->transform($data)),
-            );
-        }
-
-        $this->addHeaders($response, $jsonResponseType);
 
         return $response;
     }

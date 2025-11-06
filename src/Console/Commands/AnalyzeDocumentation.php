@@ -8,39 +8,54 @@ use Dedoc\Scramble\Exceptions\RouteAware;
 use Dedoc\Scramble\Generator;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Collection;
+use Dedoc\Scramble\Support\RouteAdapter;
 use Dedoc\Scramble\Support\Str;
-use Illuminate\Console\Command;
-use Illuminate\Routing\Route;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 
+#[AsCommand(
+    name: 'scramble:analyze',
+    description: 'Analyzes the documentation generation process to surface any issues.'
+)]
 class AnalyzeDocumentation extends Command
 {
-    protected $signature = 'scramble:analyze
-        {--api=default : The API to analyze}
-    ';
-
-    protected $description = 'Analyzes the documentation generation process to surface any issues.';
-
-    public function handle(Generator $generator): int
+    public function __construct(private readonly Generator $generator)
     {
-        $generator->setThrowExceptions(false);
+        parent::__construct();
+    }
 
-        $generator(Scramble::getGeneratorConfig($this->option('api')));
+    protected function configure(): void
+    {
+        $this->addOption('api', null, InputOption::VALUE_OPTIONAL, 'The API to analyze', 'default');
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $io = new SymfonyStyle($input, $output);
+        $api = $input->getOption('api');
+
+        $this->generator->setThrowExceptions(false);
+        $this->generator->__invoke(Scramble::getGeneratorConfig($api));
 
         $i = 1;
-        $this->groupExceptions($generator->exceptions)->each(function (Collection $exceptions, string $group) use (&$i) {
-            $this->renderExceptionsGroup($exceptions, $group, $i);
+        $this->groupExceptions($this->generator->exceptions)->each(function (Collection $exceptions, string $group) use (&$i, $output) {
+            $this->renderExceptionsGroup($exceptions, $group, $i, $output);
         });
 
-        if (count($generator->exceptions)) {
-            $this->error('[ERROR] Found '.count($generator->exceptions).' errors.');
+        if (count($this->generator->exceptions)) {
+            $io->error('[ERROR] Found ' . count($this->generator->exceptions) . ' errors.');
 
-            return static::FAILURE;
+            return Command::FAILURE;
         }
 
-        $this->info('Everything is fine! Documentation is generated without any errors 🍻');
+        $io->success('Everything is fine! Documentation is generated without any errors 🍻');
 
-        return static::SUCCESS;
+        return Command::SUCCESS;
     }
 
     /**
@@ -49,34 +64,35 @@ class AnalyzeDocumentation extends Command
     private function groupExceptions(array $exceptions): Collection
     {
         return collect($exceptions)
-            ->groupBy(fn ($e) => $e instanceof RouteAware ? $this->getRouteKey($e->getRoute()) : '');
+            ->groupBy(fn($e) => $e instanceof RouteAware ? $this->getRouteKey($e->getRoute()) : '');
     }
 
     /**
      * @param  Collection<int, Throwable>  $exceptions
      */
-    private function renderExceptionsGroup(Collection $exceptions, string $group, int &$i): void
+    private function renderExceptionsGroup(Collection $exceptions, string $group, int &$i, OutputInterface $output): void
     {
         // when route key is set, then the exceptions in the group are route aware.
         if ($group) {
-            $this->renderRouteExceptionsGroupLine($exceptions);
+            $this->renderRouteExceptionsGroupLine($exceptions, $output);
         }
 
-        $exceptions->each(function ($exception) use (&$i) {
-            $this->renderException($exception, $i);
+        $exceptions->each(function ($exception) use (&$i, $output) {
+            $this->renderException($exception, $i, $output);
             $i++;
-            $this->line('');
+            $output->writeln('');
         });
     }
 
-    private function getRouteKey(?Route $route): string
+    private function getRouteKey(?RouteAdapter $route): string
     {
         if (! $route) {
             return '';
         }
 
-        $method = $route->methods()[0];
-        $action = $route->getAction('uses');
+        $methods = $route->getMethods();
+        $method = $methods[0] ?? 'GET';
+        $action = $route->getActionName();
 
         return "$method.$action";
     }
@@ -84,22 +100,24 @@ class AnalyzeDocumentation extends Command
     /**
      * @param  Collection<int, RouteAware>  $exceptions
      */
-    private function renderRouteExceptionsGroupLine(Collection $exceptions): void
+    private function renderRouteExceptionsGroupLine(Collection $exceptions, OutputInterface $output): void
     {
         $firstException = $exceptions->first();
         $route = $firstException->getRoute();
 
-        $method = $route->methods()[0];
-        $errorsMessage = ($count = $exceptions->count()).' '.Str::plural('error', $count);
+        $methods = $route->getMethods();
+        $method = $methods[0] ?? 'GET';
+        $count = $exceptions->count();
+        $errorsMessage = $count . ' ' . ($count === 1 ? 'error' : 'errors');
 
         $tocComponent = new TermsOfContentItem(
-            right: '<options=bold;fg='.$this->getHttpMethodColor($method).'>'.$method."</> $route->uri <fg=red>$errorsMessage</>",
+            right: '<options=bold;fg=' . $this->getHttpMethodColor($method) . '>' . $method . "</> " . $route->getPath() . " <fg=red>$errorsMessage</>",
             left: $this->getRouteAction($route),
         );
 
-        $tocComponent->render($this->output);
+        $tocComponent->render($output);
 
-        $this->line('');
+        $output->writeln('');
     }
 
     private function getHttpMethodColor(string $method): string
@@ -111,13 +129,20 @@ class AnalyzeDocumentation extends Command
         };
     }
 
-    public function getRouteAction(?Route $route): ?string
+    public function getRouteAction(?RouteAdapter $route): ?string
     {
-        if (! $uses = $route->getAction('uses')) {
+        if (! $route) {
             return null;
         }
 
-        if (count($parts = explode('@', $uses)) !== 2 || ! method_exists(...$parts)) {
+        $action = $route->getActionName();
+
+        if (! $action || ! str_contains($action, '@')) {
+            return null;
+        }
+
+        $parts = explode('@', $action);
+        if (count($parts) !== 2 || ! method_exists($parts[0], $parts[1])) {
             return null;
         }
 
@@ -128,14 +153,14 @@ class AnalyzeDocumentation extends Command
         return "<fg=gray>{$eloquentClassName}@{$method}</>";
     }
 
-    private function renderException(Throwable $exception, int $i): void
+    private function renderException(Throwable $exception, int $i, OutputInterface $output): void
     {
-        $message = Str::replace('Dedoc\Scramble\Support\Generator\Types\\', '', property_exists($exception, 'originalMessage') ? $exception->originalMessage : $exception->getMessage()); // @phpstan-ignore argument.templateType
+        $message = Str::replace('Dedoc\Scramble\Support\Generator\Types\\', '', property_exists($exception, 'originalMessage') ? $exception->originalMessage : $exception->getMessage()); // @phpstan-ignore property.notFound
 
-        $this->output->writeln("<options=bold>$i. {$message}</>");
+        $output->writeln("<options=bold>$i. {$message}</>");
 
         if ($exception instanceof ConsoleRenderable) {
-            $exception->renderInConsole($this->output);
+            $exception->renderInConsole($output);
         }
     }
 }

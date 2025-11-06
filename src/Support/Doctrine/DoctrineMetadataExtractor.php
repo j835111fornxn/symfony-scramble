@@ -2,6 +2,7 @@
 
 namespace Dedoc\Scramble\Support\Doctrine;
 
+use Doctrine\DBAL\Types\Type as DBALType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
@@ -187,5 +188,31 @@ class DoctrineMetadataExtractor
         }
 
         return $metadata->getIdentifierFieldNames();
+    }
+
+    /**
+     * Check if a custom Doctrine type is registered.
+     */
+    public function hasCustomType(string $typeName): bool
+    {
+        try {
+            return DBALType::hasType($typeName);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get all registered custom type names.
+     *
+     * @return string[]
+     */
+    public function getCustomTypeNames(): array
+    {
+        try {
+            return DBALType::getTypesMap();
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 }
