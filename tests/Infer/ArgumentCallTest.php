@@ -2,20 +2,15 @@
 
 namespace Dedoc\Scramble\Tests\Infer;
 
-class Bar
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
+
+final class ArgumentCallTest extends SymfonyTestCase
 {
-    public function __construct(
-        public int $id,
-    ) {}
-
-    public function foo()
+    #[Test]
+    public function infersReturnTypeOfPropertyFetchOnObject(): void
     {
-        return $this->id;
-    }
-}
-
-it('infers a return type of property fetch on an object', function () {
-    $type = analyzeFile(<<<'EOD'
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function bar(\Dedoc\Scramble\Tests\Infer\Bar $object)
@@ -25,11 +20,13 @@ class Foo {
 }
 EOD)->getExpressionType('(new Foo)->bar()');
 
-    expect($type->toString())->toBe('int');
-});
+        $this->assertSame('int', $type->toString());
+    }
 
-it('infers a return type of property fetch on a created object', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function infersReturnTypeOfPropertyFetchOnCreatedObject(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function bar()
@@ -41,11 +38,13 @@ class Foo {
 }
 EOD)->getExpressionType('(new Foo)->bar()');
 
-    expect($type->toString())->toBe('int(123)');
-});
+        $this->assertSame('int(123)', $type->toString());
+    }
 
-it('infers a return type of method call on an argument', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function infersReturnTypeOfMethodCallOnArgument(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function bar(\Dedoc\Scramble\Tests\Infer\Bar $object)
@@ -55,5 +54,18 @@ class Foo {
 }
 EOD)->getExpressionType('(new Foo)->bar()');
 
-    expect($type->toString())->toBe('int');
-});
+        $this->assertSame('int', $type->toString());
+    }
+}
+
+class Bar
+{
+    public function __construct(
+        public int $id,
+    ) {}
+
+    public function foo()
+    {
+        return $this->id;
+    }
+}

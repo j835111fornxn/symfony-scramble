@@ -1,6 +1,10 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Support\InferExtensions;
+
 use Dedoc\Scramble\Support\InferExtensions\DoctrineEntityExtension;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Doctrine Entity Extension Tests
@@ -12,58 +16,74 @@ use Dedoc\Scramble\Support\InferExtensions\DoctrineEntityExtension;
  * - The extension has the correct API methods
  * - Custom type mappings can be registered
  */
-it('can register custom type mappings', function () {
-    // Skip this test as it requires Doctrine EntityManager
-    // This test documents that the API exists
-    expect(true)->toBeTrue();
-})->skip('Requires Doctrine EntityManager configuration');
+class DoctrineEntityExtensionTest extends SymfonyTestCase
+{
+    #[Test]
+    public function can_register_custom_type_mappings(): void
+    {
+        // Skip this test as it requires Doctrine EntityManager
+        // This test documents that the API exists
+        $this->assertTrue(true);
+        $this->markTestSkipped('Requires Doctrine EntityManager configuration');
+    }
 
-it('documents that DoctrineEntityExtension exists and can be instantiated', function () {
-    // This test verifies the class structure exists
-    $reflection = new ReflectionClass(DoctrineEntityExtension::class);
+    #[Test]
+    public function documents_that_doctrine_entity_extension_exists_and_can_be_instantiated(): void
+    {
+        // This test verifies the class structure exists
+        $reflection = new \ReflectionClass(DoctrineEntityExtension::class);
 
-    expect($reflection->hasMethod('shouldHandle'))->toBeTrue();
-    expect($reflection->hasMethod('hasProperty'))->toBeTrue();
-    expect($reflection->hasMethod('getPropertyType'))->toBeTrue();
-    expect($reflection->hasMethod('registerCustomTypeMapping'))->toBeTrue();
-});
+        $this->assertTrue($reflection->hasMethod('shouldHandle'));
+        $this->assertTrue($reflection->hasMethod('hasProperty'));
+        $this->assertTrue($reflection->hasMethod('getPropertyType'));
+        $this->assertTrue($reflection->hasMethod('registerCustomTypeMapping'));
+    }
 
-/**
- * TODO: Integration tests with actual Doctrine entities
- *
- * These require:
- * - A test kernel with Doctrine ORM configured
- * - A test database (SQLite in-memory recommended)
- * - Test entities with proper Doctrine annotations/attributes
- * - Proper service registration in the test container
- *
- * Example test structure:
- *
- * it('infers string field types from Doctrine metadata', function () {
- *     $this->infer->analyzeClass(TestProduct::class);
- *     $object = new ObjectType(TestProduct::class);
- *     $nameType = $object->getPropertyType('name');
- *     expect($nameType->toString())->toBe('string');
- * });
- *
- * it('infers nullable fields correctly', function () {
- *     $this->infer->analyzeClass(TestProduct::class);
- *     $object = new ObjectType(TestProduct::class);
- *     $descriptionType = $object->getPropertyType('description');
- *     expect($descriptionType->toString())->toContain('null');
- * });
- *
- * it('infers ManyToOne associations', function () {
- *     $this->infer->analyzeClass(TestProduct::class);
- *     $object = new ObjectType(TestProduct::class);
- *     $categoryType = $object->getPropertyType('category');
- *     expect($categoryType->name)->toBe(TestCategory::class);
- * });
- *
- * it('infers collection associations (OneToMany, ManyToMany)', function () {
- *     $this->infer->analyzeClass(TestProduct::class);
- *     $object = new ObjectType(TestProduct::class);
- *     $tagsType = $object->getPropertyType('tags');
- *     expect($tagsType->toString())->toContain('Collection');
- * });
- */
+    /**
+     * TODO: Integration tests with actual Doctrine entities
+     *
+     * These require:
+     * - A test kernel with Doctrine ORM configured
+     * - A test database (SQLite in-memory recommended)
+     * - Test entities with proper Doctrine annotations/attributes
+     * - Proper service registration in the test container
+     *
+     * Example test structure:
+     *
+     * #[Test]
+     * public function infers_string_field_types_from_doctrine_metadata(): void
+     * {
+     *     $this->infer->analyzeClass(TestProduct::class);
+     *     $object = new ObjectType(TestProduct::class);
+     *     $nameType = $object->getPropertyType('name');
+     *     $this->assertEquals('string', $nameType->toString());
+     * }
+     *
+     * #[Test]
+     * public function infers_nullable_fields_correctly(): void
+     * {
+     *     $this->infer->analyzeClass(TestProduct::class);
+     *     $object = new ObjectType(TestProduct::class);
+     *     $descriptionType = $object->getPropertyType('description');
+     *     $this->assertStringContainsString('null', $descriptionType->toString());
+     * }
+     *
+     * #[Test]
+     * public function infers_many_to_one_associations(): void
+     * {
+     *     $this->infer->analyzeClass(TestProduct::class);
+     *     $object = new ObjectType(TestProduct::class);
+     *     $categoryType = $object->getPropertyType('category');
+     *     $this->assertEquals(TestCategory::class, $categoryType->name);
+     * }
+     *
+     * #[Test]
+     * public function infers_collection_associations_one_to_many_many_to_many(): void
+     * {
+     *     $this->infer->analyzeClass(TestProduct::class);
+     *     $object = new ObjectType(TestProduct::class);
+     *     $tagsType = $object->getPropertyType('tags');
+     *     $this->assertStringContainsString('Collection', $tagsType->toString());
+     * }
+     */
+}

@@ -1,5 +1,7 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Support\ExceptionToResponseExtensions;
+
 use Dedoc\Scramble\Extensions\ExceptionToResponseExtension;
 use Dedoc\Scramble\GeneratorConfig;
 use Dedoc\Scramble\Infer;
@@ -15,24 +17,39 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Str;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Auth\AuthenticationException;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->components = new Components;
-    $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
-});
+class CustomExceptionToResponseExtensionTest extends SymfonyTestCase
+{
+    private Components $components;
+    private OpenApiContext $context;
 
-it('correctly overrides default extension when custom extension exists', function () {
-    $type = new ObjectType(AuthenticationException::class);
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->components = new Components;
+        $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
+    }
 
-    $transformer = new TypeTransformer($infer = app(Infer::class), $this->context, [], [
-        AuthenticationExceptionToResponseExtension::class,
-        CustomAuthenticationExceptionToResponseExtension::class,
-    ]);
-    $extension = new CustomAuthenticationExceptionToResponseExtension($infer, $transformer, $this->components);
+    #[Test]
+    public function correctly_overrides_default_extension_when_custom_extension_exists(): void
+    {
+        $type = new ObjectType(AuthenticationException::class);
 
-    expect($extension->toResponse($type)->toArray())->toMatchArray($transformer->toResponse($type)->resolve()->toArray());
-});
+        $transformer = new TypeTransformer($infer = $this->get(Infer::class), $this->context, [], [
+            AuthenticationExceptionToResponseExtension::class,
+            CustomAuthenticationExceptionToResponseExtension::class,
+        ]);
+        $extension = new CustomAuthenticationExceptionToResponseExtension($infer, $transformer, $this->components);
+
+        $this->assertArraySubset(
+            $extension->toResponse($type)->toArray(),
+            $transformer->toResponse($type)->resolve()->toArray()
+        );
+    }
+}
 
 class CustomAuthenticationExceptionToResponseExtension extends ExceptionToResponseExtension
 {

@@ -4,16 +4,23 @@ namespace Dedoc\Scramble\Tests\Support\Type;
 
 use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\TypePath;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-it('finds type', function () {
-    $type = getStatementType(<<<'EOD'
+final class TypePathTest extends SymfonyTestCase
+{
+    #[Test]
+    public function findsType(): void
+    {
+        $type = $this->getStatementType(<<<'EOD'
 ['a' => fn (int $b) => 123]
 EOD);
 
-    $path = TypePath::findFirst(
-        $type,
-        fn ($t) => $t instanceof LiteralIntegerType,
-    );
+        $path = TypePath::findFirst(
+            $type,
+            fn ($t) => $t instanceof LiteralIntegerType,
+        );
 
-    expect($path?->getFrom($type)->toString())->toBe('int(123)');
-});
+        $this->assertSame('int(123)', $path?->getFrom($type)->toString());
+    }
+}

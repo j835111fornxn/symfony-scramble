@@ -1,7 +1,16 @@
 <?php
 
-it('resolves templates templates', function () {
-    $type = analyzeFile(<<<'EOD'
+namespace Dedoc\Scramble\Tests\Infer;
+
+use PHPUnit\Framework\Attributes\Test;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+
+final class PostClassAnalysisReferencesResolutionTest extends SymfonyTestCase
+{
+    #[Test]
+    public function resolvesTemplatesTemplates(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo($q) {
@@ -13,5 +22,6 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['bar']->type->toString())->toBe('(): <TQ>(TQ): TQ');
-});
+        $this->assertSame('(): <TQ>(TQ): TQ', $type->methods['bar']->type->toString());
+    }
+}

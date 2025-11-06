@@ -1,5 +1,7 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer\Analyzer;
+
 use Dedoc\Scramble\Infer\Analyzer\ClassAnalyzer;
 use Dedoc\Scramble\Infer\Scope\Index;
 use Dedoc\Scramble\Infer\Scope\NodeTypesResolver;
@@ -13,41 +15,252 @@ use Dedoc\Scramble\Tests\Infer\stubs\ChildPromotion;
 use Dedoc\Scramble\Tests\Infer\stubs\DeepChild;
 use Dedoc\Scramble\Tests\Infer\stubs\Foo;
 use Dedoc\Scramble\Tests\Infer\stubs\FooWithDefaultProperties;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->index = app(Index::class);
+final class ClassAnalyzerTest extends SymfonyTestCase
+{
+    private Index $index;
+    private ClassAnalyzer $classAnalyzer;
+    private ReferenceTypeResolver $resolver;
 
-    $this->classAnalyzer = new ClassAnalyzer($this->index);
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-    $this->resolver = new ReferenceTypeResolver($this->index);
-});
+        $this->index = $this->getContainer()->get(Index::class);
+        $this->classAnalyzer = new ClassAnalyzer($this->index);
+        $this->resolver = new ReferenceTypeResolver($this->index);
+    }
 
-it('resolves function return type after explicitly requested', function () {
-    $fooDef = $this->classAnalyzer
-        ->analyze(Foo::class)
-        ->getMethodDefinition('bar');
+    #[Test]
+    public function resolvesReturnTypeAfterExplicitlyRequested(): void
+    {
+        $fooDef = $this->classAnalyzer
+            ->analyze(Foo::class)
+            ->getMethodDefinition('bar');
 
-    expect($fooDef->type->getReturnType()->toString())->toBe('int(243)');
-});
+        $this->assertSame('int(243)', $fooDef->type->getReturnType()->toString());
+    }
 
-it('resolves fully qualified names', function () {
-    $fqnDef = $this->classAnalyzer
-        ->analyze(Foo::class)
-        ->getMethodDefinition('fqn');
+    #[Test]
+    public function resolvesFullyQualifiedNames(): void
+    {
+        $fqnDef = $this->classAnalyzer
+            ->analyze(Foo::class)
+            ->getMethodDefinition('fqn');
 
-    expect($fqnDef->type->getReturnType()->toString())->toBe('class-string<'.Foo::class.'>');
-});
+        $this->assertSame('class-string<'.Foo::class.'>', $fqnDef->type->getReturnType()->toString());
+    }
 
-it('describes constructor arguments assignments as self out type on constructor', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(ConstructorArgumentAssignment_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
+    #[Test]
+    public function describesConstructorArgumentAssignmentsAsSelfOutType(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(ConstructorArgumentAssignment_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
 
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<array{a: TFoo1}, _>');
-});
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<array{a: TFoo1}, _>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesDirectConstructorArgumentAssignmentsAsTemplatePlaceholders(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(ConstructorDirectArgumentAssignment_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
+
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<_>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesArgumentsAssignmentsAsSelfOutTypeOnAnyMethod(): void
+    {
+        $method = $this->classAnalyzer
+            ->analyze(MethodArgumentAssignment_ClassAnalyzerTest::class)
+            ->getMethodDefinition('setFoo');
+
+        $this->assertNotNull($method->selfOutTypeBuilder);
+        $this->assertSame('self<array{foo: TSomething}>', $method->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesArgumentsPassedToParentConstructorCallAsPartOfSelfOutType(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(ParentConstructorCall_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
+
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<array{a: int(42)}, _>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesArgumentsPassedToDirectParentConstructorCallAsPartOfSelfOutType(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(DirectParentConstructorCall_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
+
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<int(42), _>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesPropertiesSetInSettersAsPartOfSelfOut(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(SetterCall_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
+
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<TB>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesPropertiesSetInFluentSettersAsPartOfSelfOut(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(FluentSetterCall_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
+
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<TB, int(42)>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function describesPropertiesSetInFluentSettersSetOfVariablesAsPartOfSelfOut(): void
+    {
+        $constructor = $this->classAnalyzer
+            ->analyze(FluentSetterOnVariablesCall_ClassAnalyzerTest::class)
+            ->getMethodDefinition('__construct');
+
+        $this->assertNotNull($constructor->selfOutTypeBuilder);
+        $this->assertSame('self<TB, int(42)>', $constructor->getSelfOutType()->toString());
+    }
+
+    #[Test]
+    public function resolvesPendingReturnsLazily(): void
+    {
+        $classDefinition = $this->classAnalyzer->analyze(Foo::class);
+
+        $barDef = $classDefinition->getMethodDefinition('bar');
+        $barReturnType = $this->resolver->resolve(
+            new Scope($this->index, new NodeTypesResolver, new ScopeContext($classDefinition), new \Dedoc\Scramble\Infer\Services\FileNameResolver(new \PhpParser\NameContext(new \PhpParser\ErrorHandler\Throwing))),
+            $barDef->type->getReturnType(),
+        );
+
+        $this->assertSame('int(243)', $barReturnType->toString());
+    }
+
+    #[Test]
+    public function preservesCommentsInPropertyDefaults(): void
+    {
+        $classDef = $this->classAnalyzer->analyze(FooWithDefaultProperties::class);
+
+        /** @var KeyedArrayType $defaultType */
+        $defaultType = $classDef->properties['default']->defaultType;
+
+        $this->assertInstanceOf(KeyedArrayType::class, $defaultType);
+        $this->assertNotNull($defaultType->items[0]->getAttribute('docNode'));
+        $this->assertNotNull($defaultType->items[1]->getAttribute('docNode'));
+    }
+
+    #[Test]
+    public function analyzesParentInstantiation(): void
+    {
+        $this->classAnalyzer->analyze(Child::class);
+
+        $type = $this->getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\Child("some", "wow", 42)');
+
+        $this->assertSame('Dedoc\Scramble\Tests\Infer\stubs\Child<int(42), string(wow), string(some)>', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesDeepParentInstantiation(): void
+    {
+        $this->classAnalyzer->analyze(DeepChild::class);
+
+        $type = $this->getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\DeepChild("some", "wow", 42)');
+
+        $this->assertSame('Dedoc\Scramble\Tests\Infer\stubs\DeepChild<int(42), string(wow), string(some)>', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesParentWithPropertyPromotion(): void
+    {
+        $this->classAnalyzer->analyze(ChildPromotion::class);
+
+        $type = $this->getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\ChildPromotion("some", "wow", 42)');
+
+        $this->assertSame('Dedoc\Scramble\Tests\Infer\stubs\ChildPromotion<int(42), string(wow), string(some)>', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesCallToParentSetterMethodsInChildConstructor(): void
+    {
+        $this->classAnalyzer->analyze(ChildParentSetterCalls::class);
+
+        $type = $this->getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\ChildParentSetterCalls("some", "wow")');
+
+        $this->assertSame('Dedoc\Scramble\Tests\Infer\stubs\ChildParentSetterCalls<string(from ChildParentSetterCalls constructor), string(from ChildParentSetterCalls wow), string(some)>', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesFluentSettersCalledInConstructor(): void
+    {
+        $this->classAnalyzer->analyze(Foo_ClassAnalyzerTest::class);
+
+        $type = $this->getStatementType('new Foo_ClassAnalyzerTest()');
+
+        $this->assertSame('Foo_ClassAnalyzerTest<int(42), string(baz)>', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesNotFluentSettersCalledInConstructor(): void
+    {
+        $this->classAnalyzer->analyze(FooNotFluent_ClassAnalyzerTest::class);
+
+        $type = $this->getStatementType('new FooNotFluent_ClassAnalyzerTest()');
+
+        $this->assertSame('FooNotFluent_ClassAnalyzerTest<int(42), string(baz)>', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesStaticMethodCallOnClassConstants(): void
+    {
+        $this->classAnalyzer->analyze(ConstFetchStaticCallChild_ClassAnalyzerTest::class);
+
+        $type = $this->getStatementType('(new ConstFetchStaticCallChild_ClassAnalyzerTest)->staticMethodCall()');
+
+        $this->assertSame('int(42)', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesNewCallOnClassConstants(): void
+    {
+        $this->classAnalyzer->analyze(ConstFetchStaticCallChild_ClassAnalyzerTest::class);
+
+        $type = $this->getStatementType('(new ConstFetchStaticCallChild_ClassAnalyzerTest)->newCall()');
+
+        $this->assertSame('ConstFetchStaticCallFoo_ClassAnalyzerTest', $type->toString());
+    }
+
+    #[Test]
+    public function analyzesCallOnTypedProperties(): void
+    {
+        $this->classAnalyzer->analyze(InjectedProperty_ClassAnalyzerTest::class);
+
+        $type = $this->getStatementType('(new InjectedProperty_ClassAnalyzerTest)->bar()');
+
+        $this->assertSame('int(42)', $type->toString());
+    }
+}
+
+// Test fixture classes
+
 class ConstructorArgumentAssignment_ClassAnalyzerTest
 {
     public $foo;
@@ -60,21 +273,6 @@ class ConstructorArgumentAssignment_ClassAnalyzerTest
     }
 }
 
-/**
- * The idea here is that any direct argument assignment of constructor argument is represented
- * as `_` in selfOutType. It is later gets ignored when self out is processed and instead is handled
- * with default handling mechanism (for now).
- */
-it('describes direct constructor arguments assignments as template placeholders', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(ConstructorDirectArgumentAssignment_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
-
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<_>');
-});
 class ConstructorDirectArgumentAssignment_ClassAnalyzerTest
 {
     public $foo;
@@ -85,16 +283,6 @@ class ConstructorDirectArgumentAssignment_ClassAnalyzerTest
     }
 }
 
-it('describes arguments assignments as self out type on any method', function () {
-    $method = $this->classAnalyzer
-        ->analyze(MethodArgumentAssignment_ClassAnalyzerTest::class)
-        ->getMethodDefinition('setFoo');
-
-    expect($method->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($method->getSelfOutType()->toString())
-        ->toBe('self<array{foo: TSomething}>');
-});
 class MethodArgumentAssignment_ClassAnalyzerTest
 {
     public $foo;
@@ -105,16 +293,6 @@ class MethodArgumentAssignment_ClassAnalyzerTest
     }
 }
 
-it('describes arguments passed to parent constructor call as part of self out type on a constructor', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(ParentConstructorCall_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
-
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<array{a: int(42)}, _>');
-});
 class ParentConstructorCall_ClassAnalyzerTest extends ParentConstructorCallee_ClassAnalyzerTest
 {
     public $bar;
@@ -125,6 +303,7 @@ class ParentConstructorCall_ClassAnalyzerTest extends ParentConstructorCallee_Cl
         $this->bar = $b;
     }
 }
+
 class ParentConstructorCallee_ClassAnalyzerTest
 {
     public $foo;
@@ -135,16 +314,6 @@ class ParentConstructorCallee_ClassAnalyzerTest
     }
 }
 
-it('describes arguments passed to parent constructor direct call as part of self out type on a constructor', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(DirectParentConstructorCall_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
-
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<int(42), _>');
-});
 class DirectParentConstructorCall_ClassAnalyzerTest extends DirectParentConstructorCallee_ClassAnalyzerTest
 {
     public $bar;
@@ -155,6 +324,7 @@ class DirectParentConstructorCall_ClassAnalyzerTest extends DirectParentConstruc
         $this->bar = $b;
     }
 }
+
 class DirectParentConstructorCallee_ClassAnalyzerTest
 {
     public $foo;
@@ -165,16 +335,6 @@ class DirectParentConstructorCallee_ClassAnalyzerTest
     }
 }
 
-it('describes properties set in setters as part of self out', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(SetterCall_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
-
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<TB>');
-});
 class SetterCall_ClassAnalyzerTest
 {
     public $bar;
@@ -190,16 +350,6 @@ class SetterCall_ClassAnalyzerTest
     }
 }
 
-it('describes properties set in fluent setters as part of self out', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(FluentSetterCall_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
-
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<TB, int(42)>');
-});
 class FluentSetterCall_ClassAnalyzerTest
 {
     public $bar;
@@ -226,16 +376,6 @@ class FluentSetterCall_ClassAnalyzerTest
     }
 }
 
-it('describes properties set in fluent setters set of variables as part of self out', function () {
-    $constructor = $this->classAnalyzer
-        ->analyze(FluentSetterOnVariablesCall_ClassAnalyzerTest::class)
-        ->getMethodDefinition('__construct');
-
-    expect($constructor->selfOutTypeBuilder)
-        ->not->toBeNull()
-        ->and($constructor->getSelfOutType()->toString())
-        ->toBe('self<TB, int(42)>');
-});
 class FluentSetterOnVariablesCall_ClassAnalyzerTest
 {
     public $bar;
@@ -264,16 +404,6 @@ class FluentSetterOnVariablesCall_ClassAnalyzerTest
     }
 }
 
-it('playground', function () {
-    //    $index = new Index;
-    //    $index->registerClassDefinition(
-    //        $this->classAnalyzer->analyze(Playground_ClassAnalyzerTest::class)
-    //    );
-
-    dd(
-        getStatementType('new Playground_ClassAnalyzerTest(12)')->toString(),
-    );
-})->skip('playground');
 class Playground_ClassAnalyzerTest
 {
     public $foo;
@@ -284,71 +414,6 @@ class Playground_ClassAnalyzerTest
     }
 }
 
-it('resolves pending returns lazily', function () {
-    $classDefinition = $this->classAnalyzer->analyze(Foo::class);
-
-    $barDef = $classDefinition->getMethodDefinition('bar');
-    $barReturnType = $this->resolver->resolve(
-        new Scope($this->index, new NodeTypesResolver, new ScopeContext($classDefinition), new \Dedoc\Scramble\Infer\Services\FileNameResolver(new \PhpParser\NameContext(new \PhpParser\ErrorHandler\Throwing))),
-        $barDef->type->getReturnType(),
-    );
-
-    expect($barReturnType->toString())->toBe('int(243)');
-});
-
-it('preserves comments in property defaults', function () {
-    $classDef = $this->classAnalyzer->analyze(FooWithDefaultProperties::class);
-
-    /** @var KeyedArrayType $defaultType */
-    $defaultType = $classDef->properties['default']->defaultType;
-
-    expect($defaultType)
-        ->toBeInstanceOf(KeyedArrayType::class)
-        ->and($defaultType->items[0]->getAttribute('docNode'))
-        ->not->toBeNull()
-        ->and($defaultType->items[1]->getAttribute('docNode'))
-        ->not->toBeNull();
-});
-
-it('analyzes parent instantiation', function () {
-    $this->classAnalyzer->analyze(Child::class);
-
-    $type = getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\Child("some", "wow", 42)');
-
-    expect($type->toString())->toBe('Dedoc\Scramble\Tests\Infer\stubs\Child<int(42), string(wow), string(some)>');
-});
-
-it('analyzes deep parent instantiation', function () {
-    $this->classAnalyzer->analyze(DeepChild::class);
-
-    $type = getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\DeepChild("some", "wow", 42)');
-
-    expect($type->toString())->toBe('Dedoc\Scramble\Tests\Infer\stubs\DeepChild<int(42), string(wow), string(some)>');
-});
-
-it('analyzes parent with property promotion', function () {
-    $this->classAnalyzer->analyze(ChildPromotion::class);
-
-    $type = getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\ChildPromotion("some", "wow", 42)');
-
-    expect($type->toString())->toBe('Dedoc\Scramble\Tests\Infer\stubs\ChildPromotion<int(42), string(wow), string(some)>');
-});
-
-it('analyzes call to parent setter methods in child constructor', function () {
-    $this->classAnalyzer->analyze(ChildParentSetterCalls::class);
-
-    $type = getStatementType('new Dedoc\Scramble\Tests\Infer\stubs\ChildParentSetterCalls("some", "wow")');
-
-    expect($type->toString())->toBe('Dedoc\Scramble\Tests\Infer\stubs\ChildParentSetterCalls<string(from ChildParentSetterCalls constructor), string(from ChildParentSetterCalls wow), string(some)>');
-});
-
-it('analyzes fluent setters called in constructor', function () {
-    $this->classAnalyzer->analyze(Foo_ClassAnalyzerTest::class);
-
-    $type = getStatementType('new Foo_ClassAnalyzerTest()');
-
-    expect($type->toString())->toBe('Foo_ClassAnalyzerTest<int(42), string(baz)>');
-});
 class Foo_ClassAnalyzerTest
 {
     public int $foo;
@@ -377,13 +442,6 @@ class Foo_ClassAnalyzerTest
     }
 }
 
-it('analyzes not fluent setters called in constructor', function () {
-    $this->classAnalyzer->analyze(FooNotFluent_ClassAnalyzerTest::class);
-
-    $type = getStatementType('new FooNotFluent_ClassAnalyzerTest()');
-
-    expect($type->toString())->toBe('FooNotFluent_ClassAnalyzerTest<int(42), string(baz)>');
-});
 class FooNotFluent_ClassAnalyzerTest
 {
     public int $foo;
@@ -407,22 +465,6 @@ class FooNotFluent_ClassAnalyzerTest
     }
 }
 
-it('analyzes static method call on class constants', function () {
-    $this->classAnalyzer->analyze(ConstFetchStaticCallChild_ClassAnalyzerTest::class);
-
-    $type = getStatementType('(new ConstFetchStaticCallChild_ClassAnalyzerTest)->staticMethodCall()');
-
-    expect($type->toString())->toBe('int(42)');
-});
-
-it('analyzes new call on class constants', function () {
-    $this->classAnalyzer->analyze(ConstFetchStaticCallChild_ClassAnalyzerTest::class);
-
-    $type = getStatementType('(new ConstFetchStaticCallChild_ClassAnalyzerTest)->newCall()');
-
-    expect($type->toString())->toBe('ConstFetchStaticCallFoo_ClassAnalyzerTest');
-});
-
 class ConstFetchStaticCallParent_ClassAnalyzerTest
 {
     public function staticMethodCall()
@@ -435,10 +477,12 @@ class ConstFetchStaticCallParent_ClassAnalyzerTest
         return new (static::FOO_CLASS);
     }
 }
+
 class ConstFetchStaticCallChild_ClassAnalyzerTest extends ConstFetchStaticCallParent_ClassAnalyzerTest
 {
     public const FOO_CLASS = ConstFetchStaticCallFoo_ClassAnalyzerTest::class;
 }
+
 class ConstFetchStaticCallFoo_ClassAnalyzerTest
 {
     public static function foo()
@@ -446,14 +490,6 @@ class ConstFetchStaticCallFoo_ClassAnalyzerTest
         return 42;
     }
 }
-
-it('analyzes call on typed properties', function () {
-    $this->classAnalyzer->analyze(InjectedProperty_ClassAnalyzerTest::class);
-
-    $type = getStatementType('(new InjectedProperty_ClassAnalyzerTest)->bar()');
-
-    expect($type->toString())->toBe('int(42)');
-});
 
 class InjectedProperty_ClassAnalyzerTest
 {
@@ -464,6 +500,7 @@ class InjectedProperty_ClassAnalyzerTest
         return $this->fooProp->foo();
     }
 }
+
 class FooProperty_ClassAnalyzerTest
 {
     public function foo()

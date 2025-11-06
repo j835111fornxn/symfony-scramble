@@ -1,9 +1,17 @@
 <?php
 
-use Dedoc\Scramble\Support\Type\ObjectType;
+namespace Dedoc\Scramble\Tests\Infer;
 
-it('generates function type with generic correctly', function () {
-    $type = analyzeFile(<<<'EOD'
+use Dedoc\Scramble\Support\Type\ObjectType;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
+
+final class MethodTemplateTest extends SymfonyTestCase
+{
+    #[Test]
+    public function generatesFunctionTypeWithGenericCorrectly(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo ($a) {
@@ -12,11 +20,13 @@ class Foo {
 }
 EOD)->getClassDefinition('Foo');
 
-    expect($type->methods['foo']->type->toString())->toBe('<TA>(TA): TA');
-});
+        $this->assertSame('<TA>(TA): TA', $type->methods['foo']->type->toString());
+    }
 
-it('gets a type of call of a function with generic correctly', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function getsATypeOfCallOfAFunctionWithGenericCorrectly(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo ($a) {
@@ -25,11 +35,13 @@ class Foo {
 }
 EOD)->getExpressionType("(new Foo)->foo('wow')");
 
-    expect($type->toString())->toBe('string(wow)');
-});
+        $this->assertSame('string(wow)', $type->toString());
+    }
 
-it('gets a type of call of a function with generic class correctly', function () {
-    analyzeFile(<<<'EOD'
+    #[Test]
+    public function getsATypeOfCallOfAFunctionWithGenericClassCorrectly(): void
+    {
+        $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
    public function foo (Foo $a) {
@@ -38,13 +50,15 @@ class Foo {
 }
 EOD);
 
-    $type = new ObjectType('Foo');
+        $type = new ObjectType('Foo');
 
-    expect($type->getMethodReturnType('foo')->toString())->toBe('Foo');
-});
+        $this->assertSame('Foo', $type->getMethodReturnType('foo')->toString());
+    }
 
-it('gets a type of call of a function with generic if parameter is passed and has default value', function () {
-    $file = analyzeFile(<<<'EOD'
+    #[Test]
+    public function getsATypeOfCallOfAFunctionWithGenericIfParameterIsPassedAndHasDefaultValue(): void
+    {
+        $file = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public function foo($a = 'wow') {
@@ -53,14 +67,14 @@ class Foo {
 }
 EOD);
 
-    expect($file->getExpressionType('(new Foo)->foo()')->toString())
-        ->toBe('string(wow)')
-        ->and($file->getExpressionType("(new Foo)->foo('bar')")->toString())
-        ->toBe('string(bar)');
-});
+        $this->assertSame('string(wow)', $file->getExpressionType('(new Foo)->foo()')->toString());
+        $this->assertSame('string(bar)', $file->getExpressionType("(new Foo)->foo('bar')")->toString());
+    }
 
-it('gets a type of constructor call if parameter has default value', function () {
-    $file = analyzeFile(<<<'EOD'
+    #[Test]
+    public function getsATypeOfConstructorCallIfParameterHasDefaultValue(): void
+    {
+        $file = $this->analyzeFile(<<<'EOD'
 <?php
 class Foo {
     public $prop;
@@ -71,8 +85,7 @@ class Foo {
 }
 EOD);
 
-    expect($file->getExpressionType('new Foo')->toString())
-        ->toBe('Foo<string(wow)>')
-        ->and($file->getExpressionType('new Foo("foo")')->toString())
-        ->toBe('Foo<string(foo)>');
-});
+        $this->assertSame('Foo<string(wow)>', $file->getExpressionType('new Foo')->toString());
+        $this->assertSame('Foo<string(foo)>', $file->getExpressionType('new Foo("foo")')->toString());
+    }
+}

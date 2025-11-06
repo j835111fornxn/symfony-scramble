@@ -1,37 +1,40 @@
 <?php
 
-namespace Tests\InferExtensions;
+namespace Dedoc\Scramble\Tests\InferExtensions;
 
 use Dedoc\Scramble\Infer;
 use Dedoc\Scramble\Support\InferExtensions\SymfonySerializerExtension;
 use Dedoc\Scramble\Support\Type\ObjectType;
-use PHPUnit\Framework\TestCase;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-class SymfonySerializerExtensionTest extends TestCase
+final class SymfonySerializerExtensionTest extends SymfonyTestCase
 {
     private SymfonySerializerExtension $extension;
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->extension = new SymfonySerializerExtension(
             $this->createMock(Infer::class)
         );
     }
 
-    /** @test */
-    public function it_returns_null_for_non_existent_class(): void
+    #[Test]
+    public function returnsNullForNonExistentClass(): void
     {
         $type = $this->extension->getSerializedType('NonExistentClass');
 
         $this->assertNull($type);
     }
 
-    /** @test */
-    public function it_returns_object_type_for_valid_class(): void
+    #[Test]
+    public function returnsObjectTypeForValidClass(): void
     {
         $type = $this->extension->getSerializedType(TestSerializableClass::class);
 
@@ -40,8 +43,8 @@ class SymfonySerializerExtensionTest extends TestCase
         $this->assertSame(TestSerializableClass::class, $type->name);
     }
 
-    /** @test */
-    public function it_respects_ignore_attribute(): void
+    #[Test]
+    public function respectsIgnoreAttribute(): void
     {
         // This test would require more sophisticated property inspection
         // For now, we just verify the extension doesn't throw errors
@@ -50,8 +53,8 @@ class SymfonySerializerExtensionTest extends TestCase
         $this->assertInstanceOf(ObjectType::class, $type);
     }
 
-    /** @test */
-    public function it_filters_by_serialization_groups(): void
+    #[Test]
+    public function filtersBySerializationGroups(): void
     {
         // Test that groups filtering works
         $type = $this->extension->getSerializedType(
@@ -62,8 +65,8 @@ class SymfonySerializerExtensionTest extends TestCase
         $this->assertInstanceOf(ObjectType::class, $type);
     }
 
-    /** @test */
-    public function it_handles_serialized_name_attribute(): void
+    #[Test]
+    public function handlesSerializedNameAttribute(): void
     {
         // Test that SerializedName attribute is respected
         $type = $this->extension->getSerializedType(TestSerializableClassWithSerializedName::class);
@@ -71,8 +74,8 @@ class SymfonySerializerExtensionTest extends TestCase
         $this->assertInstanceOf(ObjectType::class, $type);
     }
 
-    /** @test */
-    public function it_can_register_custom_normalizers(): void
+    #[Test]
+    public function canRegisterCustomNormalizers(): void
     {
         $normalizer = new TestCustomNormalizer;
 

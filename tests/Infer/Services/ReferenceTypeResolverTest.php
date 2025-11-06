@@ -1,5 +1,7 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer\Services;
+
 use Dedoc\Scramble\Infer\Analyzer\ClassAnalyzer;
 use Dedoc\Scramble\Infer\Definition\FunctionLikeDefinition;
 use Dedoc\Scramble\Infer\DefinitionBuilders\FunctionLikeAstDefinitionBuilder;
@@ -15,93 +17,298 @@ use Dedoc\Scramble\Support\Type\Reference\CallableCallReferenceType;
 use Dedoc\Scramble\Support\Type\StringType;
 use Dedoc\Scramble\Support\Type\TemplateType;
 use Dedoc\Scramble\Support\Type\Type;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->index = app(Index::class);
+final class ReferenceTypeResolverTest extends SymfonyTestCase
+{
+    private Index $index;
+    private ClassAnalyzer $classAnalyzer;
+    private ReferenceTypeResolver $resolver;
 
-    $this->classAnalyzer = new ClassAnalyzer($this->index);
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-    $this->resolver = new ReferenceTypeResolver($this->index);
-});
+        $this->index = $this->getContainer()->get(Index::class);
+        $this->classAnalyzer = new ClassAnalyzer($this->index);
+        $this->resolver = new ReferenceTypeResolver($this->index);
+    }
 
-/*
- * Late static binding
- */
+    /*
+     * New calls
+     */
+    #[Test]
+    #[DataProvider('newCallsOnParentClassProvider')]
+    public function infersNewCallsOnParentClass(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo::class)
+            ->getMethodDefinition($method);
 
-/*
- * New calls
- */
-it('infers new calls on parent class', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['newSelfCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
-    ['newStaticCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
-]);
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
 
-it('infers new calls on child class', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['newSelfCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
-    ['newStaticCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar<string(foo)>'],
-    ['newParentCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
-]);
+    public static function newCallsOnParentClassProvider(): array
+    {
+        return [
+            ['newSelfCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
+            ['newStaticCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
+        ];
+    }
 
-/*
- * Static method calls (should work the same for both static and non-static methods)
- */
-it('infers static method calls on parent class', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['selfMethodCall', 'string(foo)'],
-    ['staticMethodCall', 'string(foo)'],
-]);
+    #[Test]
+    #[DataProvider('newCallsOnChildClassProvider')]
+    public function infersNewCallsOnChildClass(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::class)
+            ->getMethodDefinition($method);
 
-it('infers static method calls on child class', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['selfMethodCall', 'string(foo)'],
-    ['staticMethodCall', 'string(bar)'],
-    ['parentMethodCall', 'string(foo)'],
-]);
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
 
-it('infers static class fetch on parent', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['staticClassFetch', 'class-string<Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo>'],
-]);
+    public static function newCallsOnChildClassProvider(): array
+    {
+        return [
+            ['newSelfCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
+            ['newStaticCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar<string(foo)>'],
+            ['newParentCall', 'Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo'],
+        ];
+    }
 
-it('infers static class fetch on child', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['staticClassFetch', 'class-string<Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar>'],
-]);
+    /*
+     * Static method calls (should work the same for both static and non-static methods)
+     */
+    #[Test]
+    #[DataProvider('staticMethodCallsOnParentClassProvider')]
+    public function infersStaticMethodCallsOnParentClass(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo::class)
+            ->getMethodDefinition($method);
 
-it('infers static class fetch on child when called from outside', function (string $method, string $expectedType) {
-    $methodDef = $this->classAnalyzer
-        ->analyze(CallRef_ReferenceTypeResolverTest::class)
-        ->getMethodDefinition($method);
-    expect($methodDef->type->getReturnType()->toString())->toBe($expectedType);
-})->with([
-    ['baz', 'class-string<Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar>'],
-]);
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
+
+    public static function staticMethodCallsOnParentClassProvider(): array
+    {
+        return [
+            ['selfMethodCall', 'string(foo)'],
+            ['staticMethodCall', 'string(foo)'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('staticMethodCallsOnChildClassProvider')]
+    public function infersStaticMethodCallsOnChildClass(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::class)
+            ->getMethodDefinition($method);
+
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
+
+    public static function staticMethodCallsOnChildClassProvider(): array
+    {
+        return [
+            ['selfMethodCall', 'string(foo)'],
+            ['staticMethodCall', 'string(bar)'],
+            ['parentMethodCall', 'string(foo)'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('staticClassFetchOnParentProvider')]
+    public function infersStaticClassFetchOnParent(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo::class)
+            ->getMethodDefinition($method);
+
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
+
+    public static function staticClassFetchOnParentProvider(): array
+    {
+        return [
+            ['staticClassFetch', 'class-string<Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Foo>'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('staticClassFetchOnChildProvider')]
+    public function infersStaticClassFetchOnChild(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(\Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::class)
+            ->getMethodDefinition($method);
+
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
+
+    public static function staticClassFetchOnChildProvider(): array
+    {
+        return [
+            ['staticClassFetch', 'class-string<Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar>'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('staticClassFetchOnChildWhenCalledFromOutsideProvider')]
+    public function infersStaticClassFetchOnChildWhenCalledFromOutside(string $method, string $expectedType): void
+    {
+        $methodDef = $this->classAnalyzer
+            ->analyze(CallRef_ReferenceTypeResolverTest::class)
+            ->getMethodDefinition($method);
+
+        $this->assertSame($expectedType, $methodDef->type->getReturnType()->toString());
+    }
+
+    public static function staticClassFetchOnChildWhenCalledFromOutsideProvider(): array
+    {
+        return [
+            ['baz', 'class-string<Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar>'],
+        ];
+    }
+
+    #[Test]
+    public function complexStaticCallAndPropertyFetch(): void
+    {
+        $type = $this->getStatementType('Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::wow()');
+
+        $this->assertSame('string(foo)', $type->toString());
+    }
+
+    /*
+     * Static method calls
+     */
+    #[Test]
+    public function infersStaticMethodCallType(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {
+    public static function foo ($a) {
+        return $a;
+    }
+}
+EOD)->getExpressionType("Foo::foo('wow')");
+
+        $this->assertSame('string(wow)', $type->toString());
+    }
+
+    #[Test]
+    public function infersStaticMethodCallTypeWithNamedArgs(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {
+    public static function foo ($a) {
+        return $a;
+    }
+}
+EOD)->getExpressionType("Foo::foo(a: 'wow')");
+
+        $this->assertSame('string(wow)', $type->toString());
+    }
+
+    #[Test]
+    public function infersStaticMethodCallTypeWithNamedUnpackedArgs(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
+<?php
+class Foo {
+    public static function foo ($a) {
+        return $a;
+    }
+}
+EOD)->getExpressionType("Foo::foo(...['a' => 'wow'])");
+
+        $this->assertSame('string(wow)', $type->toString());
+    }
+
+    /*
+     * Ability to override accepted by type and track annotated types
+     */
+    #[Test]
+    public function allowsOverridingTypesAcceptedByAnotherType(): void
+    {
+        $functionType = new FunctionType(
+            'wow',
+            returnType: $expectedReturnType = new class('sample') extends ObjectType
+            {
+                public function acceptedBy(Type $otherType): bool
+                {
+                    return $otherType instanceof StringType;
+                }
+            },
+        );
+        $functionType->setAttribute(
+            'annotatedReturnType',
+            new StringType,
+        );
+
+        $def = new FunctionLikeDefinition($functionType);
+
+        FunctionLikeAstDefinitionBuilder::resolveFunctionReturnReferences(
+            new GlobalScope,
+            $def,
+        );
+
+        $actualReturnType = $functionType->getReturnType();
+
+        $this->assertInstanceOf(ObjectType::class, $actualReturnType);
+        $this->assertSame($expectedReturnType->name, $actualReturnType->name);
+    }
+
+    #[Test]
+    public function resolvesOnlyArgumentsWithTemplatesReferencedInReturnType(): void
+    {
+        $templates = [$t = new TemplateType('T')];
+        $fn = tap(new FunctionType(
+            '_',
+            arguments: ['foo' => $t],
+            returnType: new LiteralStringType('wow'),
+        ), fn ($f) => $f->templates = $templates);
+
+        $result = ReferenceTypeResolver::getInstance()->resolve(
+            new GlobalScope,
+            new CallableCallReferenceType($fn, [
+                new class extends AbstractType implements LateResolvingType
+                {
+                    public function resolve(): Type
+                    {
+                        throw new LogicException('should not happen');
+                    }
+
+                    public function isResolvable(): bool
+                    {
+                        return true;
+                    }
+
+                    public function isSame(Type $type)
+                    {
+                        return false;
+                    }
+
+                    public function toString(): string
+                    {
+                        return '__test__';
+                    }
+                },
+            ]),
+        );
+
+        $this->assertSame('string(wow)', $result->toString());
+    }
+}
+
+// Test fixture classes
+
 class CallRef_ReferenceTypeResolverTest
 {
     public static function baz()
@@ -114,120 +321,3 @@ class CallRef_ReferenceTypeResolverTest
         return \Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::staticClassFetch();
     }
 }
-
-it('complex static call and property fetch', function () {
-    $type = getStatementType('Dedoc\Scramble\Tests\Infer\Services\StaticCallsClasses\Bar::wow()');
-
-    expect($type->toString())->toBe('string(foo)');
-});
-
-/*
- * Static method calls
- */
-it('infers static method call type', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {
-    public static function foo ($a) {
-        return $a;
-    }
-}
-EOD)->getExpressionType("Foo::foo('wow')");
-
-    expect($type->toString())->toBe('string(wow)');
-});
-
-it('infers static method call type with named args', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {
-    public static function foo ($a) {
-        return $a;
-    }
-}
-EOD)->getExpressionType("Foo::foo(a: 'wow')");
-
-    expect($type->toString())->toBe('string(wow)');
-});
-
-it('infers static method call type with named unpacked args', function () {
-    $type = analyzeFile(<<<'EOD'
-<?php
-class Foo {
-    public static function foo ($a) {
-        return $a;
-    }
-}
-EOD)->getExpressionType("Foo::foo(...['a' => 'wow'])");
-
-    expect($type->toString())->toBe('string(wow)');
-});
-
-/*
- * Ability to override accepted by type and track annotated types
- */
-it('allows overriding types accepted by another type', function () {
-    $functionType = new FunctionType(
-        'wow',
-        returnType: $expectedReturnType = new class('sample') extends ObjectType
-        {
-            public function acceptedBy(Type $otherType): bool
-            {
-                return $otherType instanceof StringType;
-            }
-        },
-    );
-    $functionType->setAttribute(
-        'annotatedReturnType',
-        new StringType,
-    );
-
-    $def = new FunctionLikeDefinition($functionType);
-
-    FunctionLikeAstDefinitionBuilder::resolveFunctionReturnReferences(
-        new GlobalScope,
-        $def,
-    );
-
-    expect($actualReturnType = $functionType->getReturnType())
-        ->toBeInstanceOf(ObjectType::class)
-        ->and($actualReturnType->name)
-        ->toBe($expectedReturnType->name);
-});
-
-it('resolves only arguments with templates referenced in return type', function () {
-    $templates = [$t = new TemplateType('T')];
-    $fn = tap(new FunctionType(
-        '_',
-        arguments: ['foo' => $t],
-        returnType: new LiteralStringType('wow'),
-    ), fn ($f) => $f->templates = $templates);
-
-    expect(ReferenceTypeResolver::getInstance()->resolve(
-        new GlobalScope,
-        new CallableCallReferenceType($fn, [
-            new class extends AbstractType implements LateResolvingType
-            {
-                public function resolve(): Type
-                {
-                    throw new LogicException('should not happen');
-                }
-
-                public function isResolvable(): bool
-                {
-                    return true;
-                }
-
-                public function isSame(Type $type)
-                {
-                    return false;
-                }
-
-                public function toString(): string
-                {
-                    return '__test__';
-                }
-            },
-        ]),
-    )->toString())->toBe('string(wow)');
-});

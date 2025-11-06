@@ -1,16 +1,25 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer;
+
 use Dedoc\Scramble\Support\Type\IntegerType;
 use Dedoc\Scramble\Support\Type\StringType;
 use Dedoc\Scramble\Support\Type\TypeWalker;
 use Dedoc\Scramble\Support\Type\Union;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-it('replaces a non-self referencing type in self referencing type', function () {
-    $type = new Union([new IntegerType]);
-    $type->types[] = $type;
+final class TypeWalkerTest extends TestCase
+{
+    #[Test]
+    public function replacesNonSelfReferencingTypeInSelfReferencingType(): void
+    {
+        $type = new Union([new IntegerType]);
+        $type->types[] = $type;
 
-    $replacedType = (new TypeWalker)->replace($type, fn ($t) => $t instanceof IntegerType ? new StringType : null);
+        $replacedType = (new TypeWalker)->replace($type, fn ($t) => $t instanceof IntegerType ? new StringType : null);
 
-    expect($replacedType->types[0])->toBeInstanceOf(StringType::class)
-        ->and($replacedType->types[1])->toBe($replacedType);
-});
+        $this->assertInstanceOf(StringType::class, $replacedType->types[0]);
+        $this->assertSame($replacedType, $replacedType->types[1]);
+    }
+}

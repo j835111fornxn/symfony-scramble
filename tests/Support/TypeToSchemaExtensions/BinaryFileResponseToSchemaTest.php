@@ -14,32 +14,45 @@ use Dedoc\Scramble\Support\Type\Literal\LiteralIntegerType;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\UnknownType;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\BinaryFileResponseToSchema;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-beforeEach(function () {
-    $this->components = new Components;
-    $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
-    $this->transformer = new TypeTransformer(app(Infer::class), $this->context, [
-        BinaryFileResponseToSchema::class,
-    ]);
-});
+class BinaryFileResponseToSchemaTest extends SymfonyTestCase
+{
+    private Components $components;
+    private OpenApiContext $context;
+    private TypeTransformer $transformer;
 
-it('transforms basic inferred type to response', function () {
-    // $type = getStatementType("response()->download(base_path('/tmp/wow.txt'))");
-    $type = (new Generic(BinaryFileResponse::class, [
-        new UnknownType,
-        new LiteralIntegerType(200),
-        new ArrayType,
-        new LiteralStringType('attachment'),
-    ]))->mergeAttributes([
-        'mimeType' => 'text/plain',
-        'contentDisposition' => 'attachment; filename=wow.txt',
-    ]);
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->components = new Components;
+        $this->context = new OpenApiContext((new OpenApi('3.1.0'))->setComponents($this->components), new GeneratorConfig);
+        $this->transformer = new TypeTransformer($this->get(Infer::class), $this->context, [
+            BinaryFileResponseToSchema::class,
+        ]);
+    }
 
-    $response = $this->transformer->toResponse($type);
+    #[Test]
+    public function transforms_basic_inferred_type_to_response(): void
+    {
+        // $type = getStatementType("response()->download(base_path('/tmp/wow.txt'))");
+        $type = (new Generic(BinaryFileResponse::class, [
+            new UnknownType,
+            new LiteralIntegerType(200),
+            new ArrayType,
+            new LiteralStringType('attachment'),
+        ]))->mergeAttributes([
+            'mimeType' => 'text/plain',
+            'contentDisposition' => 'attachment; filename=wow.txt',
+        ]);
 
-    expect($response->headers)->toHaveKey('Content-Disposition')
-        ->and($response->headers['Content-Disposition']->example)->toBe('attachment; filename=wow.txt')
-        ->and($response->content)->toHaveKey('text/plain')
-        ->and($response->getContent('text/plain')->toArray())->toBe(['type' => 'string']);
-});
+        $response = $this->transformer->toResponse($type);
+
+        $this->assertArrayHasKey('Content-Disposition', $response->headers);
+        $this->assertEquals('attachment; filename=wow.txt', $response->headers['Content-Disposition']->example);
+        $this->assertArrayHasKey('text/plain', $response->content);
+        $this->assertEquals(['type' => 'string'], $response->getContent('text/plain')->toArray());
+    }
+}

@@ -10,54 +10,74 @@ use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Reference\CallableCallReferenceType;
 use Dedoc\Scramble\Support\Type\Reference\MethodCallReferenceType;
 use Dedoc\Scramble\Support\Type\Reference\NewCallReferenceType;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-beforeEach(function () {
-    $this->index = new LazyShallowReflectionIndex;
-    $this->scope = new GlobalScope;
-});
+class ShallowTypeResolverTest extends SymfonyTestCase
+{
+    private LazyShallowReflectionIndex $index;
+    private GlobalScope $scope;
 
-it('handles callable call reference type', function () {
-    $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new CallableCallReferenceType(
-        new CallableStringType(__NAMESPACE__.'\\fn_ShallowTypeResolverTest'),
-        []
-    ));
-    expect($type->toString())->toBe('int');
-});
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->index = new LazyShallowReflectionIndex;
+        $this->scope = new GlobalScope;
+    }
 
-it('handles new reference type', function () {
-    $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new NewCallReferenceType(
-        Foo_ShallowTypeResolverTest::class,
-        []
-    ));
-    expect($type->toString())->toBe(Foo_ShallowTypeResolverTest::class);
-});
+    #[Test]
+    public function handles_callable_call_reference_type(): void
+    {
+        $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new CallableCallReferenceType(
+            new CallableStringType(__NAMESPACE__.'\\fn_ShallowTypeResolverTest'),
+            []
+        ));
+        $this->assertEquals('int', $type->toString());
+    }
 
-it('handles self return annotation', function () {
-    $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new MethodCallReferenceType(
-        new ObjectType(Foo_ShallowTypeResolverTest::class),
-        'returnsSelf',
-        []
-    ));
-    expect($type->toString())->toBe(Bar_ShallowTypeResolverTest::class);
-});
+    #[Test]
+    public function handles_new_reference_type(): void
+    {
+        $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new NewCallReferenceType(
+            Foo_ShallowTypeResolverTest::class,
+            []
+        ));
+        $this->assertEquals(Foo_ShallowTypeResolverTest::class, $type->toString());
+    }
 
-it('handles static return annotation', function () {
-    $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new MethodCallReferenceType(
-        new ObjectType(Foo_ShallowTypeResolverTest::class),
-        'returnsStatic',
-        []
-    ));
-    expect($type->toString())->toBe(Foo_ShallowTypeResolverTest::class);
-});
+    #[Test]
+    public function handles_self_return_annotation(): void
+    {
+        $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new MethodCallReferenceType(
+            new ObjectType(Foo_ShallowTypeResolverTest::class),
+            'returnsSelf',
+            []
+        ));
+        $this->assertEquals(Bar_ShallowTypeResolverTest::class, $type->toString());
+    }
 
-it('handles parent return annotation', function () {
-    $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new MethodCallReferenceType(
-        new ObjectType(Foo_ShallowTypeResolverTest::class),
-        'returnsParent',
-        []
-    ));
-    expect($type->toString())->toBe(Bar_ShallowTypeResolverTest::class);
-});
+    #[Test]
+    public function handles_static_return_annotation(): void
+    {
+        $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new MethodCallReferenceType(
+            new ObjectType(Foo_ShallowTypeResolverTest::class),
+            'returnsStatic',
+            []
+        ));
+        $this->assertEquals(Foo_ShallowTypeResolverTest::class, $type->toString());
+    }
+
+    #[Test]
+    public function handles_parent_return_annotation(): void
+    {
+        $type = (new ShallowTypeResolver($this->index))->resolve($this->scope, new MethodCallReferenceType(
+            new ObjectType(Foo_ShallowTypeResolverTest::class),
+            'returnsParent',
+            []
+        ));
+        $this->assertEquals(Bar_ShallowTypeResolverTest::class, $type->toString());
+    }
+}
 
 class Foo_ShallowTypeResolverTest extends Bar_ShallowTypeResolverTest
 {

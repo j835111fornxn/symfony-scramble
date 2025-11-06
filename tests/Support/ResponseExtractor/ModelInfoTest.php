@@ -1,14 +1,26 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Support\ResponseExtractor;
+
 use Dedoc\Scramble\Support\ResponseExtractor\ModelInfo;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\Attributes\Test;
 
-it('handles model without updated_at column', function () {
-    $modelInfo = new ModelInfo(UserModelWithoutUpdatedAt::class);
+final class ModelInfoTest extends SymfonyTestCase
+{
+    #[Test]
+    public function handlesModelWithoutUpdatedAtColumn(): void
+    {
+        $modelInfo = new ModelInfo(UserModelWithoutUpdatedAt::class);
 
-    $modelInfo->handle();
-})->expectNotToPerformAssertions();
+        $modelInfo->handle();
 
-class UserModelWithoutUpdatedAt extends \Illuminate\Database\Eloquent\Model
+        $this->expectNotToPerformAssertions();
+    }
+}
+
+class UserModelWithoutUpdatedAt extends Model
 {
     protected $table = 'users';
 

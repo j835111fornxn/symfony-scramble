@@ -1,75 +1,72 @@
 <?php
 
-use Illuminate\Support\Facades\Route as RouteFacade;
+namespace Dedoc\Scramble\Tests\Generator;
 
-it('documents abort helper with 404 status as referenced error response', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::post('api/test', [AbortHelpersResponseDocumentation_Test::class, 'abort_404']);
-    });
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
-    expect($response = $openApiDocument['paths']['/test']['post']['responses'][404])
-        ->and($response)
-        ->toHaveKey('$ref', '#/components/responses/ModelNotFoundException');
-});
-
-it('documents abort helper as not referenced error response', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::post('api/test', [AbortHelpersResponseDocumentation_Test::class, 'abort']);
-    });
-
-    expect($response = $openApiDocument['paths']['/test']['post']['responses'][400])
-        ->toHaveKey('description')
-        ->toHaveKey('content')
-        ->and($response)
-        ->not->toHaveKey('$ref')
-        ->toHaveKey('content.application/json.schema.properties.message.example', 'Something is wrong.');
-});
-
-it('documents abort_if helper', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::post('api/test', [AbortHelpersResponseDocumentation_Test::class, 'abort_if']);
-    });
-
-    expect($response = $openApiDocument['paths']['/test']['post']['responses'][402])
-        ->toHaveKey('description')
-        ->toHaveKey('content')
-        ->and($response)
-        ->not->toHaveKey('$ref')
-        ->toHaveKey('content.application/json.schema.properties.message.example', 'Something is wrong.');
-});
-
-it('documents abort_unless helper', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::post('api/test', [AbortHelpersResponseDocumentation_Test::class, 'abort_unless']);
-    });
-
-    expect($response = $openApiDocument['paths']['/test']['post']['responses'][403])
-        ->toHaveKey('description')
-        ->toHaveKey('content')
-        ->and($response)
-        ->not->toHaveKey('$ref')
-        ->toHaveKey('content.application/json.schema.properties.message.example', 'Something is wrong.');
-});
-
-class AbortHelpersResponseDocumentation_Test extends \Illuminate\Routing\Controller
+final class AbortHelpersResponseDocumentationTest extends SymfonyTestCase
 {
-    public function abort_404()
+    #[Test]
+    public function documentsAbortHelperWith404StatusAsReferencedErrorResponse(): void
     {
-        abort(404, 'Something is wrong.');
+        $openApiDocument = $this->generateForRoute(function () {
+            // Using Symfony routing instead of Laravel's RouteFacade
+            $router = $this->get('router');
+            $router->add('test_abort_404', new \Symfony\Component\Routing\Route('/test', [], [], [], null, null, ['POST']));
+            return $router->getRouteCollection()->get('test_abort_404');
+        });
+
+        $response = $openApiDocument['paths']['/test']['post']['responses'][404];
+        $this->assertArrayHasKey('$ref', $response);
+        $this->assertSame('#/components/responses/ModelNotFoundException', $response['$ref']);
     }
 
-    public function abort()
+    #[Test]
+    public function documentsAbortHelperAsNotReferencedErrorResponse(): void
     {
-        abort(400, 'Something is wrong.');
+        $openApiDocument = $this->generateForRoute(function () {
+            $router = $this->get('router');
+            $router->add('test_abort', new \Symfony\Component\Routing\Route('/test', [], [], [], null, null, ['POST']));
+            return $router->getRouteCollection()->get('test_abort');
+        });
+
+        $response = $openApiDocument['paths']['/test']['post']['responses'][400];
+        $this->assertArrayHasKey('description', $response);
+        $this->assertArrayHasKey('content', $response);
+        $this->assertArrayNotHasKey('$ref', $response);
+        $this->assertSame('Something is wrong.', $response['content']['application/json']['schema']['properties']['message']['example']);
     }
 
-    public function abort_if()
+    #[Test]
+    public function documentsAbortIfHelper(): void
     {
-        abort_if(rand(0, 1) > 0, 402, 'Something is wrong.');
+        $openApiDocument = $this->generateForRoute(function () {
+            $router = $this->get('router');
+            $router->add('test_abort_if', new \Symfony\Component\Routing\Route('/test', [], [], [], null, null, ['POST']));
+            return $router->getRouteCollection()->get('test_abort_if');
+        });
+
+        $response = $openApiDocument['paths']['/test']['post']['responses'][402];
+        $this->assertArrayHasKey('description', $response);
+        $this->assertArrayHasKey('content', $response);
+        $this->assertArrayNotHasKey('$ref', $response);
+        $this->assertSame('Something is wrong.', $response['content']['application/json']['schema']['properties']['message']['example']);
     }
 
-    public function abort_unless()
+    #[Test]
+    public function documentsAbortUnlessHelper(): void
     {
-        abort_unless(rand(0, 1) > 0, 403, 'Something is wrong.');
+        $openApiDocument = $this->generateForRoute(function () {
+            $router = $this->get('router');
+            $router->add('test_abort_unless', new \Symfony\Component\Routing\Route('/test', [], [], [], null, null, ['POST']));
+            return $router->getRouteCollection()->get('test_abort_unless');
+        });
+
+        $response = $openApiDocument['paths']['/test']['post']['responses'][403];
+        $this->assertArrayHasKey('description', $response);
+        $this->assertArrayHasKey('content', $response);
+        $this->assertArrayNotHasKey('$ref', $response);
+        $this->assertSame('Something is wrong.', $response['content']['application/json']['schema']['properties']['message']['example']);
     }
 }

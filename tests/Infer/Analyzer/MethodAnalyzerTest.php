@@ -5,28 +5,42 @@ namespace Dedoc\Scramble\Tests\Infer\Analyzer;
 use Dedoc\Scramble\Infer\Analyzer\ClassAnalyzer;
 use Dedoc\Scramble\Infer\Scope\GlobalScope;
 use Dedoc\Scramble\Infer\Scope\Index;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-it('analyzes exceptions annotations on method call', function (string $class) {
-    $definition = (new ClassAnalyzer($index = new Index))
-        ->analyze($class)
-        ->getMethodDefinition(
-            'foo',
-            scope: new GlobalScope($index),
-            withSideEffects: true,
-        );
+final class MethodAnalyzerTest extends SymfonyTestCase
+{
+    #[Test]
+    #[DataProvider('exceptionsAnnotationsProvider')]
+    public function analyzesExceptionsAnnotationsOnMethodCall(string $class): void
+    {
+        $definition = (new ClassAnalyzer($index = new Index))
+            ->analyze($class)
+            ->getMethodDefinition(
+                'foo',
+                scope: new GlobalScope($index),
+                withSideEffects: true,
+            );
 
-    expect($definition->type->exceptions)
-        ->toHaveCount(1)
-        ->and($definition->type->exceptions[0]->name)
-        ->toBe(HttpException::class);
-})->with([
-    [MethodCall_MethodAnalyzerTest::class],
-    [MethodCallOnProperty_MethodAnalyzerTest::class],
-    [MethodCallOnParameter_MethodAnalyzerTest::class],
-    [StaticMethodCall_MethodAnalyzerTest::class],
-    [StaticMethodCallSelf_MethodAnalyzerTest::class],
-]);
+        $this->assertCount(1, $definition->type->exceptions);
+        $this->assertSame(HttpException::class, $definition->type->exceptions[0]->name);
+    }
+
+    public static function exceptionsAnnotationsProvider(): array
+    {
+        return [
+            [MethodCall_MethodAnalyzerTest::class],
+            [MethodCallOnProperty_MethodAnalyzerTest::class],
+            [MethodCallOnParameter_MethodAnalyzerTest::class],
+            [StaticMethodCall_MethodAnalyzerTest::class],
+            [StaticMethodCallSelf_MethodAnalyzerTest::class],
+        ];
+    }
+}
+
+// Test fixture classes
 
 class MethodCall_MethodAnalyzerTest
 {

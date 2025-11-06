@@ -1,85 +1,72 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Generator\Request;
+
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route as RouteFacade;
+use PHPUnit\Framework\Attributes\Test;
 
-if (trait_exists(HasUuids::class)) {
-    it('documents model keys uuid parameters as uuids', function () {
-        $openApiDocument = generateForRoute(fn () => RouteFacade::get('api/test/{model}', [
+final class ParametersDocumentationTest extends SymfonyTestCase
+{
+    #[Test]
+    public function documentsModelKeysUuidParametersAsUuids(): void
+    {
+        if (! trait_exists(HasUuids::class)) {
+            $this->markTestSkipped('HasUuids trait not available');
+        }
+
+        $openApiDocument = $this->generateForRoute(fn () => RouteFacade::get('api/test/{model}', [
             DocumentsModelKeysUuidParametersAsUuids_Test::class, 'index',
         ]));
 
-        expect($params = $openApiDocument['paths']['/test/{model}']['get']['parameters'])
-            ->toHaveCount(1)
-            ->and($params[0])
-            ->toMatchArray([
-                'name' => 'model',
-                'in' => 'path',
-                'required' => true,
-                'schema' => [
-                    'type' => 'string',
-                    'format' => 'uuid',
-                ],
-            ]);
-    });
+        $params = $openApiDocument['paths']['/test/{model}']['get']['parameters'];
+        $this->assertCount(1, $params);
+        $this->assertSame([
+            'name' => 'model',
+            'in' => 'path',
+            'required' => true,
+            'schema' => [
+                'type' => 'string',
+                'format' => 'uuid',
+            ],
+        ], $params[0]);
+    }
 
-    class DocumentsModelKeysUuidParametersAsUuids_Test
+    #[Test]
+    public function documentsModelKeysUuidV4ParametersAsUuids(): void
     {
-        public function index(DocumentsModelKeysUuidParametersAsUuids_Model $model)
-        {
-            return response()->json();
+        if (! trait_exists(HasVersion4Uuids::class)) {
+            $this->markTestSkipped('HasVersion4Uuids trait not available');
         }
-    }
 
-    class DocumentsModelKeysUuidParametersAsUuids_Model extends \Illuminate\Database\Eloquent\Model
-    {
-        use HasUuids;
-    }
-}
-
-if (trait_exists(HasVersion4Uuids::class)) {
-    it('documents model keys uuid v4 parameters as uuids', function () {
-        $openApiDocument = generateForRoute(fn () => RouteFacade::get('api/test/{model}', [
+        $openApiDocument = $this->generateForRoute(fn () => RouteFacade::get('api/test/{model}', [
             DocumentsModelKeysUuidV4ParametersAsUuids_Test::class, 'index',
         ]));
 
-        expect($params = $openApiDocument['paths']['/test/{model}']['get']['parameters'])
-            ->toHaveCount(1)
-            ->and($params[0])
-            ->toMatchArray([
-                'name' => 'model',
-                'in' => 'path',
-                'required' => true,
-                'schema' => [
-                    'type' => 'string',
-                    'format' => 'uuid',
-                ],
-            ]);
-    });
-
-    class DocumentsModelKeysUuidV4ParametersAsUuids_Test
-    {
-        public function index(DocumentsModelKeysUuidV4ParametersAsUuids_Model $model)
-        {
-            return response()->json();
-        }
+        $params = $openApiDocument['paths']['/test/{model}']['get']['parameters'];
+        $this->assertCount(1, $params);
+        $this->assertSame([
+            'name' => 'model',
+            'in' => 'path',
+            'required' => true,
+            'schema' => [
+                'type' => 'string',
+                'format' => 'uuid',
+            ],
+        ], $params[0]);
     }
 
-    class DocumentsModelKeysUuidV4ParametersAsUuids_Model extends \Illuminate\Database\Eloquent\Model
+    #[Test]
+    public function supportsFormatAnnotationForValidationRules(): void
     {
-        use HasVersion4Uuids;
-    }
-}
+        $openApiDocument = $this->generateForRoute(fn () => RouteFacade::get('api/test', SupportFormatAnnotation_ParametersDocumentationTestController::class));
 
-it('supports @format annotation for validation rules', function () {
-    $openApiDocument = generateForRoute(fn () => RouteFacade::get('api/test', SupportFormatAnnotation_ParametersDocumentationTestController::class));
-
-    expect($openApiDocument['paths']['/test']['get']['parameters'])
-        ->toHaveCount(1)
-        ->and($openApiDocument['paths']['/test']['get']['parameters'][0])
-        ->toBe([
+        $parameters = $openApiDocument['paths']['/test']['get']['parameters'];
+        $this->assertCount(1, $parameters);
+        $this->assertSame([
             'name' => 'foo',
             'in' => 'query',
             'required' => true,
@@ -87,8 +74,55 @@ it('supports @format annotation for validation rules', function () {
                 'type' => 'string',
                 'format' => 'uuid',
             ],
-        ]);
-});
+        ], $parameters[0]);
+    }
+
+    #[Test]
+    public function supportsOptionalParameters(): void
+    {
+        $openApiDocument = $this->generateForRoute(fn () => RouteFacade::get('api/test/{payment_preference?}', SupportOptionalParam_ParametersDocumentationTestController::class));
+
+        $parameters = $openApiDocument['paths']['/test/{paymentPreference}']['get']['parameters'];
+        $this->assertCount(1, $parameters);
+        $this->assertSame([
+            'name' => 'paymentPreference',
+            'in' => 'path',
+            'required' => true,
+            'description' => '**Optional**. The name of the payment preference to use',
+            'schema' => [
+                'type' => ['string', 'null'],
+                'default' => 'paypal',
+            ],
+            'x-optional' => true,
+        ], $parameters[0]);
+    }
+}
+
+class DocumentsModelKeysUuidParametersAsUuids_Test
+{
+    public function index(DocumentsModelKeysUuidParametersAsUuids_Model $model)
+    {
+        return response()->json();
+    }
+}
+
+class DocumentsModelKeysUuidParametersAsUuids_Model extends \Illuminate\Database\Eloquent\Model
+{
+    use HasUuids;
+}
+
+class DocumentsModelKeysUuidV4ParametersAsUuids_Test
+{
+    public function index(DocumentsModelKeysUuidV4ParametersAsUuids_Model $model)
+    {
+        return response()->json();
+    }
+}
+
+class DocumentsModelKeysUuidV4ParametersAsUuids_Model extends \Illuminate\Database\Eloquent\Model
+{
+    use HasVersion4Uuids;
+}
 
 class SupportFormatAnnotation_ParametersDocumentationTestController
 {
@@ -100,25 +134,6 @@ class SupportFormatAnnotation_ParametersDocumentationTestController
         ]);
     }
 }
-
-it('supports optional parameters', function () {
-    $openApiDocument = generateForRoute(fn () => RouteFacade::get('api/test/{payment_preference?}', SupportOptionalParam_ParametersDocumentationTestController::class));
-
-    expect($openApiDocument['paths']['/test/{paymentPreference}']['get']['parameters'])
-        ->toHaveCount(1)
-        ->and($openApiDocument['paths']['/test/{paymentPreference}']['get']['parameters'][0])
-        ->toBe([
-            'name' => 'paymentPreference',
-            'in' => 'path',
-            'required' => true,
-            'description' => '**Optional**. The name of the payment preference to use',
-            'schema' => [
-                'type' => ['string', 'null'],
-                'default' => 'paypal',
-            ],
-            'x-optional' => true,
-        ]);
-});
 
 class SupportOptionalParam_ParametersDocumentationTestController
 {

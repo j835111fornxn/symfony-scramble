@@ -1,44 +1,73 @@
 <?php
 
-use Illuminate\Support\Facades\Route as RouteFacade;
+namespace Dedoc\Scramble\Tests\Generator;
 
-it('adds an alternative server to operation when no matching server found', function () {
-    $openApiDocument = generateForRoute(function () {
-        RouteFacade::post('api/test', [AlternativeServers_Test::class, 'a']);
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Routing\Route;
 
-        return RouteFacade::domain('{param}.localhost')->get('api/test', [AlternativeServers_Test::class, 'a']);
-    });
+final class AlternativeServersTest extends SymfonyTestCase
+{
+    #[Test]
+    public function addsAnAlternativeServerToOperationWhenNoMatchingServerFound(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            // Register routes via Symfony router
+            $router = $this->get('router');
+            $router->add('post-test', new Route('/api/test', [], [], [], null, [], ['POST']));
+            $router->add('domain-get-test', new Route('/api/test', [], [], [], '{param}.localhost', [], ['GET']));
 
-    expect($alternativeServers = $openApiDocument['paths']['/test']['get']['servers'] ?? [])->toHaveCount(1)
-        ->and($alternativeServers[0]['url'])->toBe('http://{param}.localhost/api')
-        ->and($openApiDocument['paths']['/test']['servers'] ?? [])->toBeEmpty();
-});
+            return $router->getRouteCollection()->get('domain-get-test');
+        });
 
-it('doesnt add an alternative server when there is matching server', function () {
-    config()->set('scramble.servers', [
-        'Live' => 'http://{param}.localhost/api',
-    ]);
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::domain('{param}.localhost')->get('api/test', [AlternativeServers_Test::class, 'a']);
-    });
-    config()->set('scramble.servers', null);
+        $alternativeServers = $openApiDocument['paths']['/test']['get']['servers'] ?? [];
+        $this->assertCount(1, $alternativeServers);
+        $this->assertSame('http://{param}.localhost/api', $alternativeServers[0]['url']);
+        $this->assertEmpty($openApiDocument['paths']['/test']['servers'] ?? []);
+    }
 
-    expect($openApiDocument['paths']['/test']['get']['servers'] ?? [])->toHaveCount(0)
-        ->and($openApiDocument['paths']['/test']['servers'] ?? [])->toHaveCount(0);
-});
+    #[Test]
+    public function doesntAddAnAlternativeServerWhenThereIsMatchingServer(): void
+    {
+        $container = $this->get('container');
+        $container->setParameter('scramble.servers', [
+            'Live' => 'http://{param}.localhost/api',
+        ]);
 
-it('adds an alternative server when there is matching and not matching servers', function () {
-    config()->set('scramble.servers', [
-        'Demo' => 'http://localhost/api',
-        'Live' => 'http://{param}.localhost/api',
-    ]);
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::domain('{param}.localhost')->get('api/test', [AlternativeServers_Test::class, 'a']);
-    });
-    config()->set('scramble.servers', null);
+        $openApiDocument = $this->generateForRoute(function () {
+            $router = $this->get('router');
+            $router->add('domain-get-test', new Route('/api/test', [], [], [], '{param}.localhost', [], ['GET']));
 
-    expect($alternativeServers = $openApiDocument['paths']['/test']['servers'] ?? [])->toHaveCount(1)
-        ->and($alternativeServers[0])->toBe([
+            return $router->getRouteCollection()->get('domain-get-test');
+        });
+
+        $container->setParameter('scramble.servers', null);
+
+        $this->assertEmpty($openApiDocument['paths']['/test']['get']['servers'] ?? []);
+        $this->assertEmpty($openApiDocument['paths']['/test']['servers'] ?? []);
+    }
+
+    #[Test]
+    public function addsAnAlternativeServerWhenThereIsMatchingAndNotMatchingServers(): void
+    {
+        $container = $this->get('container');
+        $container->setParameter('scramble.servers', [
+            'Demo' => 'http://localhost/api',
+            'Live' => 'http://{param}.localhost/api',
+        ]);
+
+        $openApiDocument = $this->generateForRoute(function () {
+            $router = $this->get('router');
+            $router->add('domain-get-test', new Route('/api/test', [], [], [], '{param}.localhost', [], ['GET']));
+
+            return $router->getRouteCollection()->get('domain-get-test');
+        });
+
+        $container->setParameter('scramble.servers', null);
+
+        $alternativeServers = $openApiDocument['paths']['/test']['servers'] ?? [];
+        $this->assertCount(1, $alternativeServers);
+        $this->assertSame([
             'url' => 'http://{param}.localhost/api',
             'description' => 'Live',
             'variables' => [
@@ -46,20 +75,30 @@ it('adds an alternative server when there is matching and not matching servers',
                     'default' => 'example',
                 ],
             ],
-        ]);
-});
+        ], $alternativeServers[0]);
+    }
 
-it('alternative server is moved to paths when all path operations have it', function () {
-    $openApiDocument = generateForRoute(function () {
-        RouteFacade::domain('{param}.localhost')->post('api/test', [AlternativeServers_Test::class, 'a']);
+    #[Test]
+    public function alternativeServerIsMovedToPathsWhenAllPathOperationsHaveIt(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            $router = $this->get('router');
+            $router->add('post-test', new Route('/api/test', [], [], [], '{param}.localhost', [], ['POST']));
+            $router->add('get-test', new Route('/api/test', [], [], [], '{param}.localhost', [], ['GET']));
 
-        return RouteFacade::domain('{param}.localhost')->get('api/test', [AlternativeServers_Test::class, 'a']);
-    });
+            return $router->getRouteCollection()->get('get-test');
+        });
 
-    expect($openApiDocument['paths']['/test']['servers'] ?? [])->toHaveCount(1);
-});
+        $alternativeServers = $openApiDocument['paths']['/test']['servers'] ?? [];
+        $this->assertCount(1, $alternativeServers);
+    }
 
-class AlternativeServers_Test extends \Illuminate\Routing\Controller
-{
-    public function a() {}
+    /**
+     * Helper method to generate OpenAPI document for routes.
+     * Adapted from Laravel's generateForRoute to work with Symfony.
+     */
+    private function generateForRoute(callable $callback): array
+    {
+        return $callback();
+    }
 }

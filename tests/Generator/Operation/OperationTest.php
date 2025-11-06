@@ -1,30 +1,45 @@
 <?php
 
-it('deprecated key is properly set', function () {
-    $operation = new \Dedoc\Scramble\Support\Generator\Operation('get');
-    $operation->deprecated(true);
+namespace Dedoc\Scramble\Tests\Generator\Operation;
 
-    $array = $operation->toArray();
+use Dedoc\Scramble\Support\Generator\Operation;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-    expect($operation->deprecated)->toBeTrue()
-        ->and($array)->toHaveKey('deprecated')
-        ->and($array['deprecated'])->toBeTrue();
-});
+final class OperationTest extends TestCase
+{
+    #[Test]
+    public function deprecatedKeyIsProperlySet(): void
+    {
+        $operation = new Operation('get');
+        $operation->deprecated(true);
 
-it('default deprecated key is false', function () {
-    $operation = new \Dedoc\Scramble\Support\Generator\Operation('get');
+        $array = $operation->toArray();
 
-    $array = $operation->toArray();
+        $this->assertTrue($operation->deprecated);
+        $this->assertArrayHasKey('deprecated', $array);
+        $this->assertTrue($array['deprecated']);
+    }
 
-    expect($operation->deprecated)->toBeFalse()
-        ->and($array)->not()->toHaveKey('deprecated');
-});
+    #[Test]
+    public function defaultDeprecatedKeyIsFalse(): void
+    {
+        $operation = new Operation('get');
 
-it('set extension property', function () {
-    $operation = new \Dedoc\Scramble\Support\Generator\Operation('get');
-    $operation->setExtensionProperty('custom-key', 'custom-value');
+        $array = $operation->toArray();
 
-    $array = $operation->toArray();
+        $this->assertFalse($operation->deprecated);
+        $this->assertArrayNotHasKey('deprecated', $array);
+    }
 
-    expect($array)->toBe(['x-custom-key' => 'custom-value']);
-});
+    #[Test]
+    public function setExtensionProperty(): void
+    {
+        $operation = new Operation('get');
+        $operation->setExtensionProperty('custom-key', 'custom-value');
+
+        $array = $operation->toArray();
+
+        $this->assertSame(['x-custom-key' => 'custom-value'], $array);
+    }
+}

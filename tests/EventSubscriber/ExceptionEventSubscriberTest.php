@@ -1,8 +1,9 @@
 <?php
 
-namespace Tests\EventSubscriber;
+namespace Dedoc\Scramble\Tests\EventSubscriber;
 
 use Dedoc\Scramble\EventSubscriber\ExceptionEventSubscriber;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,7 +14,7 @@ use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
 
-class ExceptionEventSubscriberTest extends TestCase
+final class ExceptionEventSubscriberTest extends TestCase
 {
     private ExceptionEventSubscriber $subscriber;
 
@@ -22,7 +23,7 @@ class ExceptionEventSubscriberTest extends TestCase
         $this->subscriber = new ExceptionEventSubscriber(logger: null, debug: false);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_api_route_exceptions(): void
     {
         $request = Request::create('/api/users', 'GET');
@@ -40,7 +41,7 @@ class ExceptionEventSubscriberTest extends TestCase
         $this->assertSame('User not found', $content['message']);
     }
 
-    /** @test */
+    #[Test]
     public function it_handles_json_accept_header(): void
     {
         $request = Request::create('/some/path', 'GET', [], [], [], [
@@ -57,7 +58,7 @@ class ExceptionEventSubscriberTest extends TestCase
         $this->assertSame(500, $response->getStatusCode());
     }
 
-    /** @test */
+    #[Test]
     public function it_ignores_non_api_routes(): void
     {
         $request = Request::create('/web/page', 'GET');
@@ -70,7 +71,7 @@ class ExceptionEventSubscriberTest extends TestCase
         $this->assertNull($event->getResponse());
     }
 
-    /** @test */
+    #[Test]
     public function it_formats_validation_exceptions(): void
     {
         $violations = new ConstraintViolationList([
@@ -94,7 +95,7 @@ class ExceptionEventSubscriberTest extends TestCase
         $this->assertArrayHasKey('name', $content['errors']);
     }
 
-    /** @test */
+    #[Test]
     public function it_includes_debug_info_when_debug_is_enabled(): void
     {
         $subscriber = new ExceptionEventSubscriber(logger: null, debug: true);
@@ -113,7 +114,7 @@ class ExceptionEventSubscriberTest extends TestCase
         $this->assertArrayHasKey('trace', $content);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_correct_status_codes_for_http_exceptions(): void
     {
         $exceptions = [

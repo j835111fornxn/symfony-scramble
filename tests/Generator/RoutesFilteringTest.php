@@ -1,31 +1,52 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Generator;
+
 use Dedoc\Scramble\Attributes\ExcludeAllRoutesFromDocs;
 use Dedoc\Scramble\Attributes\ExcludeRouteFromDocs;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
+use PHPUnit\Framework\Attributes\Test;
+use SymfonyTestCase;
 
-function RoutesFilteringTest_generateForRoutes($callback)
+final class RoutesFilteringTest extends SymfonyTestCase
 {
-    $routesUris = array_map(
-        fn (Route $r) => $r->uri,
-        $callback()
-    );
+    #[Test]
+    public function filtersRoutesWithExcludeRouteFromDocsAttribute(): void
+    {
+        $documentation = $this->generateForRoutes(fn () => [
+            RouteFacade::post('foo', [RoutesFilteringTest_ControllerA::class, 'foo']),
+            RouteFacade::post('bar', [RoutesFilteringTest_ControllerA::class, 'bar']),
+        ]);
 
-    Scramble::routes(fn (Route $r) => in_array($r->uri, $routesUris));
+        $this->assertSame(['/foo'], array_keys($documentation['paths']));
+    }
 
-    return app()->make(\Dedoc\Scramble\Generator::class)();
+    #[Test]
+    public function filtersAllControllerRoutesWithExcludeAllRoutesFromDocsAttribute(): void
+    {
+        $documentation = $this->generateForRoutes(fn () => [
+            RouteFacade::post('foo', [RoutesFilteringTest_ControllerB::class, 'foo']),
+            RouteFacade::post('bar', [RoutesFilteringTest_ControllerB::class, 'bar']),
+        ]);
+
+        $this->assertSame([], array_keys($documentation['paths'] ?? []));
+    }
+
+    protected function generateForRoutes($callback)
+    {
+        $routesUris = array_map(
+            fn (Route $r) => $r->uri,
+            $callback()
+        );
+
+        Scramble::routes(fn (Route $r) => in_array($r->uri, $routesUris));
+
+        return app()->make(\Dedoc\Scramble\Generator::class)();
+    }
 }
 
-it('filters routes with ExcludeRouteFromDocs attribute', function () {
-    $documentation = RoutesFilteringTest_generateForRoutes(fn () => [
-        RouteFacade::post('foo', [RoutesFilteringTest_ControllerA::class, 'foo']),
-        RouteFacade::post('bar', [RoutesFilteringTest_ControllerA::class, 'bar']),
-    ]);
-
-    expect(array_keys($documentation['paths']))->toBe(['/foo']);
-});
 class RoutesFilteringTest_ControllerA
 {
     public function foo() {}
@@ -33,15 +54,6 @@ class RoutesFilteringTest_ControllerA
     #[ExcludeRouteFromDocs]
     public function bar() {}
 }
-
-it('filters all controller routes with ExcludeAllRoutesFromDocs attribute', function () {
-    $documentation = RoutesFilteringTest_generateForRoutes(fn () => [
-        RouteFacade::post('foo', [RoutesFilteringTest_ControllerB::class, 'foo']),
-        RouteFacade::post('bar', [RoutesFilteringTest_ControllerB::class, 'bar']),
-    ]);
-
-    expect(array_keys($documentation['paths'] ?? []))->toBe([]);
-});
 
 #[ExcludeAllRoutesFromDocs]
 class RoutesFilteringTest_ControllerB

@@ -1,16 +1,43 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Generator;
+
 use Illuminate\Support\Facades\Route as RouteFacade;
+use PHPUnit\Framework\Attributes\Test;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 
-it('documents a response even when return type is taken from an annotation', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', [ManualResponseDocumentation_Test::class, 'a']);
-    });
+final class ManualResponseDocumentationTest extends SymfonyTestCase
+{
+    #[Test]
+    public function documentsAResponseEvenWhenReturnTypeIsTakenFromAnAnnotation(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return RouteFacade::get('api/test', [ManualResponseDocumentation_Test::class, 'a']);
+        });
 
-    expect($openApiDocument['paths']['/test']['get']['responses'][200])
-        ->toHaveKey('description', 'Wow.')
-        ->toHaveKey('content.application/json.schema.properties.id.type', 'integer');
-});
+        $this->assertArrayHasKey('description', $openApiDocument['paths']['/test']['get']['responses'][200]);
+        $this->assertSame('Wow.', $openApiDocument['paths']['/test']['get']['responses'][200]['description']);
+
+        $this->assertArrayHasKey('content', $openApiDocument['paths']['/test']['get']['responses'][200]);
+        $this->assertArrayHasKey('application/json', $openApiDocument['paths']['/test']['get']['responses'][200]['content']);
+        $this->assertArrayHasKey('schema', $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']);
+        $this->assertArrayHasKey('properties', $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']);
+        $this->assertArrayHasKey('id', $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']['properties']);
+        $this->assertArrayHasKey('type', $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']['properties']['id']);
+        $this->assertSame('integer', $openApiDocument['paths']['/test']['get']['responses'][200]['content']['application/json']['schema']['properties']['id']['type']);
+    }
+
+    #[Test]
+    public function doesntUseCommentsFromServiceClasses(): void
+    {
+        $openApiDocument = $this->generateForRoute(function () {
+            return RouteFacade::get('api/test', ServiceResponseDocumentation_Test::class);
+        });
+
+        $this->assertArrayHasKey('description', $openApiDocument['paths']['/test']['get']['responses'][200]);
+        $this->assertSame('', $openApiDocument['paths']['/test']['get']['responses'][200]['description']);
+    }
+}
 
 class ManualResponseDocumentation_Test extends \Illuminate\Routing\Controller
 {
@@ -25,15 +52,6 @@ class ManualResponseDocumentation_Test extends \Illuminate\Routing\Controller
     }
 }
 
-it('doesnt use comments from service classes', function () {
-    $openApiDocument = generateForRoute(function () {
-        return RouteFacade::get('api/test', ServiceResponseDocumentation_Test::class);
-    });
-
-    expect($openApiDocument['paths']['/test']['get']['responses'][200])
-        ->toHaveKey('description', '');
-});
-
 class ServiceResponseDocumentation_Test extends \Illuminate\Routing\Controller
 {
     public function __invoke()
@@ -41,6 +59,7 @@ class ServiceResponseDocumentation_Test extends \Illuminate\Routing\Controller
         return (new Foo_ManualResponseDocumentationTest)->foo();
     }
 }
+
 class Foo_ManualResponseDocumentationTest
 {
     public function foo()

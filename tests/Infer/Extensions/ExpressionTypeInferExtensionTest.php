@@ -1,31 +1,40 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Infer\Extensions;
+
 use Dedoc\Scramble\Infer\Extensions\ExpressionTypeInferExtension;
 use Dedoc\Scramble\Infer\Scope\Scope;
 use Dedoc\Scramble\Support\Type\Literal\LiteralStringType;
 use Dedoc\Scramble\Support\Type\Type;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use PhpParser\Node\Expr;
+use PHPUnit\Framework\Attributes\Test;
 
-it('uses expression type infer extension', function () {
-    $extension = new class implements ExpressionTypeInferExtension
+final class ExpressionTypeInferExtensionTest extends SymfonyTestCase
+{
+    #[Test]
+    public function usesExpressionTypeInferExtension(): void
     {
-        public function getType(Expr $node, Scope $scope): ?Type
+        $extension = new class implements ExpressionTypeInferExtension
         {
-            if ($node instanceof Expr\MethodCall && $node->name->toString() === 'callWow') {
-                return new LiteralStringType('wow');
+            public function getType(Expr $node, Scope $scope): ?Type
+            {
+                if ($node instanceof Expr\MethodCall && $node->name->toString() === 'callWow') {
+                    return new LiteralStringType('wow');
+                }
+
+                return null;
             }
+        };
 
-            return null;
-        }
-    };
+        $type = $this->analyzeClass(ExpressionTypeInferExtensionTest_Test::class, [$extension])
+            ->getClassDefinition(ExpressionTypeInferExtensionTest_Test::class)
+            ->getMethodDefinition('foo')
+            ->type->getReturnType();
 
-    $type = analyzeClass(ExpressionTypeInferExtensionTest_Test::class, [$extension])
-        ->getClassDefinition(ExpressionTypeInferExtensionTest_Test::class)
-        ->getMethodDefinition('foo')
-        ->type->getReturnType();
-
-    expect($type->toString())->toBe('string(wow)');
-});
+        $this->assertSame('string(wow)', $type->toString());
+    }
+}
 
 class ExpressionTypeInferExtensionTest_Test
 {

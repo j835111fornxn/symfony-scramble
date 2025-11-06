@@ -1,6 +1,10 @@
 <?php
 
+namespace Dedoc\Scramble\Tests\Support\InferExtensions;
+
 use Dedoc\Scramble\Support\InferExtensions\DoctrineRepositoryExtension;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Doctrine Repository Extension Tests
@@ -12,51 +16,64 @@ use Dedoc\Scramble\Support\InferExtensions\DoctrineRepositoryExtension;
  * - The extension has the correct API methods
  * - Repository method return type inference is available
  */
-it('documents that DoctrineRepositoryExtension exists and has correct methods', function () {
-    // This test verifies the class structure exists
-    $reflection = new ReflectionClass(DoctrineRepositoryExtension::class);
+class DoctrineRepositoryExtensionTest extends SymfonyTestCase
+{
+    #[Test]
+    public function documents_that_doctrine_repository_extension_exists_and_has_correct_methods(): void
+    {
+        // This test verifies the class structure exists
+        $reflection = new \ReflectionClass(DoctrineRepositoryExtension::class);
 
-    expect($reflection->hasMethod('shouldHandle'))->toBeTrue();
-    expect($reflection->hasMethod('getMethodReturnType'))->toBeTrue();
-});
+        $this->assertTrue($reflection->hasMethod('shouldHandle'));
+        $this->assertTrue($reflection->hasMethod('getMethodReturnType'));
+    }
 
-/**
- * TODO: Integration tests with actual Doctrine repositories
- *
- * These require:
- * - A test kernel with Doctrine ORM configured
- * - Test entities and repositories
- * - Proper service registration in the test container
- *
- * Example test structure:
- *
- * it('infers find() return type', function () {
- *     $repository = new ObjectType(UserRepository::class);
- *     $methodCallEvent = createMethodCallEvent($repository, 'find', [...]);
- *     $returnType = $extension->getMethodReturnType($methodCallEvent);
- *     expect($returnType->toString())->toContain('User');
- *     expect($returnType->toString())->toContain('null');
- * });
- *
- * it('infers findBy() return type as array', function () {
- *     $repository = new ObjectType(UserRepository::class);
- *     $methodCallEvent = createMethodCallEvent($repository, 'findBy', [...]);
- *     $returnType = $extension->getMethodReturnType($methodCallEvent);
- *     expect($returnType->toString())->toContain('array');
- *     expect($returnType->toString())->toContain('User');
- * });
- *
- * it('infers findAll() return type as array', function () {
- *     $repository = new ObjectType(UserRepository::class);
- *     $methodCallEvent = createMethodCallEvent($repository, 'findAll', [...]);
- *     $returnType = $extension->getMethodReturnType($methodCallEvent);
- *     expect($returnType->toString())->toContain('array');
- * });
- *
- * it('infers count() return type as integer', function () {
- *     $repository = new ObjectType(UserRepository::class);
- *     $methodCallEvent = createMethodCallEvent($repository, 'count', [...]);
- *     $returnType = $extension->getMethodReturnType($methodCallEvent);
- *     expect($returnType->toString())->toBe('int');
- * });
- */
+    /**
+     * TODO: Integration tests with actual Doctrine repositories
+     *
+     * These require:
+     * - A test kernel with Doctrine ORM configured
+     * - Test entities and repositories
+     * - Proper service registration in the test container
+     *
+     * Example test structure:
+     *
+     * #[Test]
+     * public function infers_find_return_type(): void
+     * {
+     *     $repository = new ObjectType(UserRepository::class);
+     *     $methodCallEvent = createMethodCallEvent($repository, 'find', [...]);
+     *     $returnType = $extension->getMethodReturnType($methodCallEvent);
+     *     $this->assertStringContainsString('User', $returnType->toString());
+     *     $this->assertStringContainsString('null', $returnType->toString());
+     * }
+     *
+     * #[Test]
+     * public function infers_find_by_return_type_as_array(): void
+     * {
+     *     $repository = new ObjectType(UserRepository::class);
+     *     $methodCallEvent = createMethodCallEvent($repository, 'findBy', [...]);
+     *     $returnType = $extension->getMethodReturnType($methodCallEvent);
+     *     $this->assertStringContainsString('array', $returnType->toString());
+     *     $this->assertStringContainsString('User', $returnType->toString());
+     * }
+     *
+     * #[Test]
+     * public function infers_find_all_return_type_as_array(): void
+     * {
+     *     $repository = new ObjectType(UserRepository::class);
+     *     $methodCallEvent = createMethodCallEvent($repository, 'findAll', [...]);
+     *     $returnType = $extension->getMethodReturnType($methodCallEvent);
+     *     $this->assertStringContainsString('array', $returnType->toString());
+     * }
+     *
+     * #[Test]
+     * public function infers_count_return_type_as_integer(): void
+     * {
+     *     $repository = new ObjectType(UserRepository::class);
+     *     $methodCallEvent = createMethodCallEvent($repository, 'count', [...]);
+     *     $returnType = $extension->getMethodReturnType($methodCallEvent);
+     *     $this->assertEquals('int', $returnType->toString());
+     * }
+     */
+}

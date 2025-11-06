@@ -1,46 +1,70 @@
 <?php
 
-it('generates function type with generic correctly', function () {
-    $type = analyzeFile(<<<'EOD'
+namespace Dedoc\Scramble\Tests\Infer;
+
+use Dedoc\Scramble\Tests\Support\DataProviders;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+
+final class FunctionTemplateTest extends SymfonyTestCase
+{
+    #[Test]
+    public function generatesFunctionTypeWithGenericCorrectly(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 function foo ($a) {
     return $a;
 }
 EOD)->getFunctionDefinition('foo');
 
-    expect($type->type->toString())->toBe('<TA>(TA): TA');
-});
+        $this->assertSame('<TA>(TA): TA', $type->type->toString());
+    }
 
-it('gets a type of call of a function with generic correctly', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    public function getsATypeOfCallOfAFunctionWithGenericCorrectly(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 function foo ($a) {
     return $a;
 }
 EOD)->getExpressionType("foo('wow')");
 
-    expect($type->toString())->toBe('string(wow)');
-});
-
-it('adds a type constraint onto template type for some types', function ($paramType, $expectedParamType, $expectedTemplateDefinitionType = '') {
-    $def = analyzeFile("<?php function foo ($paramType \$a) {}")->getFunctionDefinition('foo');
-
-    expect($def->type->arguments['a']->toString())->toBe($expectedParamType);
-
-    if (! $expectedTemplateDefinitionType) {
-        expect($def->type->templates)->toBeEmpty();
-    } else {
-        expect($def->type->templates[0]->toDefinitionString())->toBe($expectedTemplateDefinitionType);
+        $this->assertSame('string(wow)', $type->toString());
     }
-})->with('extendableTemplateTypes');
 
-it('infers a return type of call of a function with argument default const', function () {
-    $type = analyzeFile(<<<'EOD'
+    #[Test]
+    #[DataProvider('extendableTemplateTypesProvider')]
+    public function addsATypeConstraintOntoTemplateTypeForSomeTypes(string $paramType, string $expectedParamType, string $expectedTemplateDefinitionType = ''): void
+    {
+        $def = $this->analyzeFile("<?php function foo ($paramType \$a) {}")->getFunctionDefinition('foo');
+
+        $this->assertSame($expectedParamType, $def->type->arguments['a']->toString());
+
+        if (! $expectedTemplateDefinitionType) {
+            $this->assertEmpty($def->type->templates);
+        } else {
+            $this->assertSame($expectedTemplateDefinitionType, $def->type->templates[0]->toDefinitionString());
+        }
+    }
+
+    public static function extendableTemplateTypesProvider(): array
+    {
+        return DataProviders::extendableTemplateTypes();
+    }
+
+    #[Test]
+    public function infersAReturnTypeOfCallOfAFunctionWithArgumentDefaultConst(): void
+    {
+        $type = $this->analyzeFile(<<<'EOD'
 <?php
 function foo (int $a = \Illuminate\Http\Response::HTTP_CREATED) {
     return ['a' => $a];
 }
 EOD)->getExpressionType('foo()');
 
-    expect($type->toString())->toBe('array{a: int(201)}');
-});
+        $this->assertSame('array{a: int(201)}', $type->toString());
+    }
+}
