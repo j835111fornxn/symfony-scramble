@@ -5,19 +5,26 @@ namespace Dedoc\Scramble\Tests\Infer\DefinitionBuilders;
 use Dedoc\Scramble\Infer\Definition\ClassDefinition;
 use Dedoc\Scramble\Infer\DefinitionBuilders\FunctionLikeDeclarationAstDefinitionBuilder;
 use Dedoc\Scramble\Infer\Reflector\MethodReflector;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-test('creates declaration definition from ast', function () {
-    $reflector = MethodReflector::make(Foo_FunctionLikeDeclarationAstDefinitionBuilderTest::class, 'foo');
+final class FunctionLikeDeclarationAstDefinitionBuilderTest extends TestCase
+{
+    #[Test]
+    public function it_creates_declaration_definition_from_ast(): void
+    {
+        $reflector = MethodReflector::make(Foo_FunctionLikeDeclarationAstDefinitionBuilderTest::class, 'foo');
 
-    $definition = (new FunctionLikeDeclarationAstDefinitionBuilder(
-        $reflector->getAstNode(),
-        new ClassDefinition(Foo_FunctionLikeDeclarationAstDefinitionBuilderTest::class),
-    ))->build();
+        $definition = (new FunctionLikeDeclarationAstDefinitionBuilder(
+            $reflector->getAstNode(),
+            new ClassDefinition(Foo_FunctionLikeDeclarationAstDefinitionBuilderTest::class),
+        ))->build();
 
-    expect($definition->type->toString())->toBe('(string): int')
-        ->and($definition->type->name)->toBe('foo')
-        ->and($definition->definingClassName)->toBe(Foo_FunctionLikeDeclarationAstDefinitionBuilderTest::class);
-});
+        $this->assertSame('(string): int', $definition->type->toString());
+        $this->assertSame('foo', $definition->type->name);
+        $this->assertSame(Foo_FunctionLikeDeclarationAstDefinitionBuilderTest::class, $definition->definingClassName);
+    }
+}
 
 class Foo_FunctionLikeDeclarationAstDefinitionBuilderTest
 {

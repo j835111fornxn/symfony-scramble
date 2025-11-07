@@ -3,9 +3,16 @@
 namespace Dedoc\Scramble\Tests\Infer\DefinitionBuilders;
 
 use Dedoc\Scramble\Infer\DefinitionBuilders\FunctionLikeReflectionDefinitionBuilder;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-test('builds the definition for is_null', function () {
-    $def = (new FunctionLikeReflectionDefinitionBuilder('is_null'))->build();
+final class FunctionLikeReflectionDefinitionBuilderTest extends TestCase
+{
+    #[Test]
+    public function it_builds_the_definition_for_is_null(): void
+    {
+        $def = (new FunctionLikeReflectionDefinitionBuilder('is_null'))->build();
 
-    expect($def->type->toString())->toBe('(null|mixed): boolean');
-});
+        $this->assertSame('(null|mixed): boolean', $def->type->toString());
+    }
+}

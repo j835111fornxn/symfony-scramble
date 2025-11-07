@@ -4,30 +4,41 @@ namespace Dedoc\Scramble\Tests\Infer\Definition;
 
 use Dedoc\Scramble\Infer\Reflector\MethodReflector;
 use Dedoc\Scramble\Tests\TestUtils;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
-test('prefers return declaration type if inferred is not compatible', function () {
-    $def = TestUtils::buildAstFunctionDefinition(
-        MethodReflector::make(Foo_FunctionLikeAstDefinitionTest::class, 'foo'),
-    );
+final class FunctionLikeAstDefinitionTest extends TestCase
+{
+    #[Test]
+    public function it_prefers_return_declaration_type_if_inferred_is_not_compatible(): void
+    {
+        $def = TestUtils::buildAstFunctionDefinition(
+            MethodReflector::make(Foo_FunctionLikeAstDefinitionTest::class, 'foo'),
+        );
 
-    expect($def->getReturnType()->toString())->toBe('int');
-});
+        $this->assertSame('int', $def->getReturnType()->toString());
+    }
 
-test('prefers return phpdoc type if inferred is not compatible', function () {
-    $def = TestUtils::buildAstFunctionDefinition(
-        MethodReflector::make(Foo_FunctionLikeAstDefinitionTest::class, 'bar'),
-    );
+    #[Test]
+    public function it_prefers_return_phpdoc_type_if_inferred_is_not_compatible(): void
+    {
+        $def = TestUtils::buildAstFunctionDefinition(
+            MethodReflector::make(Foo_FunctionLikeAstDefinitionTest::class, 'bar'),
+        );
 
-    expect($def->getReturnType()->toString())->toBe('int');
-});
+        $this->assertSame('int', $def->getReturnType()->toString());
+    }
 
-test('prefers scramble-return type even if inferred is concrete', function () {
-    $def = TestUtils::buildAstFunctionDefinition(
-        MethodReflector::make(Foo_FunctionLikeAstDefinitionTest::class, 'baz'),
-    );
+    #[Test]
+    public function it_prefers_scramble_return_type_even_if_inferred_is_concrete(): void
+    {
+        $def = TestUtils::buildAstFunctionDefinition(
+            MethodReflector::make(Foo_FunctionLikeAstDefinitionTest::class, 'baz'),
+        );
 
-    expect($def->getReturnType()->toString())->toBe('int');
-});
+        $this->assertSame('int', $def->getReturnType()->toString());
+    }
+}
 
 class Foo_FunctionLikeAstDefinitionTest
 {

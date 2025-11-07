@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd" backupGlobals="false" bootstrap="vendor/autoload.php" colors="true" executionOrder="random" failOnWarning="true" failOnRisky="true" failOnEmptyTestSuite="true" cacheDirectory=".phpunit.cache" backupStaticProperties="false">
   <php>
-    <!-- Disable Xdebug profiling/coverage during tests for performance -->
+    <!-- Enable PCOV for coverage collection -->
+    <ini name="pcov.enabled" value="1"/>
+    <ini name="pcov.directory" value="."/>
+    <!-- Disable Xdebug if present -->
     <ini name="xdebug.mode" value="off"/>
   </php>
   <testsuites>
@@ -9,8 +12,12 @@
       <directory>tests</directory>
     </testsuite>
   </testsuites>
-  <coverage>
-    <!-- HTML coverage report is slow, disabled by default. Use: phpunit -\-coverage-html build/coverage -->
+  <coverage includeUncoveredFiles="true">
+    <report>
+      <html outputDirectory="build/coverage" lowUpperBound="50" highLowerBound="90"/>
+      <clover outputFile="build/coverage/clover.xml"/>
+      <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="true"/>
+    </report>
   </coverage>
   <logging>
     <junit outputFile="build/report.junit.xml"/>
