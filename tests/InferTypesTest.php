@@ -38,6 +38,8 @@ final class InferTypesTest extends SymfonyTestCase
 
     public function test_gets_json_resource_type(): void
     {
+        $this->markTestSkipped('JsonResource is Laravel-specific and not relevant to Symfony-based system. See: openspec/changes/eliminate-test-laravel-dependencies');
+
         $def = $this->infer->analyzeClass(InferTypesTest_SampleJsonResource::class);
 
         $returnType = $def->getMethodDefinition('toArray')->type->getReturnType();
@@ -47,6 +49,8 @@ final class InferTypesTest extends SymfonyTestCase
 
     public function test_gets_json_resource_type_with_enum(): void
     {
+        $this->markTestSkipped('JsonResource is Laravel-specific and not relevant to Symfony-based system. See: openspec/changes/eliminate-test-laravel-dependencies');
+
         $def = $this->infer->analyzeClass(InferTypesTest_SampleTwoPostJsonResource::class);
 
         $returnType = $def->getMethodDefinition('toArray')->type->getReturnType();
