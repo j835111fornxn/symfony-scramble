@@ -20,7 +20,8 @@
       "Bash(echo:*)",
       "Bash(composer show:*)",
       "Bash(composer remove:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
