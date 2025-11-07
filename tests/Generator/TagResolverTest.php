@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Generator;
+namespace Dedoc\Scramble\Tests\Generator;
 
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Arr;
 use Dedoc\Scramble\Support\RouteInfo;
+use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\SymfonyTestCase;
-use Tests\AnalysisHelpers;
 
 final class TagResolverTest extends SymfonyTestCase
 {

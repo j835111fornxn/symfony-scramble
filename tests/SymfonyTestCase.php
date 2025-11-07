@@ -6,8 +6,10 @@ use Dedoc\Scramble\Infer\Context;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\ScrambleBundle;
 use Dedoc\Scramble\Support\OperationExtensions\RulesExtractor\RulesToParameters;
+use Dedoc\Scramble\Tests\Database\TestSchemaBuilder;
 use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
 use Dedoc\Scramble\Tests\Support\TypeInferenceAssertions;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
@@ -52,6 +54,57 @@ class SymfonyTestCase extends KernelTestCase
             $rtp = $container->get(RulesToParameters::class);
             // Configure as needed
         }
+
+        // Setup database if test needs it
+        if ($this->needsDatabase()) {
+            $this->setupDatabase();
+        }
+    }
+
+    /**
+     * Override this method in test classes that need database access.
+     */
+    protected function needsDatabase(): bool
+    {
+        return false;
+    }
+
+    /**
+     * Setup database tables for testing.
+     */
+    protected function setupDatabase(): void
+    {
+        $container = static::getContainer();
+
+        // Skip if Connection service is not available
+        if (!$container->has(Connection::class)) {
+            return;
+        }
+
+        $connection = $container->get(Connection::class);
+        $schemaBuilder = new TestSchemaBuilder($connection);
+
+        // Create all test tables
+        $schemaBuilder->createUsersTable();
+        $schemaBuilder->createPostsTable();
+        $schemaBuilder->createRolesTable();
+    }
+
+    /**
+     * Clean up database after test.
+     */
+    protected function cleanupDatabase(): void
+    {
+        $container = static::getContainer();
+
+        // Skip if Connection service is not available
+        if (!$container->has(Connection::class)) {
+            return;
+        }
+
+        $connection = $container->get(Connection::class);
+        $schemaBuilder = new TestSchemaBuilder($connection);
+        $schemaBuilder->dropAllTables();
     }
 
     /**
@@ -148,6 +201,11 @@ class SymfonyTestCase extends KernelTestCase
 
     protected function tearDown(): void
     {
+        // Clean up database if test used it
+        if ($this->needsDatabase()) {
+            $this->cleanupDatabase();
+        }
+
         // Clear test routes before resetting
         $this->clearTestRoutes();
 
@@ -191,6 +249,7 @@ class SymfonyTestCase extends KernelTestCase
                 return [
                     new \Symfony\Bundle\FrameworkBundle\FrameworkBundle,
                     new \Symfony\Bundle\TwigBundle\TwigBundle,
+                    new \Doctrine\Bundle\DoctrineBundle\DoctrineBundle,
                     new ScrambleBundle,
                 ];
             }
@@ -213,6 +272,13 @@ class SymfonyTestCase extends KernelTestCase
                     $container->loadFromExtension('twig', [
                         'default_path' => '%kernel.project_dir%/templates',
                         'strict_variables' => true,
+                    ]);
+
+                    $container->loadFromExtension('doctrine', [
+                        'dbal' => [
+                            'url' => 'sqlite:///:memory:',
+                            'driver' => 'pdo_sqlite',
+                        ],
                     ]);
 
                     $container->loadFromExtension('scramble', [

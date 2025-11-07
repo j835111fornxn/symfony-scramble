@@ -7,7 +7,7 @@ use Dedoc\Scramble\Infer\Services\ReferenceTypeResolver;
 use Dedoc\Scramble\Support\Type\Generic;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Reference\MethodCallReferenceType;
-use Dedoc\Scramble\Tests\Files\SamplePostModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SamplePostModel;
 use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Database\Eloquent\Builder;
 use PHPUnit\Framework\Attributes\DataProvider;

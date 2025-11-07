@@ -5,10 +5,10 @@ namespace Dedoc\Scramble\Tests\Generator;
 use Dedoc\Scramble\Attributes\ExcludeAllRoutesFromDocs;
 use Dedoc\Scramble\Attributes\ExcludeRouteFromDocs;
 use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use PHPUnit\Framework\Attributes\Test;
-use SymfonyTestCase;
 
 final class RoutesFilteringTest extends SymfonyTestCase
 {

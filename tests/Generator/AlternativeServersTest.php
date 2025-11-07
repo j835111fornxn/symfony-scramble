@@ -97,8 +97,8 @@ final class AlternativeServersTest extends SymfonyTestCase
      * Helper method to generate OpenAPI document for routes.
      * Adapted from Laravel's generateForRoute to work with Symfony.
      */
-    private function generateForRoute(callable $callback): array
+    protected function generateForRoute($param): array
     {
-        return $callback();
+        return $param();
     }
 }

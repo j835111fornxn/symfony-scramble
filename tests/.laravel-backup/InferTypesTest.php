@@ -9,9 +9,9 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema;
-use Dedoc\Scramble\Tests\Files\SamplePostModel;
-use Dedoc\Scramble\Tests\Files\SamplePostModelWithToArray;
-use Dedoc\Scramble\Tests\Files\SampleUserModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SamplePostModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SamplePostModelWithToArray;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel;
 
 use function Spatie\Snapshots\assertMatchesSnapshot;
 use function Spatie\Snapshots\assertMatchesTextSnapshot;

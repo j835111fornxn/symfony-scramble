@@ -18,7 +18,7 @@ use Dedoc\Scramble\Support\Str;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\Type\Type;
 use Dedoc\Scramble\Tests\SymfonyTestCase;
-use Illuminate\Auth\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use PHPUnit\Framework\Attributes\Test;
 
 class CustomExceptionToResponseExtensionTest extends SymfonyTestCase

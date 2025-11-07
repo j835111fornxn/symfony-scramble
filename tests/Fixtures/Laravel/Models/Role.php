@@ -1,6 +1,6 @@
 <?php
 
-namespace Dedoc\Scramble\Tests\Files;
+namespace Dedoc\Scramble\Tests\Fixtures\Laravel\Models;
 
 enum Role: string
 {

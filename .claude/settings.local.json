@@ -11,7 +11,16 @@
       "Bash(composer install:*)",
       "Bash(find:*)",
       "Bash(php:*)",
-      "Bash(openspec show:*)"
+      "Bash(openspec show:*)",
+      "Bash(grep:*)",
+      "Bash(openspec validate:*)",
+      "Bash(git stash push:*)",
+      "Bash(git stash:*)",
+      "Bash(tee:*)",
+      "Bash(echo:*)",
+      "Bash(composer show:*)",
+      "Bash(composer remove:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

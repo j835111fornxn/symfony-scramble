@@ -1,7 +1,7 @@
 <?php
 
-use Dedoc\Scramble\Tests\Files\SampleUserModel;
-use Dedoc\Scramble\Tests\Files\Status;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route as RouteFacade;
 

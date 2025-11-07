@@ -4,13 +4,9 @@ namespace Dedoc\Scramble\Tests;
 
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Tests\SymfonyTestCase;
-use Illuminate\Auth\Middleware\Authorize;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Gate;
 use Spatie\Snapshots\MatchesSnapshots;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -26,6 +22,9 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
+use Symfony\Component\Validator\Validation;
 
 final class ErrorsResponsesTest extends SymfonyTestCase
 {
@@ -212,45 +211,58 @@ final class ErrorsResponsesTest extends SymfonyTestCase
     }
 }
 
-class ErrorsResponsesTest_Controller extends Controller
+class ErrorsResponsesTest_Controller
 {
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
-    public function adds_validation_error_response(\Illuminate\Http\Request $request)
+    public function adds_validation_error_response(Request $request)
     {
-        $request->validate(['foo' => 'required']);
+        // Symfony validation equivalent
+        $validator = Validation::createValidator();
+        $violations = $validator->validate($request->request->all(), new Assert\Collection([
+            'foo' => new Assert\NotBlank(),
+        ]));
+
+        if (count($violations) > 0) {
+            throw new ValidationFailedException(null, $violations);
+        }
     }
 
-    public function adds_validation_error_response_with_facade_made_validators(\Illuminate\Http\Request $request)
+    public function adds_validation_error_response_with_facade_made_validators(Request $request)
     {
-        \Illuminate\Support\Facades\Validator::make($request->all(), ['foo' => 'required'])
-            ->validate();
+        // Symfony validation equivalent
+        $validator = Validation::createValidator();
+        $violations = $validator->validate($request->request->all(), new Assert\Collection([
+            'foo' => new Assert\NotBlank(),
+        ]));
+
+        if (count($violations) > 0) {
+            throw new ValidationFailedException(null, $violations);
+        }
     }
 
     public function adds_errors_with_custom_request(ErrorsResponsesTest_Controller_CustomRequest $request) {}
 
     public function doesnt_add_errors_with_custom_request_when_errors_producing_methods_not_defined(ErrorsResponsesTest_Controller_CustomRequestWithoutErrorCreatingMethods $request) {}
 
-    public function adds_authorization_error_response(\Illuminate\Http\Request $request)
+    public function adds_authorization_error_response(Request $request)
     {
-        $this->authorize('read');
+        throw new AccessDeniedException('This action is unauthorized.');
     }
 
     public function adds_authorization_error_response_gate()
     {
-        Gate::authorize('read');
+        throw new AccessDeniedException('This action is unauthorized.');
     }
 
-    public function adds_authentication_error_response(\Illuminate\Http\Request $request) {}
+    public function adds_authentication_error_response(Request $request) {}
 
-    public function adds_not_found_error_response(\Illuminate\Http\Request $request, UserModel_ErrorsResponsesTest $user) {}
+    public function adds_not_found_error_response(Request $request, UserModel_ErrorsResponsesTest $user) {}
 
     /**
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws \Symfony\Component\Validator\Exception\ValidationFailedException
      */
-    public function phpdoc_exception_response(\Illuminate\Http\Request $request) {}
+    public function phpdoc_exception_response(Request $request) {}
 
-    public function custom_exception_response(\Illuminate\Http\Request $request)
+    public function custom_exception_response(Request $request)
     {
         throw new BusinessException('The business error');
     }
@@ -258,7 +270,7 @@ class ErrorsResponsesTest_Controller extends Controller
     /**
      * @throws AccessDeniedHttpException|BadRequestHttpException|ConflictHttpException|GoneHttpException|LengthRequiredHttpException|LockedHttpException|MethodNotAllowedHttpException|NotAcceptableHttpException|PreconditionFailedHttpException|PreconditionRequiredHttpException|ServiceUnavailableHttpException|TooManyRequestsHttpException|UnauthorizedHttpException|UnprocessableEntityHttpException|UnsupportedMediaTypeHttpException
      */
-    public function symfony_http_exception_response(\Illuminate\Http\Request $request) {}
+    public function symfony_http_exception_response(Request $request) {}
 }
 
 class BusinessException extends \Symfony\Component\HttpKernel\Exception\HttpException
@@ -269,19 +281,31 @@ class BusinessException extends \Symfony\Component\HttpKernel\Exception\HttpExce
     }
 }
 
-class UserModel_ErrorsResponsesTest extends \Illuminate\Database\Eloquent\Model {}
-
-class ErrorsResponsesTest_Controller_CustomRequest extends \Illuminate\Foundation\Http\FormRequest
+// Simple DTO/Entity for testing - Symfony doesn't require extending a base class
+class UserModel_ErrorsResponsesTest
 {
-    public function authorize()
+    private ?int $id = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+}
+
+// Symfony Request with validation constraints
+class ErrorsResponsesTest_Controller_CustomRequest extends Request
+{
+    public function authorize(): bool
     {
         return something();
     }
 
-    public function rules()
+    public function getValidationRules(): array
     {
-        return ['foo' => 'required'];
+        return [
+            'foo' => [new Assert\NotBlank()],
+        ];
     }
 }
 
-class ErrorsResponsesTest_Controller_CustomRequestWithoutErrorCreatingMethods extends \Illuminate\Foundation\Http\FormRequest {}
+class ErrorsResponsesTest_Controller_CustomRequestWithoutErrorCreatingMethods extends Request {}

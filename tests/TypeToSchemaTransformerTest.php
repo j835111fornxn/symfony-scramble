@@ -22,7 +22,7 @@ use Dedoc\Scramble\Support\Type\Union;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\AnonymousResourceCollectionTypeToSchema;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\EnumToSchema;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\JsonResourceTypeToSchema;
-use Dedoc\Scramble\Tests\Files\SamplePostModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SamplePostModel;
 use Illuminate\Http\Resources\Json\JsonResource;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;

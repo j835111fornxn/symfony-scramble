@@ -3,7 +3,7 @@
 namespace Dedoc\Scramble\Tests\Support\InferExtensions;
 
 use Dedoc\Scramble\Support\InferExtensions\PaginateMethodsReturnTypeExtension;
-use Dedoc\Scramble\Tests\Files\SampleUserModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel;
 use Dedoc\Scramble\Tests\SymfonyTestCase;
 use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;

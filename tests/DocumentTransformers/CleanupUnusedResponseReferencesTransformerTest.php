@@ -2,7 +2,7 @@
 
 namespace Dedoc\Scramble\Tests\DocumentTransformers;
 
-use Dedoc\Scramble\Tests\Files\SampleUserModel;
+use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel;
 use Dedoc\Scramble\Tests\Support\AnalysisHelpers;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;

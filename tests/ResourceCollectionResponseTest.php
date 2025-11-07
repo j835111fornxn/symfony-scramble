@@ -106,28 +106,28 @@ final class ResourceCollectionResponseTest extends SymfonyTestCase
 
     public function testTransformsCollectionWithPaginationInformationImplementation(): void
     {
-        $type = getStatementType('new '.UserCollection_Five::class.'('.\Dedoc\Scramble\Tests\Files\SampleUserModel::class.'::paginate())');
+        $type = getStatementType('new '.UserCollection_Five::class.'('.\Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel::class.'::paginate())');
 
         $this->assertMatchesSnapshot($this->transformer->toResponse($type)->toArray());
     }
 
     public function testTransformsCollectionWithFullyCustomPaginationInformation(): void
     {
-        $type = getStatementType('new '.UserCollection_Six::class.'('.\Dedoc\Scramble\Tests\Files\SampleUserModel::class.'::paginate())');
+        $type = getStatementType('new '.UserCollection_Six::class.'('.\Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel::class.'::paginate())');
 
         $this->assertMatchesSnapshot($this->transformer->toResponse($type)->toArray());
     }
 
     public function testTransformsCollectionWithPaginationInformationAndFetchingFromPaginatedArray(): void
     {
-        $type = getStatementType('new '.UserCollection_Seven::class.'('.\Dedoc\Scramble\Tests\Files\SampleUserModel::class.'::paginate())');
+        $type = getStatementType('new '.UserCollection_Seven::class.'('.\Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel::class.'::paginate())');
 
         $this->assertMatchesSnapshot($this->transformer->toResponse($type)->toArray());
     }
 
     public function testTransformsCollectionWithPaginationInformationAndUnset(): void
     {
-        $type = getStatementType('new '.UserCollection_Eight::class.'('.\Dedoc\Scramble\Tests\Files\SampleUserModel::class.'::paginate())');
+        $type = getStatementType('new '.UserCollection_Eight::class.'('.\Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel::class.'::paginate())');
 
         $this->assertMatchesSnapshot($this->transformer->toResponse($type)->toArray());
     }
