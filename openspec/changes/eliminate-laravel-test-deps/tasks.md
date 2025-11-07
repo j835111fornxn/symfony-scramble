@@ -1,5 +1,23 @@
 # Tasks: Eliminate Laravel Dependencies from Tests
 
+## Overall Progress: 80/94 tasks → ⚠️ BLOCKED at 82/94
+
+**Current Status:** Work in progress, blocked by architecture decision.
+
+**Recent Updates (2025-11-07):**
+- ✅ Removed Pest test framework completely (composer remove)
+- ✅ Fixed test file namespace issues (3 files)
+- ✅ Fixed method signature compatibility
+- ⚠️ Started ErrorsResponsesTest Laravel→Symfony conversion
+- 🚧 **DECISION NEEDED**: Scramble's target framework(s)?
+  - Option A: Symfony only (remove all Laravel code/tests)
+  - Option B: Dual support (reinstall Laravel as dev dependency)
+
+**Commits:**
+- `cb579bb` - WIP: 開始移除測試中的 Laravel 依賴
+
+---
+
 ## Phase 1: Remove Foundation & Auth Dependencies ✅ COMPLETE
 
 ### 1. Remove Foundation traits from test controllers ✅
@@ -183,6 +201,16 @@
 - [ ] Check for remaining unintentional Laravel dependencies: `grep -r "Illuminate\\\\" tests/ --exclude-dir=Fixtures | grep -v "\.md$"`
 - [ ] Verify all snapshots still match (regenerate if intentional changes made)
 - [ ] Review `tests/Fixtures/Laravel/README.md` for completeness
+
+**Status:** ⚠️ IN PROGRESS - Blocked by architecture decision
+- ✅ Removed Pest test framework and all plugins
+- ✅ Fixed namespace issues in test files (SymfonyTestCase imports)
+- ✅ Fixed method signature compatibility issues
+- ⚠️ Started Laravel to Symfony conversion in ErrorsResponsesTest
+- ⚠️ Tests fail with Symfony DI container configuration issues
+- 🚧 **BLOCKED**: Need to decide on final architecture:
+  - Option A: Remove all Laravel support (delete Laravel-related tests)
+  - Option B: Keep dual framework support (reinstall Laravel dev dependencies)
 
 **Validation:** All checks pass
 
