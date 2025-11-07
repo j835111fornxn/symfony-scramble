@@ -28,9 +28,12 @@ services:
         public: true
 
     # Parser services
+    PhpParser\ParserFactory:
+        class: PhpParser\ParserFactory
+
     PhpParser\Parser:
         class: PhpParser\Parser\Php7
-        factory: ['PhpParser\ParserFactory', 'createForHostVersion']
+        factory: ['@PhpParser\ParserFactory', 'createForHostVersion']
 
     PhpParser\PrettyPrinter:
         class: PhpParser\PrettyPrinter\Standard
@@ -43,7 +46,7 @@ services:
     Dedoc\Scramble\Infer\Services\FileParser:
         arguments:
             $parser: '@PhpParser\Parser'
-        public: false
+        public: true  # Needed by type inference
 
     # Index services for type inference
     Dedoc\Scramble\Infer\Scope\LazyShallowReflectionIndex:
@@ -52,7 +55,7 @@ services:
 
     Dedoc\Scramble\Infer\Scope\Index:
         factory: ['Dedoc\Scramble\Support\ServiceFactory', 'createIndex']
-        public: false
+        public: true  # Needed by type inference
 
     # Extension brokers with tagged services (services will be passed as instances)
     Dedoc\Scramble\Infer\Extensions\ExtensionsBroker:

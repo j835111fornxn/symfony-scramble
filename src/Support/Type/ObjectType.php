@@ -58,8 +58,13 @@ class ObjectType extends AbstractType
         return $classDefinition?->getMethodDefinition($methodName, $scope);
     }
 
-    public function getMethodReturnType(string $methodName, array|ArgumentTypeBag $arguments = [], Scope $scope = new GlobalScope): Type
+    public function getMethodReturnType(string $methodName, array|ArgumentTypeBag $arguments = [], ?Scope $scope = null): Type
     {
+        // Create GlobalScope if no scope is provided
+        if ($scope === null) {
+            $scope = new GlobalScope(app(\Dedoc\Scramble\Infer\Scope\Index::class));
+        }
+
         $arguments = $arguments instanceof ArgumentTypeBag ? $arguments : new UnresolvableArgumentTypeBag($arguments);
         $classDefinition = $scope->index->getClass($this->name);
 

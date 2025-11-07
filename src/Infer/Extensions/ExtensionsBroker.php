@@ -53,6 +53,16 @@ class ExtensionsBroker
     }
 
     /**
+     * Get all registered extensions.
+     *
+     * @return InferExtension[]
+     */
+    public function getExtensions(): array
+    {
+        return $this->extensions;
+    }
+
+    /**
      * @param  class-string<InferExtension>[]  $priority
      */
     public function priority(array $priority): self

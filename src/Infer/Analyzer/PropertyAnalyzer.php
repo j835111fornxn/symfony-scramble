@@ -61,7 +61,7 @@ class PropertyAnalyzer
             $index,
             $nameResolver,
             $scope = new Scope($index, new NodeTypesResolver, new ScopeContext(new ClassDefinition($this->reflectionProperty->getDeclaringClass()->name)), $nameResolver),
-            Context::getInstance()->extensionsBroker->extensions,
+            Context::getInstance()->extensionsBroker->getExtensions(),
         ));
         $traverser->traverse(Arr::wrap($propertyItem));
 
