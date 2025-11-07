@@ -560,6 +560,14 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate
         return implode($glue, $items).$finalGlue.$final;
     }
 
+    /**
+     * Alias for join() to match Laravel Collection API.
+     */
+    public function implode(string $glue, string $finalGlue = ''): string
+    {
+        return $this->join($glue, $finalGlue);
+    }
+
     // ArrayAccess implementation
     public function offsetExists($key): bool
     {

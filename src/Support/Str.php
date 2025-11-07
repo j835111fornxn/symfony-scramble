@@ -336,4 +336,20 @@ class Str
 
         return $prefix.preg_replace('/^(?:'.$quoted.')+/u', '', $value);
     }
+
+    /**
+     * Get all matches for a given pattern.
+     *
+     * @return \Dedoc\Scramble\Support\Collection
+     */
+    public static function matchAll(string $pattern, string $subject): Collection
+    {
+        preg_match_all($pattern, $subject, $matches);
+
+        if (empty($matches[0])) {
+            return collect([]);
+        }
+
+        return collect($matches[1] ?? $matches[0]);
+    }
 }
