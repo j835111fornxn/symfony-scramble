@@ -11,9 +11,9 @@ use Dedoc\Scramble\Support\Generator\TypeTransformer;
 use Dedoc\Scramble\Support\Type\ObjectType;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\CollectionToSchema;
 use Dedoc\Scramble\Support\TypeToSchemaExtensions\ModelToSchema;
-use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SamplePostModel;
-use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SamplePostModelWithToArray;
-use Dedoc\Scramble\Tests\Fixtures\Laravel\Models\SampleUserModel;
+use Dedoc\Scramble\Tests\Fixtures\Entities\Post;
+use Dedoc\Scramble\Tests\Fixtures\Entities\PostWithToArray;
+use Dedoc\Scramble\Tests\Fixtures\Entities\User;
 use Spatie\Snapshots\MatchesSnapshots;
 
 final class InferTypesTest extends SymfonyTestCase
@@ -62,12 +62,12 @@ final class InferTypesTest extends SymfonyTestCase
         ]);
         $extension = new ModelToSchema($this->infer, $transformer, $this->components, $this->context);
 
-        $type = new ObjectType(SamplePostModel::class);
+        $type = new ObjectType(Post::class);
         $openApiType = $extension->toSchema($type);
 
         $this->assertCount(2, $this->components->schemas);
-        $this->assertArrayHasKey('SamplePostModel', $this->components->schemas);
-        $this->assertArrayHasKey('SampleUserModel', $this->components->schemas);
+        $this->assertArrayHasKey('Post', $this->components->schemas);
+        $this->assertArrayHasKey('User', $this->components->schemas);
         $this->assertMatchesSnapshot($openApiType->toArray());
     }
 
@@ -79,18 +79,18 @@ final class InferTypesTest extends SymfonyTestCase
         ]);
         $extension = new ModelToSchema($this->infer, $transformer, $this->components, $this->context);
 
-        $type = new ObjectType(SamplePostModelWithToArray::class);
+        $type = new ObjectType(PostWithToArray::class);
         $openApiType = $extension->toSchema($type);
 
         $this->assertCount(2, $this->components->schemas);
-        $this->assertArrayHasKey('SamplePostModelWithToArray', $this->components->schemas);
-        $this->assertArrayHasKey('SampleUserModel', $this->components->schemas);
+        $this->assertArrayHasKey('PostWithToArray', $this->components->schemas);
+        $this->assertArrayHasKey('User', $this->components->schemas);
         $this->assertMatchesSnapshot($openApiType->toArray());
     }
 }
 
 /**
- * @property SampleUserModel $resource
+ * @property User $resource
  */
 class InferTypesTest_SampleJsonResource extends JsonResource
 {
@@ -124,7 +124,7 @@ class InferTypesTest_SampleJsonResource extends JsonResource
 }
 
 /**
- * @property SamplePostModel $resource
+ * @property Post $resource
  */
 class InferTypesTest_SampleTwoJsonResource extends JsonResource
 {
@@ -138,7 +138,7 @@ class InferTypesTest_SampleTwoJsonResource extends JsonResource
 }
 
 /**
- * @property SamplePostModel $resource
+ * @property Post $resource
  */
 class InferTypesTest_SampleTwoPostJsonResource extends JsonResource
 {
