@@ -51,8 +51,13 @@ class ObjectType extends AbstractType
         return $propertyDefinition->type ?: $propertyDefinition->defaultType;
     }
 
-    public function getMethodDefinition(string $methodName, Scope $scope = new GlobalScope): ?FunctionLikeDefinition
+    public function getMethodDefinition(string $methodName, ?Scope $scope = null): ?FunctionLikeDefinition
     {
+        // Create GlobalScope if no scope is provided
+        if ($scope === null) {
+            $scope = new GlobalScope(app(\Dedoc\Scramble\Infer\Scope\Index::class));
+        }
+
         $classDefinition = $scope->index->getClass($this->name);
 
         return $classDefinition?->getMethodDefinition($methodName, $scope);

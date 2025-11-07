@@ -188,3 +188,29 @@ if (! function_exists('class_basename')) {
         return basename(str_replace('\\', '/', $class));
     }
 }
+
+if (! function_exists('rescue')) {
+    /**
+     * Catch a potential exception and return a default value.
+     *
+     * @param  callable  $callback
+     * @param  mixed  $rescue
+     * @param  bool  $report
+     * @return mixed
+     */
+    function rescue(callable $callback, $rescue = null, bool $report = true)
+    {
+        try {
+            return $callback();
+        } catch (Throwable $e) {
+            if ($report) {
+                // In Symfony, we'd typically log this
+                // For now, we'll just silently catch it
+                // You can add logging here if needed:
+                // logger()?->error($e->getMessage(), ['exception' => $e]);
+            }
+
+            return $rescue instanceof Closure ? $rescue($e) : $rescue;
+        }
+    }
+}
