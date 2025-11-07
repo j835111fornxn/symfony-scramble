@@ -279,6 +279,11 @@ class SymfonyTestCase extends KernelTestCase
                             'url' => 'sqlite:///:memory:',
                             'driver' => 'pdo_sqlite',
                         ],
+                        'orm' => [
+                            'auto_generate_proxy_classes' => true,
+                            'auto_mapping' => false,
+                            'mappings' => [],
+                        ],
                     ]);
 
                     $container->loadFromExtension('scramble', [

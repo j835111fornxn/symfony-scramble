@@ -10,6 +10,9 @@ use Dedoc\Scramble\Support\Type\Type;
 
 class ExtensionsBroker
 {
+    /** @var InferExtension[] */
+    private array $extensions;
+
     /** @var PropertyTypeExtension[] */
     private array $propertyTypeExtensions;
 
@@ -42,8 +45,10 @@ class ExtensionsBroker
      */
     private array $priorities = [];
 
-    public function __construct(public readonly array $extensions = [])
+    public function __construct(iterable $extensions = [])
     {
+        // Convert iterable to array for internal use
+        $this->extensions = is_array($extensions) ? $extensions : iterator_to_array($extensions);
         $this->buildExtensions();
     }
 

@@ -24,7 +24,6 @@ class ScrambleExtensionPass implements CompilerPassInterface
     private function collectExtensions(ContainerBuilder $container, string $tag, string $interface): void
     {
         $taggedServices = $container->findTaggedServiceIds($tag);
-        $extensions = [];
 
         foreach ($taggedServices as $id => $tags) {
             $def = $container->getDefinition($id);
@@ -35,11 +34,9 @@ class ScrambleExtensionPass implements CompilerPassInterface
                     sprintf('Service "%s" must implement "%s".', $id, $interface)
                 );
             }
-
-            $extensions[] = new Reference($id);
         }
 
-        // Store collected extensions as a parameter for use in services
-        $container->setParameter($tag.'.collection', $extensions);
+        // Extensions are injected via tagged_iterator in services.yaml
+        // No need to store as container parameters which cannot contain service references
     }
 }

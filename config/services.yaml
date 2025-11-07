@@ -48,7 +48,7 @@ services:
     # Index services for type inference
     Dedoc\Scramble\Infer\Scope\LazyShallowReflectionIndex:
         factory: ['Dedoc\Scramble\Support\ServiceFactory', 'createLazyShallowReflectionIndex']
-        public: false
+        public: true  # Needed by ScrambleBundle::boot()
 
     Dedoc\Scramble\Infer\Scope\Index:
         factory: ['Dedoc\Scramble\Support\ServiceFactory', 'createIndex']
@@ -56,6 +56,7 @@ services:
 
     # Extension brokers with tagged services (services will be passed as instances)
     Dedoc\Scramble\Infer\Extensions\ExtensionsBroker:
+        public: true  # Needed by ScrambleBundle::boot()
         arguments:
             $extensions: !tagged_iterator scramble.infer_extension
 
