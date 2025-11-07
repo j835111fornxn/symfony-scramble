@@ -1,7 +1,8 @@
-# Spec: test-framework-independence
+# test-framework-independence Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change eliminate-laravel-test-deps. Update Purpose after archive.
+## Requirements
 ### Requirement: Tests SHALL NOT depend on Laravel Foundation framework classes
 
 Tests SHALL NOT use Laravel's Foundation convenience traits or base classes, and SHALL use Symfony equivalents or direct implementations instead.
@@ -132,10 +133,3 @@ Pagination type detection and schema generation SHALL work through interfaces to
 - **AND** it SHALL handle Laravel's Paginator, LengthAwarePaginator, and CursorPaginator
 - **AND** it SHALL be registered as one of multiple pagination type providers
 
-## MODIFIED Requirements
-
-None - this is a new capability.
-
-## REMOVED Requirements
-
-None - this adds new constraints without removing existing functionality.
