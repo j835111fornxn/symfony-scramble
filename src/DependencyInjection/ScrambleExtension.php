@@ -30,7 +30,8 @@ class ScrambleExtension extends Extension
             );
         }
 
-        // Set config as container parameters
+        // Set config as container parameters (both full config and individual keys for compatibility)
+        $container->setParameter('scramble', $config);
         $container->setParameter('scramble.api_path', $config['api_path']);
         $container->setParameter('scramble.api_domain', $config['api_domain']);
         $container->setParameter('scramble.export_path', $config['export_path']);
