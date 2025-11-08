@@ -1,8 +1,7 @@
-# test-framework-independence Specification
+# Spec: test-framework-independence
 
-## Purpose
-TBD - created by archiving change eliminate-laravel-test-deps. Update Purpose after archive.
-## Requirements
+## ADDED Requirements
+
 ### Requirement: Tests SHALL NOT depend on Laravel Foundation framework classes
 
 Tests SHALL NOT use Laravel's Foundation convenience traits or base classes, and SHALL use Symfony equivalents or direct implementations instead.
@@ -40,14 +39,24 @@ Authentication and authorization exceptions SHALL use Symfony's security compone
 
 ### Requirement: Tests SHALL NOT use Laravel Facades
 
-Tests SHALL NOT rely on Laravel's Facade pattern in any form, and SHALL use direct service injection or Symfony service container instead.
+Tests SHALL NOT rely on Laravel's Facade pattern, and SHALL use direct service injection or Symfony service container instead.
 
-_(Updated to explicitly prohibit all remaining Laravel facades including Validator)_
+#### Scenario: Route definition does not use Route facade
+- **GIVEN** a test needing to define routes
+- **WHEN** routes are created
+- **THEN** it SHALL use Symfony's `RouteCollection` and `Route` classes
+- **AND** it SHALL NOT use `Illuminate\Support\Facades\Route`
 
-#### Scenario: Validator facade SHALL NOT be used
-- **GIVEN** a test needing validation
+#### Scenario: Schema operations do not use Schema facade
+- **GIVEN** a test needing to set up database schema
+- **WHEN** tables are created
+- **THEN** it SHALL use Doctrine DBAL's `Schema` or direct SQL
+- **AND** it SHALL NOT use `Illuminate\Support\Facades\Schema`
+
+#### Scenario: Validation does not use Validator facade
+- **GIVEN** a test that validates data
 - **WHEN** validation is performed
-- **THEN** it SHALL use Symfony's Validator component
+- **THEN** it SHALL use Symfony's `Validator` service or direct validation
 - **AND** it SHALL NOT use `Illuminate\Support\Facades\Validator`
 
 ### Requirement: Database schema setup SHALL use Doctrine DBAL or SQL fixtures
@@ -123,38 +132,10 @@ Pagination type detection and schema generation SHALL work through interfaces to
 - **AND** it SHALL handle Laravel's Paginator, LengthAwarePaginator, and CursorPaginator
 - **AND** it SHALL be registered as one of multiple pagination type providers
 
-### Requirement: Tests SHALL NOT depend on Laravel ORM (Eloquent) models
+## MODIFIED Requirements
 
-Tests SHALL NOT reference Laravel's Eloquent ORM models, and SHALL use Doctrine ORM entities or framework-agnostic test doubles instead.
+None - this is a new capability.
 
-#### Scenario: Test fixtures use Doctrine entities
-- **GIVEN** a test requiring data model fixtures
-- **WHEN** the test is defined
-- **THEN** it SHALL use Doctrine ORM entities from `tests/Fixtures/Entities/`
-- **AND** it SHALL NOT reference `Illuminate\Database\Eloquent\Model`
-- **AND** it SHALL NOT import from `*\Fixtures\Laravel\Models\*`
+## REMOVED Requirements
 
-#### Scenario: Type inference tests work with Doctrine
-- **GIVEN** a test validating type inference for data models
-- **WHEN** the test analyzes a model class
-- **THEN** it SHALL analyze a Doctrine entity with `#[ORM\Entity]` attribute
-- **AND** the inferred types SHALL reflect Doctrine property annotations
-- **AND** it SHALL NOT analyze Laravel Eloquent models
-
-### Requirement: Tests SHALL NOT depend on Laravel Collections or API Resources
-
-Tests SHALL NOT use Laravel's Collection or JsonResource classes, and SHALL use Symfony/Doctrine equivalents or standard PHP arrays.
-
-#### Scenario: Tests do not use Laravel Collections
-- **GIVEN** a test working with collections of data
-- **WHEN** the test processes the collection
-- **THEN** it SHALL use Doctrine `ArrayCollection` or standard PHP arrays
-- **AND** it SHALL NOT use `Illuminate\Support\Collection`
-
-#### Scenario: API resource transformation uses Symfony Serializer
-- **GIVEN** a test validating API resource transformation
-- **WHEN** the test transforms data for API output
-- **THEN** it SHALL use Symfony's Serializer component if needed
-- **AND** it SHALL NOT use `Illuminate\Http\Resources\Json\JsonResource`
-- **OR** the test SHALL be skipped/removed if JsonResource-specific
-
+None - this adds new constraints without removing existing functionality.

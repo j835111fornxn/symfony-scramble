@@ -21,7 +21,20 @@
       "Bash(composer show:*)",
       "Bash(composer remove:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"\"\"刪除: {}\"\"\"\" && git rm \"\"\"\"{}\"\"\"\"')",
+      "Bash(cat:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"\"\"刪除: {}\"\"\"\" && git rm -f \"\"\"\"{}\"\"\"\"')",
+      "Bash(git rm:*)",
+      "Bash(openspec archive:*)",
+      "Bash(composer test:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(sudo apt-get update:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(composer test-coverage-text:*)",
+      "Bash(wait)",
+      "Bash(timeout 60 php:*)",
+      "Bash(timeout 30 php vendor/bin/phpunit:*)"
     ],
     "deny": [],
     "ask": []
